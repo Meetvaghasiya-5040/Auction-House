@@ -1,0 +1,505 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Auction{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 -m-8 p-8">
+    <div class="max-w-3xl mx-auto py-12">
+        <!-- Header -->
+        <div class="mb-10">
+            <div class="bg-white shadow-xl bevel-corner overflow-x-hidden">
+                <div class="h-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"></div>
+                <div class="p-8">
+                    <div class="flex items-center gap-6">
+                        <div class="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 bevel-corner shadow-xl flex items-center justify-center">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Auction Setup</span>
+                                <div class="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
+                            </div>
+                            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 mb-2 tracking-tight">
+                                Create New Auction
+                            </h1>
+                            <p class="text-sm text-slate-600 font-medium">Fill in the details below to set up your auction event and start managing bids</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="bg-white shadow-2xl bevel-corner overflow-hidden">
+            <!-- Decorative Top Bar -->
+            <div class="h-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"></div>
+            
+            <div class="p-8">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Auction Title -->
+                    <div class="group">
+                        <label for="id_title" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                            Auction Title *
+                        </label>
+                        <div class="relative">
+                            <input type="text" 
+                                   name="title" 
+                                   id="id_title"
+                                   required
+                                   class="w-full px-4 py-3 border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white focus:from-white focus:to-white focus:border-indigo-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800 placeholder-slate-400"
+                                   placeholder="e.g., Estate Sale - Vintage Collection">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1.5">Choose a descriptive name that clearly identifies your auction</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="group">
+                        <label for="id_description" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                            Description *
+                        </label>
+                        <textarea 
+                            name="description" 
+                            id="id_description"
+                            rows="4"
+                            required
+                            class="w-full px-4 py-3 border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white focus:from-white focus:to-white focus:border-indigo-500 focus:outline-none transition-all bevel-small text-sm text-slate-800 placeholder-slate-400 resize-none"
+                            placeholder="Provide details about the auction items or special conditions..."></textarea>
+                        <p class="text-xs text-slate-500 mt-1.5">Add context to help bidders understand what to expect from this auction</p>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="group">
+                        <label for="id_location" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                            Location <span class="text-slate-400 font-normal normal-case">(Optional)</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" 
+                                   name="location" 
+                                   id="id_location"
+                                   class="w-full px-4 py-3 border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white focus:from-white focus:to-white focus:border-indigo-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800 placeholder-slate-400"
+                                   placeholder="e.g., New York, NY or Online">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1.5">Auction venue or specify if it's online</p>
+                    </div>
+
+                    <!-- Auction Type Selection -->
+                    <div class="bg-indigo-50 border-2 border-indigo-200 p-5 bevel-corner">
+                        <div class="flex items-center gap-2 mb-4">
+                            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wide">Auction Type</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <!-- Live Auction -->
+                            <label class="auction-type-card cursor-pointer">
+                                <input type="radio" name="auction_type" value="live" class="hidden auction-type-radio" checked>
+                                <div class="bg-white border-2 border-slate-200 p-4 bevel-small transition-all hover:border-indigo-500 hover:shadow-md">
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 bg-indigo-100 mx-auto mb-3 bevel-small flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="font-bold text-slate-900 text-sm mb-1">Live Auction</p>
+                                        <p class="text-xs text-slate-600">Start anytime</p>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Scheduled Auction -->
+                            <label class="auction-type-card cursor-pointer">
+                                <input type="radio" name="auction_type" value="scheduled" class="hidden auction-type-radio">
+                                <div class="bg-white border-2 border-slate-200 p-4 bevel-small transition-all hover:border-indigo-500 hover:shadow-md">
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 bg-purple-100 mx-auto mb-3 bevel-small flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="font-bold text-slate-900 text-sm mb-1">Scheduled</p>
+                                        <p class="text-xs text-slate-600">Set dates</p>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Timed Auction -->
+                            <label class="auction-type-card cursor-pointer">
+                                <input type="radio" name="auction_type" value="timed" class="hidden auction-type-radio">
+                                <div class="bg-white border-2 border-slate-200 p-4 bevel-small transition-all hover:border-indigo-500 hover:shadow-md">
+                                    <div class="text-center">
+                                        <div class="w-12 h-12 bg-pink-100 mx-auto mb-3 bevel-small flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="font-bold text-slate-900 text-sm mb-1">Timed</p>
+                                        <p class="text-xs text-slate-600">Fixed duration</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Section (Hidden by default, shown for scheduled auctions) -->
+                    <div id="scheduleSection" class="hidden space-y-6">
+                        <!-- Start Date & Time Section -->
+                        <div class="bg-purple-50 border-2 border-purple-200 p-5 bevel-corner">
+                            <div class="flex items-center gap-2 mb-4">
+                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h3 class="text-xs font-bold text-purple-900 uppercase tracking-wide">Auction Start</h3>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Start Date -->
+                                <div class="group">
+                                    <label for="id_start_date" class="block text-xs font-bold text-purple-800 mb-2 uppercase tracking-wide">
+                                        Date *
+                                    </label>
+                                    <div class="relative">
+                                        <input type="date" 
+                                               name="start_date" 
+                                               id="id_start_date"
+                                               class="w-full px-4 py-3 border-2 border-purple-200 bg-white focus:border-purple-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-purple-400 group-focus-within:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Start Time -->
+                                <div class="group">
+                                    <label for="id_start_time_only" class="block text-xs font-bold text-purple-800 mb-2 uppercase tracking-wide">
+                                        Time *
+                                    </label>
+                                    <div class="relative">
+                                        <input type="time" 
+                                               name="start_time_only" 
+                                               id="id_start_time_only"
+                                               class="w-full px-4 py-3 border-2 border-purple-200 bg-white focus:border-purple-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-purple-400 group-focus-within:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-purple-700 mt-2">Specify when bidders can start placing bids</p>
+                        </div>
+
+                        <!-- End Date & Time Section -->
+                        <div class="bg-rose-50 border-2 border-rose-200 p-5 bevel-corner">
+                            <div class="flex items-center gap-2 mb-4">
+                                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h3 class="text-xs font-bold text-rose-900 uppercase tracking-wide">Auction End</h3>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- End Date -->
+                                <div class="group">
+                                    <label for="id_end_date" class="block text-xs font-bold text-rose-800 mb-2 uppercase tracking-wide">
+                                        Date *
+                                    </label>
+                                    <div class="relative">
+                                        <input type="date" 
+                                               name="end_date" 
+                                               id="id_end_date"
+                                               class="w-full px-4 py-3 border-2 border-rose-200 bg-white focus:border-rose-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-rose-400 group-focus-within:text-rose-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- End Time -->
+                                <div class="group">
+                                    <label for="id_end_time_only" class="block text-xs font-bold text-rose-800 mb-2 uppercase tracking-wide">
+                                        Time *
+                                    </label>
+                                    <div class="relative">
+                                        <input type="time" 
+                                               name="end_time_only" 
+                                               id="id_end_time_only"
+                                               class="w-full px-4 py-3 border-2 border-rose-200 bg-white focus:border-rose-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-rose-400 group-focus-within:text-rose-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-rose-700 mt-2">When the auction will automatically close and stop accepting bids</p>
+                        </div>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="bg-slate-50 border-2 border-slate-200 p-5 bevel-corner">
+                        <div class="flex items-center gap-2 mb-4">
+                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Auction Settings</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="group">
+                                <label for="id_buyer_premium" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                                    Buyer Premium (%)
+                                </label>
+                                <input type="number" 
+                                       name="buyer_premium_percentage" 
+                                       id="id_buyer_premium"
+                                       step="0.01"
+                                       value="0.00"
+                                       class="w-full px-4 py-3 border-2 border-slate-200 bg-white focus:border-indigo-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800">
+                            </div>
+
+                            <div class="group">
+                                <label for="id_min_bid" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                                    Min Bid Increment (₹)
+                                </label>
+                                <input type="number" 
+                                       name="min_bid_increment" 
+                                       id="id_min_bid"
+                                       step="0.01"
+                                       value="100.00"
+                                       class="w-full px-4 py-3 border-2 border-slate-200 bg-white focus:border-indigo-500 focus:outline-none transition-all bevel-small text-sm font-medium text-slate-800">
+                            </div>
+                        </div>
+
+                        <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 bevel-small cursor-pointer hover:border-indigo-300 transition">
+                            <input type="checkbox" name="allow_proxy_bidding" id="id_proxy" checked
+                                   class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                            <span class="text-sm font-medium text-slate-700">Allow proxy bidding</span>
+                        </label>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="group">
+                        <label for="id_terms" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                            Terms & Conditions <span class="text-slate-400 font-normal normal-case">(Optional)</span>
+                        </label>
+                        <textarea 
+                            name="terms_and_conditions" 
+                            id="id_terms"
+                            rows="4"
+                            class="w-full px-4 py-3 border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white focus:from-white focus:to-white focus:border-indigo-500 focus:outline-none transition-all bevel-small text-sm text-slate-800 placeholder-slate-400 resize-none"
+                            placeholder="Enter auction terms and conditions..."></textarea>
+                    </div>
+
+                    <!-- Admin Notice -->
+                    {% if not user.is_staff %}
+                    <div class="bg-amber-50 border-l-4 border-amber-400 p-4 bevel-small">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-xs font-bold text-amber-800 mb-1 uppercase tracking-wide">Approval Required</h3>
+                                <p class="text-xs text-amber-700">Your auction will be submitted for admin approval before going live. You'll be notified once it's reviewed.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Info Box -->
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 bevel-small">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-xs font-bold text-blue-800 mb-1 uppercase tracking-wide">Before You Submit</h3>
+                                <ul class="text-xs text-blue-700 space-y-1">
+                                    <li>• Verify the auction title is clear and descriptive</li>
+                                    <li>• For scheduled auctions, ensure dates are accurate</li>
+                                    <li>• End date must be after the start date</li>
+                                    <li>• You can add lots and items after creating the auction</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="relative py-3">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t-2 border-slate-200"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button type="submit" 
+                                name="action"
+                                value="{% if user.is_staff %}submit{% else %}submit{% endif %}"
+                                class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 px-6 transition-all bevel-corner shadow-lg hover:shadow-xl text-sm uppercase tracking-wide transform hover:-translate-y-0.5">
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                {% if user.is_staff %}Create & Approve{% else %}Submit for Approval{% endif %}
+                            </span>
+                        </button>
+                        <button type="submit"
+                                name="action"
+                                value="draft"
+                                class="sm:w-40 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 px-6 transition-all bevel-corner text-sm uppercase tracking-wide transform hover:-translate-y-0.5">
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                                </svg>
+                                Save Draft
+                            </span>
+                        </button>
+                        <a href="{% url 'all_auction' %}" 
+                           class="sm:w-32 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3.5 px-6 text-center transition-all bevel-corner text-sm uppercase tracking-wide transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bottom Help Section -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Next Steps -->
+            <div class="bg-white border-2 border-emerald-200 p-4 bevel-corner shadow-sm">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-emerald-100 flex items-center justify-center bevel-small">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xs font-bold text-emerald-900 uppercase tracking-wide">Next Steps</h3>
+                </div>
+                <p class="text-xs text-emerald-700">After creation, add lots with items and set starting bids from the auction dashboard</p>
+            </div>
+
+            <!-- Scheduling -->
+            <div class="bg-white border-2 border-purple-200 p-4 bevel-corner shadow-sm">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-purple-100 flex items-center justify-center bevel-small">
+                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xs font-bold text-purple-900 uppercase tracking-wide">Scheduling</h3>
+                </div>
+                <p class="text-xs text-purple-700">Schedule auctions at least 24 hours in advance to give bidders time to review items</p>
+            </div>
+
+            <!-- Modifications -->
+            <div class="bg-white border-2 border-amber-200 p-4 bevel-corner shadow-sm">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-amber-100 flex items-center justify-center bevel-small">
+                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xs font-bold text-amber-900 uppercase tracking-wide">Modifications</h3>
+                </div>
+                <p class="text-xs text-amber-700">You can edit auction details anytime before it starts. Changes during live auctions are restricted</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bevel-corner {
+        clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+    }
+    .bevel-small {
+        clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+    }
+    
+    .auction-type-card input:checked + div {
+        border-color: #6366f1;
+        background: linear-gradient(to bottom right, #eef2ff, #f5f3ff);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+</style>
+
+<script>
+// Auction type selection handler
+const auctionTypeCards = document.querySelectorAll('.auction-type-card');
+const scheduleSection = document.getElementById('scheduleSection');
+
+auctionTypeCards.forEach(card => {
+    card.addEventListener('click', function() {
+        const radio = this.querySelector('input[type="radio"]');
+        radio.checked = true;
+        
+        // Show/hide schedule section
+        if (radio.value === 'scheduled') {
+            scheduleSection.classList.remove('hidden');
+        } else {
+            scheduleSection.classList.add('hidden');
+        }
+    });
+});
+
+// Form submission handler
+document.querySelector('form').addEventListener('submit', function(e) {
+    const auctionType = document.querySelector('input[name="auction_type"]:checked').value;
+    
+    // Validate scheduled auctions
+    if (auctionType === 'scheduled') {
+        const startDate = document.getElementById('id_start_date').value;
+        const startTime = document.getElementById('id_start_time_only').value;
+        const endDate = document.getElementById('id_end_date').value;
+        const endTime = document.getElementById('id_end_time_only').value;
+        
+        if (!startDate || !startTime || !endDate || !endTime) {
+            e.preventDefault();
+            alert('Please set complete start and end dates/times for scheduled auction');
+            return;
+        }
+        
+        const startDateTime = new Date(startDate + 'T' + startTime);
+        const endDateTime = new Date(endDate + 'T' + endTime);
+        
+        if (endDateTime <= startDateTime) {
+            e.preventDefault();
+            alert('End date/time must be after start date/time');
+            return;
+        }
+    }
+});
+</script>
+
+{% endblock %}

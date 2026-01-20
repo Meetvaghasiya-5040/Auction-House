@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction House - OTP Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%),
+                        url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%23667eea"/><path d="M50 10 L60 30 L80 30 L65 42 L70 62 L50 50 L30 62 L35 42 L20 30 L40 30 Z" fill="rgba(255,255,255,0.03)"/></svg>');
+            background-size: cover, 80px 80px;
+            background-attachment: fixed;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 20s ease-in-out infinite;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-30px) translateX(20px); }
+        }
+        .clip-corner {
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        }
+        @media (min-width: 640px) {
+            .clip-corner {
+                clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+            }
+        }
+        .animated-shield {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+            50% { filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)); }
+        }
+        .feature-card {
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8">
+    <div class="container mx-auto max-w-7xl relative z-10 w-full">
+        <div class="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-center">
+            
+            
+            <div class="hidden lg:block space-y-4 xl:space-y-6">
+                <div class="text-white space-y-3 xl:space-y-4">
+                    <h2 class="text-3xl xl:text-5xl font-bold leading-tight">
+                        Secure Your<br/>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-pink-200">
+                            Account Access
+                        </span>
+                    </h2>
+                    <p class="text-indigo-100 text-base xl:text-lg">
+                        We've sent a verification code to your registered device
+                    </p>
+                </div>
+
+                
+                <div class="space-y-3 xl:space-y-4 mt-6 xl:mt-8">
+                    <div class="feature-card bg-white/10 p-4 xl:p-5 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3 xl:space-x-4">
+                            <div class="bg-green-400/20 p-2 xl:p-3 flex-shrink-0">
+                                <svg class="w-5 h-5 xl:w-6 xl:h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-base xl:text-lg mb-1">Two-Factor Authentication</h3>
+                                <p class="text-indigo-100 text-xs xl:text-sm">Extra layer of security to protect your account</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card bg-white/10 p-4 xl:p-5 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3 xl:space-x-4">
+                            <div class="bg-blue-400/20 p-2 xl:p-3 flex-shrink-0">
+                                <svg class="w-5 h-5 xl:w-6 xl:h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-base xl:text-lg mb-1">Encrypted Codes</h3>
+                                <p class="text-indigo-100 text-xs xl:text-sm">Your verification code is securely encrypted in transit</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card bg-white/10 p-4 xl:p-5 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3 xl:space-x-4">
+                            <div class="bg-purple-400/20 p-2 xl:p-3 flex-shrink-0">
+                                <svg class="w-5 h-5 xl:w-6 xl:h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-base xl:text-lg mb-1">Time-Limited</h3>
+                                <p class="text-indigo-100 text-xs xl:text-sm">Code expires in 2 minutes for enhanced security</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 xl:p-5 mt-6 xl:mt-8">
+                    <h3 class="text-white font-semibold text-base xl:text-lg mb-2">Security Tips</h3>
+                    <ul class="space-y-2 text-indigo-100 text-xs xl:text-sm">
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>Never share your OTP with anyone</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>Check the sender before entering the code</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>Report suspicious activity immediately</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            
+            <div class="w-full max-w-md mx-auto lg:mx-0">
+                
+                <div class="lg:hidden text-center mb-6 sm:mb-8">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-white leading-tight mb-2">
+                        Secure Your<br/>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-pink-200">
+                            Account Access
+                        </span>
+                    </h2>
+                    <p class="text-indigo-100 text-sm sm:text-base">
+                        Enter the verification code sent to your device
+                    </p>
+                </div>
+
+                <div class="bg-white/95 backdrop-blur-sm shadow-2xl overflow-hidden clip-corner">
+                    
+                    <div class="bg-gradient-to-r from-indigo-400 to-purple-400 px-5 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 text-center">
+                        <div class="inline-block bg-white/20 backdrop-blur-md px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 mb-2 sm:mb-3">
+                            <svg class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 mx-auto text-white animated-shield" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl sm:text-2xl md:text-3xl font-bold text-white mb-1" id="headerTitle">Verify Your Identity</h1>
+                        <p class="text-indigo-50 text-xs sm:text-sm" id="headerSubtitle">Enter your email to receive verification code</p>
+                    </div>
+
+                    
+                    <div class="px-5 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
+                        
+                        <form method="post" id="emailForm" class="space-y-4 sm:space-y-5 md:space-y-6 {% if email %}hidden{% endif %}">
+                            {% csrf_token %}
+                            
+                            <div id="emailStep">
+                                <label for="email" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                    Email Address
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-4 w-4 sm:h-5 sm:w-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="email" 
+                                        id="emailInput" 
+                                        name="email" 
+                                        required
+                                        value="{{ email|default:'' }}"
+                                        class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                        placeholder="your@email.com"
+                                        autocomplete="email"
+                                    >
+                                </div>
+                                <p class="mt-1.5 sm:mt-2 text-xs text-gray-500">
+                                    We'll send a verification code to this email
+                                </p>
+
+                                <button 
+                                    type="submit"
+                                    class="w-full mt-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-2.5 sm:py-3 px-4 text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    Send Verification Code
+                                </button>
+                            </div>
+                        </form>
+
+                        
+                        <form method="post" id="otpForm" class="space-y-4 sm:space-y-5 md:space-y-6 {% if not email %}hidden{% endif %}">
+                            {% csrf_token %}
+                            
+                            <div id="otpStep">
+                                
+                                <div class="bg-indigo-50 border border-indigo-200 p-3 mb-4 text-center">
+                                    <p class="text-xs text-gray-600 mb-1">Code sent to:</p>
+                                    <p class="text-sm font-semibold text-indigo-600">{{ email|default:'' }}</p>
+                                    <button type="button" onclick="changeEmail()" class="text-xs text-indigo-500 hover:text-indigo-600 mt-1">
+                                        Change email
+                                    </button>
+                                </div>
+
+                                <input type="hidden" name="email" value="{{ email|default:'' }}">
+
+                                <label for="otp" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                    Verification Code
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-4 w-4 sm:h-5 sm:w-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        id="otp" 
+                                        name="otp" 
+                                        maxlength="6"
+                                        pattern="[0-9]{6}"
+                                        required
+                                        class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900 text-center tracking-widest font-semibold text-lg sm:text-xl"
+                                        placeholder="000000"
+                                        autocomplete="off"
+                                    >
+                                </div>
+                                <p class="mt-1.5 sm:mt-2 text-xs text-gray-500 text-center">
+                                    Enter the 6-digit code (expires in 2 minutes)
+                                </p>
+
+                                <button 
+                                    type="submit"
+                                    class="w-full mt-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-2.5 sm:py-3 px-4 text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    Verify Code
+                                </button>
+
+                                
+                                <div class="text-center pt-3 sm:pt-4 border-t border-gray-200 mt-4">
+                                    <p class="text-gray-600 text-xs sm:text-sm mb-2">
+                                        Didn't receive the code?
+                                    </p>
+                                    <a href="{% url 'otp_form' %}" class="text-indigo-500 hover:text-indigo-600 font-medium transition-colors text-xs sm:text-sm">
+                                        Resend Code
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+
+                        
+                        <div class="text-center mt-4">
+                            <a href="{% url 'login' %}" class="text-gray-500 hover:text-gray-700 text-xs sm:text-sm transition-colors inline-flex items-center">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                Back to Login
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="lg:hidden bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-4 mt-4 sm:mt-6">
+                    <h3 class="text-white font-semibold text-sm sm:text-base mb-2 text-center">🔒 Security Tips</h3>
+                    <div class="space-y-1.5 text-indigo-100 text-xs">
+                        <p>✓ Never share your OTP with anyone</p>
+                        <p>✓ Check the sender before entering code</p>
+                        <p>✓ Report suspicious activity immediately</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    {% if messages %}
+    <div id="messageContainer" class="fixed bottom-6 right-6 z-50 space-y-3 max-w-sm w-full px-4 sm:px-0">
+        {% for message in messages %}
+        <div class="message-item flex items-start p-4 shadow-2xl backdrop-blur-md {% if message.tags == 'error' or message.tags == 'danger' %}bg-red-500/95 text-white{% elif message.tags == 'success' %}bg-green-500/95 text-white{% elif message.tags == 'warning' %}bg-yellow-500/95 text-white{% else %}bg-blue-500/95 text-white{% endif %} clip-corner transform translate-x-full opacity-0">
+            <div class="flex-shrink-0 mr-3">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    {% if message.tags == 'error' or message.tags == 'danger' %}
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    {% elif message.tags == 'success' %}
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    {% elif message.tags == 'warning' %}
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    {% else %}
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    {% endif %}
+                </svg>
+            </div>
+            <div class="flex-1 text-sm font-medium">
+                {{ message }}
+            </div>
+            <button onclick="dismissMessage(this)" class="flex-shrink-0 ml-3 text-white/80 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.message-item');
+            messages.forEach((msg, index) => {
+                setTimeout(() => {
+                    msg.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    msg.style.transform = 'translateX(0)';
+                    msg.style.opacity = '1';
+                }, index * 150);
+            });
+
+            setTimeout(() => {
+                messages.forEach((msg, index) => {
+                    setTimeout(() => {
+                        dismissMessage(msg.querySelector('button'));
+                    }, index * 100);
+                });
+            }, 5000);
+
+            const otpInput = document.getElementById('otp');
+            if (otpInput) {
+                otpInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+                
+                // Auto-focus OTP input if form is visible
+                const otpForm = document.getElementById('otpForm');
+                if (otpForm && !otpForm.classList.contains('hidden')) {
+                    otpInput.focus();
+                }
+            }
+
+            
+            // Auto-focus email input if email form is visible
+            const emailInput = document.getElementById('emailInput');
+            const emailForm = document.getElementById('emailForm');
+            if (emailInput && emailForm && !emailForm.classList.contains('hidden')) {
+                emailInput.focus();
+            }
+        });
+
+        function dismissMessage(button) {
+            const messageItem = button.closest('.message-item');
+            messageItem.style.transition = 'all 0.4s ease-in-out';
+            messageItem.style.transform = 'translateX(120%)';
+            messageItem.style.opacity = '0';
+            
+            setTimeout(() => {
+                messageItem.remove();
+                const container = document.getElementById('messageContainer');
+                if (container && container.querySelectorAll('.message-item').length === 0) {
+                    container.remove();
+                }
+            }, 400);
+        }
+
+        function changeEmail() {
+            document.getElementById('emailForm').classList.remove('hidden');
+            document.getElementById('otpForm').classList.add('hidden');
+            document.getElementById('headerTitle').textContent = 'Verify Your Identity';
+            document.getElementById('headerSubtitle').textContent = 'Enter your email to receive verification code';
+        }
+    </script>
+</body>
+</html>

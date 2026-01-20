@@ -1,0 +1,912 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+  }
+  .slide-in-left {
+    animation: slideInLeft 0.6s ease-out forwards;
+    opacity: 0;
+  }
+  .slide-in-right {
+    animation: slideInRight 0.6s ease-out forwards;
+    opacity: 0;
+  }
+  .scale-in {
+    animation: scaleIn 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  .info-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    background: white;
+  }
+  .info-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(236, 72, 153, 0.03), transparent);
+    transition: left 0.5s;
+  }
+  .info-card:hover::after {
+    left: 100%;
+  }
+  .info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(236, 72, 153, 0.15);
+    border-color: #ec4899;
+  }
+
+  .item-card {
+    transition: all 0.3s ease;
+    background: white;
+    border: 1px solid #e2e8f0;
+  }
+  .item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(236, 72, 153, 0.15);
+    border-color: #ec4899;
+  }
+
+  .price-card {
+    transition: all 0.3s ease;
+    background: white;
+  }
+  .price-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(236, 72, 153, 0.15);
+  }
+
+  .stat-icon {
+    transition: all 0.3s ease;
+  }
+  .info-card:hover .stat-icon,
+  .price-card:hover .stat-icon {
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  .info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 9999px;
+  }
+
+  .back-btn {
+    transition: all 0.2s ease;
+  }
+  .back-btn:hover {
+    transform: translateX(-4px);
+  }
+
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ec4899, #f59e0b, #8b5cf6);
+    animation: shimmer 3s infinite;
+    background-size: 200% 100%;
+  }
+
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+  .delay-5 { animation-delay: 0.5s; }
+  .delay-6 { animation-delay: 0.6s; }
+  .delay-7 { animation-delay: 0.7s; }
+
+  .timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ec4899;
+    position: absolute;
+    left: -6px;
+  }
+
+  .timeline-line {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #ec4899, #f59e0b);
+  }
+
+  /* Chat Box Styles */
+  .chat-container {
+    max-height: 400px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  .chat-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .chat-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+
+  .chat-container::-webkit-scrollbar-thumb {
+    background: #ec4899;
+    border-radius: 10px;
+  }
+
+  .chat-container::-webkit-scrollbar-thumb:hover {
+    background: #db2777;
+  }
+
+  .chat-message {
+    animation: slideInLeft 0.3s ease-out;
+  }
+
+  .chat-message.user {
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  .digit-input {
+    transition: all 0.2s ease;
+  }
+
+  .digit-input:focus {
+    transform: scale(1.02);
+  }
+
+  .digit-input.error {
+    border-color: #ef4444 !important;
+    animation: shake 0.3s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  @media (max-width: 768px) {
+    .item-card {
+      margin-bottom: 0.75rem;
+    }
+  }
+</style>
+
+{% if lot %}
+<div class="bg-gradient-to-br from-slate-50 via-pink-50 to-orange-50 min-h-screen">
+  <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
+    <!-- Back Button & Header -->
+    <div class="mb-6 fade-in-up">
+      <a href="{% url 'view_lots' %}" class="back-btn inline-flex items-center gap-2 text-slate-600 hover:text-pink-600 font-bold mb-4 transition-colors">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to All Lots</span>
+      </a>
+
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
+              Lot #{{ lot.0.lot_number }}
+            </h1>
+            {% if lot.0.status == 'active' %}
+            <span class="info-badge bg-emerald-500 text-white">
+              <i class="fas fa-circle text-xs pulse-animation"></i>Active
+            </span>
+            {% elif lot.0.status == 'sold' %}
+            <span class="info-badge bg-blue-500 text-white">
+              <i class="fas fa-check-circle text-xs"></i>Sold
+            </span>
+            {% elif lot.0.status == 'draft' %}
+            <span class="info-badge bg-slate-400 text-white">
+              <i class="fas fa-file-alt text-xs"></i>Draft
+            </span>
+            {% elif lot.0.status == 'unsold' %}
+            <span class="info-badge bg-amber-500 text-white">
+              <i class="fas fa-times-circle text-xs"></i>Unsold
+            </span>
+            {% elif lot.0.status == 'withdrawn' %}
+            <span class="info-badge bg-red-500 text-white">
+              <i class="fas fa-ban text-xs"></i>Withdrawn
+            </span>
+            {% endif %}
+          </div>
+          <p class="text-sm md:text-base text-slate-600 font-medium">
+            <i class="fas fa-gavel text-pink-600 mr-1"></i>
+            {{ lot.0.auction.title }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left Column: Main Info -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Lot Title and Description -->
+        <div class="info-card border border-slate-200 shadow-sm p-6 md:p-8 slide-in-left rounded-xl">
+          <div class="gradient-border pb-4 mb-6">
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 mb-2">
+              {{ lot.0.title }}
+            </h2>
+            {% if lot.0.lot_catagory %}
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-full">
+              <i class="fas fa-tag text-indigo-600 text-xs"></i>
+              <span class="text-xs font-bold text-indigo-700">{{ lot.0.lot_catagory.name }}</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <p class="text-slate-700 text-base md:text-lg leading-relaxed whitespace-pre-line">
+            {{ lot.0.description }}
+          </p>
+        </div>
+
+        <!-- Items in Lot -->
+        <div class="info-card border border-slate-200 shadow-sm slide-in-left delay-1 rounded-xl">
+          <div class="p-6 md:p-8 border-b border-slate-100 gradient-border">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl md:text-2xl font-black text-slate-900 flex items-center gap-2">
+                <i class="fas fa-boxes text-pink-600"></i>
+                Items in this Lot
+              </h3>
+              <span class="info-badge bg-pink-600 text-white">
+                {{ lot.0.item_count }} Item{{ lot.0.item_count|pluralize }}
+              </span>
+            </div>
+          </div>
+
+          <div class="p-6 md:p-8">
+            {% if lot.0.items.exists %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {% for item in lot.0.items.all %}
+              <div class="item-card p-5 scale-in rounded-xl">
+                <div class="flex items-start justify-between mb-3">
+                  <a href="{% url 'item_detail' item.id item.slug %}">
+                    <h4 class="text-base md:text-lg font-black text-slate-900 flex-1 hover:text-pink-600 transition-colors">
+                      {{ item.title }}
+                    </h4>
+                  </a>
+                  {% if item.condition %}
+                  <span class="info-badge bg-slate-100 text-slate-700 text-xs">
+                    {{ item.condition }}
+                  </span>
+                  {% endif %}
+                </div>
+
+                {% if item.description %}
+                <p class="text-slate-600 text-sm mb-4">
+                  {{ item.description|truncatewords:20 }}
+                </p>
+                {% endif %}
+
+                <div class="space-y-2">
+                  {% if item.estimated_value %}
+                  <div class="flex items-center justify-between py-2 border-t border-slate-100">
+                    <span class="text-xs text-slate-500 font-bold uppercase">Est. Value</span>
+                    <span class="text-sm font-black text-pink-600">₹{{ item.estimated_value|floatformat:0 }}</span>
+                  </div>
+                  {% endif %}
+                  {% if item.year %}
+                  <div class="flex items-center justify-between py-2 border-t border-slate-100">
+                    <span class="text-xs text-slate-500 font-bold uppercase">Year</span>
+                    <span class="text-sm font-black text-slate-900">{{ item.year }}</span>
+                  </div>
+                  {% endif %}
+                  {% if item.manufacturer %}
+                  <div class="flex items-center justify-between py-2 border-t border-slate-100">
+                    <span class="text-xs text-slate-500 font-bold uppercase">Manufacturer</span>
+                    <span class="text-sm font-black text-slate-900">{{ item.manufacturer }}</span>
+                  </div>
+                  {% endif %}
+                  {% if item.model %}
+                  <div class="flex items-center justify-between py-2 border-t border-slate-100">
+                    <span class="text-xs text-slate-500 font-bold uppercase">Model</span>
+                    <span class="text-sm font-black text-slate-900">{{ item.model }}</span>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+              <div class="w-20 h-20 mx-auto mb-4 bg-slate-100 flex items-center justify-center rounded-xl">
+                <i class="fas fa-box-open text-slate-300 text-4xl"></i>
+              </div>
+              <h4 class="text-lg font-black text-slate-700 mb-2">No Items Yet</h4>
+              <p class="text-slate-500 text-sm">This lot doesn't contain any items</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Bid Chat System -->
+        {% if lot.0.status == 'active' %}
+        <div class="info-card border border-slate-200 shadow-sm slide-in-left delay-3 rounded-xl overflow-hidden">
+          <!-- Chat Header -->
+          <div class="p-6 md:p-8 border-b border-slate-100 bg-gradient-to-r from-pink-50 to-orange-50">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl md:text-2xl font-black text-slate-900 flex items-center gap-2">
+                <i class="fas fa-comments text-pink-600"></i>
+                Bidding Chat
+              </h3>
+              <span class="info-badge bg-pink-600 text-white pulse-animation">
+                <i class="fas fa-circle text-xs"></i>Live
+              </span>
+            </div>
+          </div>
+
+          <!-- Chat Body -->
+          <div class="p-6 md:p-8">
+            <!-- Bid Info Cards -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-gradient-to-br from-emerald-50 to-green-50 p-4 rounded-xl border border-emerald-200">
+                <p class="text-xs font-bold text-emerald-600 uppercase mb-1">Current Bid</p>
+                <p class="text-2xl font-black text-emerald-700" id="currentBidDisplay">₹{{ lot.0.current_bid|floatformat:0 }}</p>
+              </div>
+              <div class="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200">
+                <p class="text-xs font-bold text-amber-600 uppercase mb-1">Min. Next Bid</p>
+                <p class="text-2xl font-black text-amber-700" id="minBidDisplay">₹{{ lot.0.current_bid|add:1000|floatformat:0 }}</p>
+              </div>
+            </div>
+
+            <!-- Chat Messages Container -->
+            <div class="chat-container mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200" id="chatMessages" style="min-height: 250px;">
+              <!-- System Welcome Message -->
+              <div class="chat-message mb-4">
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-xs"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                      <p class="text-xs font-bold text-pink-600 mb-1">System</p>
+                      <p class="text-sm text-slate-700">Welcome to the bidding chat! Enter your bid amount below (numbers only). Current minimum bid is ₹{{ lot.0.current_bid|add:1000|floatformat:0 }}</p>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1 ml-1">Just now</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Input Form -->
+            <form id="chatBidForm" class="space-y-4">
+              {% csrf_token %}
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">
+                  <i class="fas fa-rupee-sign text-pink-600 mr-1"></i>
+                  Enter Your Bid (Digits Only)
+                </label>
+                <div class="flex gap-2">
+                  <div class="relative flex-1">
+                    <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                    <input
+                      type="text"
+                      name="bid_amount"
+                      id="chatBidInput"
+                      inputmode="numeric"
+                      placeholder="Enter amount (e.g., 50000)"
+                      class="digit-input w-full pl-10 pr-4 py-3 border-2 border-slate-200 rounded-xl text-lg font-bold focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-100 transition-all"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    class="px-6 py-3 bg-gradient-to-r from-pink-600 to-orange-500 hover:from-pink-700 hover:to-orange-600 text-white font-black rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center gap-2"
+                  >
+                    <i class="fas fa-paper-plane"></i>
+                    <span class="hidden sm:inline">Send</span>
+                  </button>
+                </div>
+                <p class="text-xs text-slate-500 mt-2 font-semibold" id="inputHelper">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Only numeric values are accepted
+                </p>
+              </div>
+            </form>
+
+            <!-- Quick Bid Buttons -->
+            <div class="mt-4">
+              <p class="text-xs font-bold text-slate-600 mb-2">Quick Bids:</p>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="quickBid(1000)" class="px-4 py-2 bg-slate-100 hover:bg-pink-100 text-slate-700 hover:text-pink-700 font-bold text-sm rounded-lg transition-all border border-slate-200 hover:border-pink-300">
+                  +₹1,000
+                </button>
+                <button onclick="quickBid(5000)" class="px-4 py-2 bg-slate-100 hover:bg-pink-100 text-slate-700 hover:text-pink-700 font-bold text-sm rounded-lg transition-all border border-slate-200 hover:border-pink-300">
+                  +₹5,000
+                </button>
+                <button onclick="quickBid(10000)" class="px-4 py-2 bg-slate-100 hover:bg-pink-100 text-slate-700 hover:text-pink-700 font-bold text-sm rounded-lg transition-all border border-slate-200 hover:border-pink-300">
+                  +₹10,000
+                </button>
+                <button onclick="quickBid(25000)" class="px-4 py-2 bg-slate-100 hover:bg-pink-100 text-slate-700 hover:text-pink-700 font-bold text-sm rounded-lg transition-all border border-slate-200 hover:border-pink-300">
+                  +₹25,000
+                </button>
+              </div>
+            </div>
+
+            <!-- Helper Text -->
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div class="flex items-start gap-3">
+                <i class="fas fa-lightbulb text-blue-600 text-xl mt-1"></i>
+                <div>
+                  <p class="text-sm font-bold text-blue-900 mb-1">Bidding Tips</p>
+                  <ul class="text-xs text-blue-700 space-y-1 font-semibold">
+                    <li>• Your bid must be at least ₹1,000 higher than the current bid</li>
+                    <li>• Enter numbers only (no commas or special characters)</li>
+                    <li>• Use quick bid buttons for faster bidding</li>
+                    <li>• All bids are final and cannot be cancelled</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Timeline Information -->
+        <div class="info-card border border-slate-200 shadow-sm p-6 md:p-8 slide-in-left delay-2 rounded-xl">
+          <h3 class="text-xl md:text-2xl font-black text-slate-900 mb-6 flex items-center gap-2 gradient-border pb-4">
+            <i class="fas fa-clock text-pink-600"></i>
+            Timeline
+          </h3>
+          <div class="relative pl-6">
+            <div class="timeline-line"></div>
+
+            <div class="relative mb-6">
+              <div class="timeline-dot"></div>
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-xs font-bold text-slate-500 uppercase">Created</p>
+                  <p class="text-base font-black text-slate-900">{{ lot.0.created_at|date:"M d, Y" }}</p>
+                  <p class="text-xs text-slate-500 font-semibold">{{ lot.0.created_at|date:"h:i A" }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="relative">
+              <div class="timeline-dot bg-amber-500"></div>
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-xs font-bold text-slate-500 uppercase mb-1">Last Updated</p>
+                  <p class="text-base font-black text-slate-900">{{ lot.0.updated_at|date:"M d, Y" }}</p>
+                  <p class="text-xs text-slate-500 font-semibold">{{ lot.0.updated_at|date:"h:i A" }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Pricing & Details -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- Pricing Cards -->
+        <div class="space-y-4">
+          <!-- Starting Bid -->
+          <div class="price-card border border-slate-200 shadow-sm p-6 slide-in-right rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wide">Starting Bid</h4>
+              <div class="stat-icon w-10 h-10 bg-pink-100 flex items-center justify-center rounded-xl">
+                <i class="fas fa-tag text-pink-600"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-black text-pink-600">₹{{ lot.0.starting_bid|floatformat:0 }}</p>
+          </div>
+
+          <!-- Current Bid -->
+          <div class="price-card border border-emerald-200 shadow-sm p-6 slide-in-right delay-1 rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs font-bold text-emerald-600 uppercase tracking-wide">Current Bid</h4>
+              <div class="stat-icon w-10 h-10 bg-emerald-100 flex items-center justify-center rounded-xl">
+                <i class="fas fa-chart-line text-emerald-600 pulse-animation"></i>
+              </div>
+            </div>
+            <p class="text-3xl font-black text-emerald-600">₹{{ lot.0.current_bid|floatformat:0 }}</p>
+            {% if lot.0.current_bid > lot.0.starting_bid %}
+            <div class="mt-2 flex items-center gap-1 text-xs font-bold text-emerald-600">
+              <i class="fas fa-arrow-up"></i>
+              <span>₹{{ lot.0.current_bid|floatformat:0|add:"-"|add:lot.0.starting_bid|floatformat:0 }} above starting</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Reserve Price -->
+          <div class="price-card border border-amber-200 shadow-sm p-6 slide-in-right delay-2 rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs font-bold text-amber-600 uppercase tracking-wide">Reserve Price</h4>
+              <div class="stat-icon w-10 h-10 bg-amber-100 flex items-center justify-center rounded-xl">
+                <i class="fas fa-shield-alt text-amber-600"></i>
+              </div>
+            </div>
+            {% if lot.0.reserve_price %}
+            <p class="text-3xl font-black text-amber-600">₹{{ lot.0.reserve_price|floatformat:0 }}</p>
+            {% if lot.0.current_bid >= lot.0.reserve_price %}
+            <div class="mt-2 flex items-center gap-1 text-xs font-bold text-emerald-600">
+              <i class="fas fa-check-circle"></i>
+              <span>Reserve Met</span>
+            </div>
+            {% else %}
+            <div class="mt-2 flex items-center gap-1 text-xs font-bold text-amber-600">
+              <i class="fas fa-info-circle"></i>
+              <span>Reserve Not Met</span>
+            </div>
+            {% endif %}
+            {% else %}
+            <p class="text-xl font-black text-slate-400">No Reserve</p>
+            <p class="text-xs text-slate-500 mt-1">Can be sold at any price</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Winner Information (if sold) -->
+        {% if lot.0.status == 'sold' and lot.0.winning_bidder %}
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-sm p-6 slide-in-right delay-4 rounded-xl">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="stat-icon w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center rounded-xl">
+              <i class="fas fa-trophy text-white text-xl"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Winning Bidder</h4>
+              <p class="text-xl font-black text-slate-900">
+                {{ lot.0.winning_bidder.get_full_name|default:lot.0.winning_bidder.username }}
+              </p>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-blue-200">
+            <p class="text-xs font-bold text-slate-500 uppercase mb-1">Winning Bid</p>
+            <p class="text-2xl font-black text-blue-600">₹{{ lot.0.current_bid|floatformat:0 }}</p>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Lot Details -->
+        <div class="info-card border border-slate-200 shadow-sm p-6 slide-in-right delay-5 rounded-xl">
+          <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2 gradient-border pb-3">
+            <i class="fas fa-info-circle text-pink-600"></i>
+            Lot Details
+          </h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between py-2 border-b border-slate-100">
+              <span class="text-xs text-slate-500 font-bold uppercase">Lot Number</span>
+              <span class="text-sm font-black text-slate-900">#{{ lot.0.lot_number }}</span>
+            </div>
+
+            <div class="flex items-center justify-between py-2 border-b border-slate-100">
+              <span class="text-xs text-slate-500 font-bold uppercase">Total Items</span>
+              <span class="text-sm font-black text-pink-600">{{ lot.0.item_count }}</span>
+            </div>
+
+            <div class="flex items-center justify-between py-2 border-b border-slate-100">
+              <span class="text-xs text-slate-500 font-bold uppercase">Status</span>
+              <span class="text-sm font-black text-slate-900 capitalize">{{ lot.0.get_status_display }}</span>
+            </div>
+
+            {% if lot.0.lot_catagory %}
+            <div class="flex items-center justify-between py-2 border-b border-slate-100">
+              <span class="text-xs text-slate-500 font-bold uppercase">Category</span>
+              <span class="text-sm font-black text-slate-900">{{ lot.0.lot_catagory.name }}</span>
+            </div>
+            {% endif %}
+
+            <div class="py-2">
+              <span class="text-xs text-slate-500 font-bold uppercase mb-2 block">Auction</span>
+              <a
+                href=""
+                class="text-sm font-black text-pink-600 hover:text-pink-700 transition-colors"
+              >
+                {{ lot.0.auction.title }}
+                <i class="fas fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Notes (if any) -->
+    {% if lot.0.notes and user.is_staff %}
+    <div class="mt-6 bg-amber-50 border border-amber-200 p-6 md:p-8 fade-in-up delay-6 rounded-xl">
+      <h3 class="text-lg font-black text-amber-900 mb-3 flex items-center gap-2">
+        <i class="fas fa-sticky-note text-amber-600"></i>
+        Internal Notes (Staff Only)
+      </h3>
+      <p class="text-slate-700 whitespace-pre-line">{{ lot.0.notes }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Back Button -->
+    <div class="mt-8 text-center fade-in-up delay-7">
+      <a
+        href="{% url 'view_lots' %}"
+        class="inline-flex items-center gap-2 px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-black rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+      >
+        <i class="fas fa-arrow-left"></i>
+        <span>Return to All Lots</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- No Lot Found -->
+<div class="bg-gradient-to-br from-slate-50 via-pink-50 to-orange-50 min-h-screen flex items-center justify-center">
+  <div class="text-center p-8">
+    <div class="w-24 h-24 mx-auto mb-6 bg-slate-100 flex items-center justify-center rounded-2xl">
+      <i class="fas fa-exclamation-triangle text-slate-400 text-5xl"></i>
+    </div>
+    <h2 class="text-3xl font-black text-slate-800 mb-3">Lot Not Found</h2>
+    <p class="text-slate-600 mb-6">The lot you're looking for doesn't exist or has been removed.</p>
+    <a
+      href="{% url 'view_lots' %}"
+      class="inline-flex items-center gap-2 px-8 py-3 bg-pink-600 hover:bg-pink-700 text-white font-black rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+    >
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to All Lots</span>
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  // Current bid tracking
+  let currentBid = {{ lot.0.current_bid|default:0 }};
+  const minIncrement = 1000;
+
+  // Get elements
+  const chatInput = document.getElementById('chatBidInput');
+  const chatForm = document.getElementById('chatBidForm');
+  const chatMessages = document.getElementById('chatMessages');
+  const inputHelper = document.getElementById('inputHelper');
+
+  // Restrict input to digits only
+  if (chatInput) {
+    chatInput.addEventListener('input', function(e) {
+      // Remove any non-digit characters
+      this.value = this.value.replace(/[^0-9]/g, '');
+      
+      // Update helper text based on input
+      if (this.value) {
+        const bidAmount = parseInt(this.value);
+        const minBid = currentBid + minIncrement;
+        
+        if (bidAmount < minBid) {
+          this.classList.add('error');
+          inputHelper.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>Bid must be at least ₹' + minBid.toLocaleString('en-IN');
+          inputHelper.classList.remove('text-slate-500');
+          inputHelper.classList.add('text-red-500');
+        } else {
+          this.classList.remove('error');
+          inputHelper.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Valid bid amount: ₹' + bidAmount.toLocaleString('en-IN');
+          inputHelper.classList.remove('text-red-500');
+          inputHelper.classList.add('text-emerald-500');
+        }
+      } else {
+        this.classList.remove('error');
+        inputHelper.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Only numeric values are accepted';
+        inputHelper.classList.remove('text-red-500', 'text-emerald-500');
+        inputHelper.classList.add('text-slate-500');
+      }
+    });
+
+    // Prevent paste of non-numeric content
+    chatInput.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+      const numericOnly = pastedText.replace(/[^0-9]/g, '');
+      this.value = numericOnly;
+      this.dispatchEvent(new Event('input'));
+    });
+
+    // Prevent typing non-numeric characters
+    chatInput.addEventListener('keypress', function(e) {
+      if (!/[0-9]/.test(e.key) && e.key !== 'Enter') {
+        e.preventDefault();
+      }
+    });
+  }
+
+  // Handle form submission
+  if (chatForm) {
+    chatForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const bidAmount = parseInt(chatInput.value);
+      const minBid = currentBid + minIncrement;
+      
+      if (!bidAmount) {
+        showToast('Please enter a bid amount', 'error');
+        chatInput.classList.add('error');
+        return;
+      }
+      
+      if (bidAmount < minBid) {
+        showToast('Bid must be at least ₹' + minBid.toLocaleString('en-IN'), 'error');
+        chatInput.classList.add('error');
+        return;
+      }
+      
+      // Add user message to chat
+      addChatMessage('You', 'I bid ₹' + bidAmount.toLocaleString('en-IN'), 'user');
+      
+      // Simulate processing (replace with actual AJAX call)
+      setTimeout(() => {
+        // Update current bid
+        currentBid = bidAmount;
+        updateBidDisplays();
+        
+        // Add system response
+        addChatMessage('System', 'Your bid of ₹' + bidAmount.toLocaleString('en-IN') + ' has been placed successfully! You are currently the highest bidder.', 'system', true);
+        
+        showToast('Bid placed successfully!', 'success');
+        chatInput.value = '';
+        chatInput.classList.remove('error');
+        inputHelper.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Only numeric values are accepted';
+        inputHelper.classList.remove('text-red-500', 'text-emerald-500');
+        inputHelper.classList.add('text-slate-500');
+      }, 500);
+    });
+  }
+
+  // Quick bid function
+  function quickBid(increment) {
+    const newBid = currentBid + increment;
+    if (chatInput) {
+      chatInput.value = newBid;
+      chatInput.dispatchEvent(new Event('input'));
+      chatInput.focus();
+    }
+  }
+
+  // Add message to chat
+  function addChatMessage(sender, message, type = 'system', isSuccess = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chat-message mb-4 ' + type;
+    
+    const isUser = type === 'user';
+    const bgColor = isUser ? 'bg-gradient-to-br from-pink-500 to-orange-500' : (isSuccess ? 'bg-gradient-to-br from-emerald-500 to-green-500' : 'bg-gradient-to-br from-pink-500 to-orange-500');
+    const messageBg = isUser ? 'bg-gradient-to-r from-pink-50 to-orange-50 border-pink-200' : (isSuccess ? 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200' : 'bg-white border-slate-200');
+    const senderColor = isUser ? 'text-pink-600' : (isSuccess ? 'text-emerald-600' : 'text-pink-600');
+    
+    messageDiv.innerHTML = `
+      <div class="flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}">
+        <div class="w-8 h-8 ${bgColor} rounded-full flex items-center justify-center flex-shrink-0">
+          <i class="fas ${isUser ? 'fa-user' : 'fa-robot'} text-white text-xs"></i>
+        </div>
+        <div class="flex-1">
+          <div class="${messageBg} p-3 rounded-xl shadow-sm border">
+            <p class="text-xs font-bold ${senderColor} mb-1">${sender}</p>
+            <p class="text-sm text-slate-700">${message}</p>
+          </div>
+          <p class="text-xs text-slate-400 mt-1 ${isUser ? 'text-right mr-1' : 'ml-1'}">Just now</p>
+        </div>
+      </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Update bid displays
+  function updateBidDisplays() {
+    const currentBidDisplay = document.getElementById('currentBidDisplay');
+    const minBidDisplay = document.getElementById('minBidDisplay');
+    
+    if (currentBidDisplay) {
+      currentBidDisplay.textContent = '₹' + currentBid.toLocaleString('en-IN');
+    }
+    if (minBidDisplay) {
+      minBidDisplay.textContent = '₹' + (currentBid + minIncrement).toLocaleString('en-IN');
+    }
+  }
+
+  // Toast notification
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg font-bold text-white transform transition-all duration-300 ${
+      type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-green-500' : 
+      type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-500' : 
+      'bg-gradient-to-r from-blue-500 to-indigo-500'
+    }`;
+    toast.innerHTML = `
+      <div class="flex items-center gap-2">
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-20px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Auto-scroll chat to bottom on load
+  if (chatMessages) {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+</script>
+
+{% endblock %}

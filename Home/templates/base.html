@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Auction House Management{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body {
+            overflow-x: hidden;
+        }
+        * {
+            border-radius: 0 !important;
+        }
+
+        /* Navigation Animations */
+        .nav-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: #8b5cf6;
+            transition: width 0.3s ease;
+        }
+
+        .nav-item:hover::before {
+            width: 100%;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(139, 92, 246, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active {
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+
+        .nav-item.active::before {
+            width: 100%;
+        }
+
+        /* Dropdown Animations */
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 260px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            z-index: 50;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-item:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu a {
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f8fafc;
+            padding-left: 1.5rem;
+            border-left: 3px solid #8b5cf6;
+        }
+
+        /* User Dropdown Styling */
+        .user-dropdown-header {
+            position: relative;
+        }
+
+        .user-dropdown-header-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            position: absolute;
+            top: 100%;
+            right: 0;
+            min-width: 200px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 0.5rem;
+        }
+
+        .user-dropdown-header:hover .user-dropdown-header-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-header-menu a {
+            transition: all 0.2s ease;
+        }
+
+        .user-dropdown-header-menu a:hover {
+            padding-left: 1.25rem;
+        }
+
+        /* Mobile Menu Animations */
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-menu.active {
+            max-height: 2000px;
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .submenu.active {
+            max-height: 500px;
+        }
+
+        /* Card Animations */
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .stat-icon {
+            transition: all 0.3s ease;
+        }
+
+        /* Button Animations */
+        .btn-primary {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Fade In Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+            opacity: 0;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+            opacity: 0;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+            opacity: 0;
+        }
+
+        /* Pulse Animation for Notifications */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        /* Loading Animation */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Search Input Animation */
+        .search-input {
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            width: 350px;
+        }
+
+        /* Quick Action Buttons */
+        .quick-action-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-action-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .quick-action-btn:hover::after {
+            width: 200%;
+            height: 200%;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateX(5px);
+        }
+
+        /* Table Row Animation */
+        .table-row {
+            transition: all 0.2s ease;
+        }
+
+        .table-row:hover {
+            background-color: #f8fafc;
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Mobile Menu Button Animation */
+        .hamburger {
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active {
+            transform: rotate(90deg);
+        }
+
+        /* Responsive breakpoints helper */
+        @media (max-width: 768px) {
+            .search-input:focus {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 font-sans antialiased">
+
+    <!-- Top Header Bar - Hidden on Mobile -->
+    <div class="hidden md:block bg-slate-800 text-slate-300 px-4 md:px-6 py-2">
+        <div
+            class="max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs md:text-sm space-y-2 sm:space-y-0">
+            <div class="flex items-center space-x-3 md:space-x-6">
+                
+                <span class="flex items-center"><i class="far fa-envelope mr-1 md:mr-2"></i><span
+                        class="hidden md:inline">auctionhouse123@gmail.com</span><span
+                        class="md:hidden">Contact</span></span>
+            </div>
+            <div class="flex items-center space-x-3 md:space-x-4">
+                <!-- <button class="hover:text-white transition flex items-center">
+                    <div class="relative">
+                        <i class="far fa-bell"></i>
+                        <span
+                            class="absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-4 h-4 flex items-center justify-center pulse-animation">3</span>
+                    </div>
+                    <span class="ml-2 hidden sm:inline">Notifications</span>
+                </button> -->
+                {% if user.is_authenticated %}
+                <div class="relative user-dropdown-header">
+                    <button class="hover:text-white transition flex items-center" id="userDropdownHeaderBtn">
+                        <i class="far fa-user"></i>
+                        <span class="ml-2 hidden sm:inline">{{ user.username }}</span>
+                        <i class="fas fa-chevron-down ml-1 text-xs hidden sm:inline"></i> 
+                    </button>
+                    <div class="user-dropdown-header-menu">
+                        <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                            <i class="far fa-user-circle mr-2"></i>Profile
+                        </a>
+                        <div class="border-t border-slate-200"></div>
+                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-rose-600 hover:bg-rose-50">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white border-b-2 border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-screen-2xl mx-auto px-4 md:px-6">
+            <div class="flex items-center justify-between">
+
+                <!-- Logo -->
+                <div class="flex items-center py-3 md:py-4">
+                    <div class="flex items-center space-x-2 md:space-x-3">
+                        <div
+                            class="w-8 h-8 md:w-10 md:h-10 bg-violet-600 flex items-center justify-center transition hover:bg-violet-700">
+                            <i class="fas fa-gavel text-white text-lg md:text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg md:text-xl font-bold text-slate-800">AuctionHouse</h1>
+                            <p class="text-xs text-slate-500 hidden sm:block">Management System</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden lg:flex items-center space-x-1">
+
+                    <!-- Dashboard -->
+                    <a href="{% url 'home' %}"
+                        class="nav-item px-3 xl:px-4 py-6 text-sm font-medium text-slate-700 hover:text-violet-600">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+
+                    <!-- Auctions Dropdown -->
+                    <div
+                        class="nav-item px-3 xl:px-4 py-6 text-sm font-medium text-slate-700 hover:text-violet-600 cursor-pointer">
+                        <i class="fas fa-gavel mr-2"></i>Auctions <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        <div class="dropdown-menu">
+                            <a href="{% url 'all_auction' %}" class="block px-4 py-3 text-sm text-slate-700">
+                                <i class="fa-solid fa-eye text-black-500 mr-2"></i>View All Auction
+                            </a>
+                            <a href="{% url 'create_auction' %}" class="block px-4 py-3 text-sm text-slate-700">
+                                <i class="fas fa-plus-circle text-violet-500 mr-2"></i>Create New Auction
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Lots Dropdown -->
+                    <div
+                        class="nav-item px-3 xl:px-4 py-6 text-sm font-medium text-slate-700 hover:text-violet-600 cursor-pointer">
+                        <i class="fas fa-box mr-2"></i>Lots <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        <div class="dropdown-menu">
+                            <a href="{% url 'view_lots' %}" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-list mr-2"></i>All Lots
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Bidders Dropdown -->
+                    <div
+                        class="nav-item px-3 xl:px-4 py-6 text-sm font-medium text-slate-700 hover:text-violet-600 cursor-pointer">
+                        <i class="fas fa-users mr-2"></i>Clients <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        <div class="dropdown-menu">
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-user-group mr-2"></i>All Clients
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-user-plus mr-2"></i>Register Clients
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-check-double mr-2"></i>Verification
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700">
+                                <i class="fas fa-hashtag mr-2"></i>Paddle Numbers
+                            </a>
+                        </div>
+                    </div>
+
+                    
+
+                    <!-- Consignors -->
+                    <div
+                        class="nav-item px-3 xl:px-4 py-6 text-sm font-medium text-slate-700 hover:text-violet-600 cursor-pointer">
+                        <i class="fas fa-handshake mr-2"></i>Consignors <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        <div class="dropdown-menu">
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-list mr-2"></i>All Consignors
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-user-plus mr-2"></i>Add Consignor
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-file-contract mr-2"></i>Contracts
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700">
+                                <i class="fas fa-percent mr-2"></i>Commission Rates
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Finance -->
+                    <div
+                        class="nav-item px-3 xl:px-4 py-6 text-sm font-medium text-slate-700 hover:text-violet-600 cursor-pointer">
+                        <i class="fas fa-dollar-sign mr-2"></i>Finance <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        <div class="dropdown-menu">
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-file-invoice mr-2"></i>Invoices
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-credit-card mr-2"></i>Payments
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700 border-b border-slate-100">
+                                <i class="fas fa-balance-scale mr-2"></i>Settlements
+                            </a>
+                            <a href="#" class="block px-4 py-3 text-sm text-slate-700">
+                                <i class="fas fa-chart-pie mr-2"></i>Financial Reports
+                            </a>
+                        </div>
+                    </div>
+
+                   
+
+                </div>
+
+                <!-- Right Side Actions -->
+                <div class="hidden md:flex items-center space-x-3">
+                    <div class="relative">
+                        <input type="text" placeholder="Search..."
+                            class="search-input w-48 lg:w-56 xl:w-64 px-4 py-2 bg-slate-100 border border-slate-200 text-sm focus:outline-none focus:border-violet-400 focus:bg-white">
+                        <i class="fas fa-search absolute right-3 top-3 text-slate-400 text-sm"></i>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="lg:hidden text-slate-700 p-2 hover:bg-slate-100 transition">
+                    <i class="fas fa-bars text-xl hamburger"></i>
+                </button>
+
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="mobile-menu lg:hidden bg-slate-50 border-t border-slate-200">
+            <div class="px-4 py-3 max-h-screen overflow-y-auto">
+
+                <!-- Mobile Search -->
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Search auctions, lots, bidders..."
+                            class="w-full px-4 py-3 bg-white border-2 border-slate-300 text-sm focus:outline-none focus:border-violet-400">
+                        <i class="fas fa-search absolute right-4 top-4 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <!-- Mobile Nav Items -->
+                <a href="{% url 'home' %}"
+                    class="block px-4 py-3 text-sm font-medium text-slate-700 bg-white mb-2 border-l-4 border-transparent hover:border-violet-600 hover:bg-slate-50 transition">
+                    <i class="fas fa-home mr-3 text-violet-600"></i>Dashboard
+                </a>
+
+                <div class="mb-2 bg-white">
+                    <button onclick="toggleMobileSubmenu('mobileAuctions')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                        <span><i class="fas fa-gavel mr-3 text-violet-600"></i>Auctions</span>
+                        <i class="fas fa-chevron-down text-xs transition-transform" id="mobileAuctionsIcon"></i>
+                    </button>
+                    <div id="mobileAuctions" class="submenu bg-slate-50">
+                        <a href="{% url 'all_auction' %}"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">All
+                            Auctions</a>
+                        <a href="{% url 'create_auction' %}"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">Create New
+                            Auction</a>
+                    </div>
+                </div>
+
+                <div class="mb-2 bg-white">
+                    <button onclick="toggleMobileSubmenu('mobileLots')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                        <span><i class="fas fa-box mr-3 text-blue-600"></i>Lots</span>
+                        <i class="fas fa-chevron-down text-xs transition-transform" id="mobileLotsIcon"></i>
+                    </button>
+                    <div id="mobileLots" class="submenu bg-slate-50">
+                        <a href="{% url 'view_lots' %}" class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">All
+                            Lots</a>
+                    </div>
+                </div>
+
+                <div class="mb-2 bg-white">
+                    <button onclick="toggleMobileSubmenu('mobileBidders')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                        <span><i class="fas fa-users mr-3 text-amber-600"></i>Bidders</span>
+                        <i class="fas fa-chevron-down text-xs transition-transform" id="mobileBiddersIcon"></i>
+                    </button>
+                    <div id="mobileBidders" class="submenu bg-slate-50">
+                        <a href="#" class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">All
+                            Bidders</a>
+                        <a href="#"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">Register
+                            Bidder</a>
+                        <a href="#"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">Verification</a>
+                        <a href="#"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">Paddle
+                            Numbers</a>
+                    </div>
+                </div>
+
+                
+                <div class="mb-2 bg-white">
+                    <button onclick="toggleMobileSubmenu('mobileConsignors')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                        <span><i class="fas fa-handshake mr-2 text-green-900"></i>Consignors</span>
+                        <i class="fas fa-chevron-down text-xs transition-transform" id="mobileConsignorsIcon"></i>
+                    </button>
+                    <div id="mobileConsignors" class="submenu bg-slate-50">
+                        <a href="#" class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">All
+                            Consignors</a>
+                        <a href="#"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">Add Consignor</a>
+                        <a href="#"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">Contracts</a>
+                        <a href="#"
+                            class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">Commission Rates</a>
+                    </div>
+                </div>
+                
+                 
+
+                <a href="#"
+                    class="block px-4 py-3 text-sm font-medium text-slate-700 bg-white mb-2 border-l-4 border-transparent hover:border-violet-600 hover:bg-slate-50 transition">
+                    <i class="fas fa-dollar-sign mr-3 text-emerald-600"></i>Finance
+                </a>
+
+                <!-- Mobile User Section -->
+                <div class="mb-2 bg-white border-t-2 border-slate-300 mt-4 pt-2">
+                    <button onclick="toggleMobileSubmenu('mobileUserMenu')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 transition">
+                        <span><i class="fas fa-user-circle mr-3 text-violet-600"></i>Admin User</span>
+                        <i class="fas fa-chevron-down text-xs transition-transform" id="mobileUserMenuIcon"></i>
+                    </button>
+                    <div id="mobileUserMenu" class="submenu bg-slate-50">
+                        <a href="{% url 'profile' %}" class="block px-4 py-2 pl-12 text-sm text-slate-600 hover:bg-white transition">
+                            <i class="far fa-user-circle mr-2"></i>Profile
+                        </a>
+                        <a href="{% url 'logout' %}" class="block px-4 py-2 pl-12 text-sm text-rose-600 hover:bg-rose-50 transition">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}
+
+    
+    {% endblock %}
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-300 mt-12 md:mt-16">
+        <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                <div>
+                    <h4 class="text-white font-bold mb-3">AuctionHouse ERP</h4>
+                    <p class="text-sm text-slate-400">Professional auction management system for modern auction houses.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="text-white font-semibold mb-3 text-sm">Quick Links</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Dashboard</a></li>
+                        <li><a href="#" class="hover:text-white transition">Auctions</a></li>
+                        <li><a href="#" class="hover:text-white transition">Reports</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-white font-semibold mb-3 text-sm">Support</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-white font-semibold mb-3 text-sm">Contact</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li>support@auctionhouse.com</li>
+                        <li>+1 (555) 123-4567</li>
+                        <li>Mon - Sat: 9AM - 6PM</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-700 mt-6 md:mt-8 pt-4 md:pt-6 text-center text-sm">
+                <p>&copy; 2026 AuctionHouse ERP. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const hamburger = document.querySelector('.hamburger');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Toggle mobile submenu
+        function toggleMobileSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById(id + 'Icon');
+            submenu.classList.toggle('active');
+            icon.style.transform = submenu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        // Active nav item
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (!this.querySelector('.dropdown-menu')) {
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

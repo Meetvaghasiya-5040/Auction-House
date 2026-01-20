@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction House - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%),
+                url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%23667eea"/><path d="M50 10 L60 30 L80 30 L65 42 L70 62 L50 50 L30 62 L35 42 L20 30 L40 30 Z" fill="rgba(255,255,255,0.03)"/></svg>');
+            background-size: cover, 80px 80px;
+            background-attachment: fixed;
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 20s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 15s ease-in-out infinite reverse;
+            z-index: 0;
+        }
+
+        @media (max-width: 768px) {
+            body::before {
+                width: 300px;
+                height: 300px;
+                top: -20%;
+                right: -20%;
+            }
+
+            body::after {
+                width: 250px;
+                height: 250px;
+                bottom: -10%;
+                left: -20%;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) translateX(0);
+            }
+
+            50% {
+                transform: translateY(-30px) translateX(20px);
+            }
+        }
+
+        .clip-corner {
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+        }
+
+        @media (min-width: 640px) {
+            .clip-corner {
+                clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+            }
+        }
+
+        .animated-gavel {
+            animation: gavel-tap 3s ease-in-out infinite;
+        }
+
+        @keyframes gavel-tap {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            10% {
+                transform: rotate(-15deg);
+            }
+
+            20% {
+                transform: rotate(0deg);
+            }
+        }
+
+        .feature-card {
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border: 3px solid #667eea;
+        }
+
+        #imagePreview {
+            display: none;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .pulse-icon {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+    </style>
+</head>
+
+<body class="py-4 sm:py-6 md:py-8 lg:py-12">
+    <div class="container mx-auto max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 main-container">
+        <div class="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-10 items-start">
+
+
+            <div class="hidden lg:block space-y-5 xl:space-y-6 lg:sticky lg:top-8">
+                <div class="text-white space-y-3">
+                    <h2 class="text-3xl xl:text-4xl font-bold leading-tight">
+                        Join Our<br />
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-pink-200">
+                            Auction Community
+                        </span>
+                    </h2>
+                    <p class="text-indigo-100 text-sm xl:text-base">
+                        Create your account and start bidding on exclusive items today
+                    </p>
+                </div>
+
+
+                <div class="space-y-3">
+                    <div class="feature-card bg-white/10 p-4 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-green-400/20 p-2 flex-shrink-0">
+                                <svg class="w-5 h-5 text-green-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-sm mb-1">Quick Registration</h3>
+                                <p class="text-indigo-100 text-xs">Get started in minutes with our simple signup process
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card bg-white/10 p-4 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-blue-400/20 p-2 flex-shrink-0">
+                                <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-sm mb-1">Verified Accounts</h3>
+                                <p class="text-indigo-100 text-xs">All users are verified for a safe auction experience
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card bg-white/10 p-4 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-orange-400/20 p-2 flex-shrink-0">
+                                <svg class="w-5 h-5 text-orange-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-sm mb-1">Instant Access</h3>
+                                <p class="text-indigo-100 text-xs">Start browsing and bidding immediately after
+                                    registration</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="grid grid-cols-3 gap-3 pt-5 border-t border-white/20">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-white">50K+</div>
+                        <div class="text-indigo-200 text-xs mt-1">Active Users</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-white">1M+</div>
+                        <div class="text-indigo-200 text-xs mt-1">Items Sold</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-white">24/7</div>
+                        <div class="text-indigo-200 text-xs mt-1">Support</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="w-full max-w-lg mx-auto lg:mx-0">
+
+                <div class="lg:hidden text-center mb-4 sm:mb-6">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white leading-tight mb-2">
+                        Join Our<br />
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-pink-200">
+                            Auction Community
+                        </span>
+                    </h2>
+                </div>
+
+                <div class="bg-white/95 backdrop-blur-sm shadow-2xl overflow-hidden clip-corner">
+
+                    <div class="bg-gradient-to-r from-indigo-400 to-purple-400 px-4 sm:px-6 py-5 sm:py-6 text-center">
+                        <div class="inline-block bg-white/20 backdrop-blur-md px-4 py-2 mb-2">
+                            <svg class="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-white animated-gavel" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-white mb-1">Create Account</h1>
+                        <p class="text-indigo-50 text-xs">Join our auction community</p>
+                    </div>
+
+
+                    <div class="px-4 sm:px-6 py-5 sm:py-6">
+                        <form action="" method="post" enctype="multipart/form-data" class="space-y-3 sm:space-y-4">
+                            {% csrf_token %}
+
+
+                            <div class="text-center pb-2">
+                                <div class="flex flex-col items-center">
+                                    <div class="relative">
+                                        <img id="imagePreview" src="" alt="Preview" class="image-preview mb-2">
+                                        <div id="placeholderImage"
+                                            class="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-indigo-100 to-purple-100 border-3 border-indigo-300 flex items-center justify-center mb-2">
+                                            <svg class="w-8 h-8 sm:w-10 sm:h-10 text-indigo-400" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <label for="profile_image"
+                                        class="cursor-pointer bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 text-xs font-medium transition-colors inline-flex items-center">
+                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        Upload Photo
+                                    </label>
+                                    <input type="file" id="profile_image" name="profile_image" accept="image/*"
+                                        class="hidden" required onchange="previewImage(event)">
+                                </div>
+                            </div>
+
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                                <div>
+                                    <label for="fullname" class="block text-xs font-medium text-gray-700 mb-1">
+                                        Full Name
+                                    </label>
+                                    <input type="text" id="fullname" name="fullname" required
+                                        class="w-full px-3 py-2 text-sm border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                        placeholder="Enter Your Full Name">
+                                </div>
+
+
+                                <div>
+                                    <label for="username" class="block text-xs font-medium text-gray-700 mb-1">
+                                        Username
+                                    </label>
+                                    <input type="text" id="username" name="username" required
+                                        class="w-full px-3 py-2 text-sm border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                        placeholder="Enter Your User Name">
+                                </div>
+                            </div>
+
+
+                            <div>
+                                <label for="email" class="block text-xs font-medium text-gray-700 mb-1">
+                                    Email Address
+                                </label>
+                                <input type="email" id="email" name="email" required
+                                    class="w-full px-3 py-2 text-sm border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                    placeholder="Enter Your Email">
+                            </div>
+
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                                <div>
+                                    <label for="password" class="block text-xs font-medium text-gray-700 mb-1">
+                                        Password
+                                    </label>
+                                    <input type="password" id="password" name="password" required
+                                        class="w-full px-3 py-2 text-sm border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                        placeholder="Password">
+                                </div>
+
+
+                                <div>
+                                    <label for="confirm_password" class="block text-xs font-medium text-gray-700 mb-1">
+                                        Confirm Password
+                                    </label>
+                                    <input type="password" id="confirm_password" name="confirm_password" required
+                                        class="w-full px-3 py-2 text-sm border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                        placeholder="Confirm Password">
+                                </div>
+                            </div>
+
+
+                            <div class="flex items-start pt-1">
+                                <input type="checkbox" id="terms" name="terms" required
+                                    class="w-3.5 h-3.5 mt-0.5 text-indigo-500 border-gray-300 focus:ring-indigo-400">
+                                <label for="terms" class="ml-2 text-xs text-gray-600">
+                                    I agree to the <a href="#"
+                                        class="text-indigo-500 hover:text-indigo-600 font-medium">Terms</a> and <a
+                                        href="#" class="text-indigo-500 hover:text-indigo-600 font-medium">Privacy
+                                        Policy</a>
+                                </label>
+                            </div>
+
+
+                            <button type="submit"
+                                class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-2.5 px-4 text-sm transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                Create Account
+                            </button>
+
+
+                            <div class="text-center pt-2 border-t border-gray-200">
+                                <p class="text-gray-600 text-xs">
+                                    Already have an account?
+                                    <a href="{% url 'login' %}"
+                                        class="text-indigo-500 hover:text-indigo-600 font-medium transition-colors">
+                                        Sign in
+                                    </a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+                <div
+                    class="lg:hidden grid grid-cols-3 gap-2 mt-4 bg-white/10 backdrop-blur-md p-3 border border-white/20">
+                    <div class="text-center">
+                        <div class="text-lg sm:text-xl font-bold text-white">50K+</div>
+                        <div class="text-indigo-200 text-xs mt-0.5">Users</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg sm:text-xl font-bold text-white">1M+</div>
+                        <div class="text-indigo-200 text-xs mt-0.5">Items</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg sm:text-xl font-bold text-white">24/7</div>
+                        <div class="text-indigo-200 text-xs mt-0.5">Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% if messages %}
+    <div id="messageContainer" class="fixed bottom-6 right-6 z-50 space-y-3 max-w-sm w-full px-4 sm:px-0">
+        {% for message in messages %}
+        <div
+            class="message-item flex items-start p-4 shadow-2xl backdrop-blur-md {% if message.tags == 'error' or message.tags == 'danger' %}bg-red-500/95 text-white{% elif message.tags == 'success' %}bg-green-500/95 text-white{% elif message.tags == 'warning' %}bg-yellow-500/95 text-white{% else %}bg-blue-500/95 text-white{% endif %} clip-corner transform translate-x-full opacity-0">
+            <div class="flex-shrink-0 mr-3">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    {% if message.tags == 'error' or message.tags == 'danger' %}
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd" />
+                    {% elif message.tags == 'success' %}
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd" />
+                    {% elif message.tags == 'warning' %}
+                    <path fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
+                    {% else %}
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd" />
+                    {% endif %}
+                </svg>
+            </div>
+            <div class="flex-1 text-sm font-medium">
+                {{ message }}
+            </div>
+            <button onclick="dismissMessage(this)"
+                class="flex-shrink-0 ml-3 text-white/80 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Image Required Modal -->
+    <div id="imageRequiredModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4 pulse-icon">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Profile Image Required</h3>
+                <p class="text-gray-600 mb-6">Please upload a profile image to complete your registration. A profile
+                    image helps others identify you in the auction community.</p>
+                <button onclick="closeModal()"
+                    class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 px-6 text-sm transition-all duration-200 shadow-lg hover:shadow-xl">
+                    Got it, I'll upload an image
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Image upload state tracking
+        let imageUploaded = false;
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById('imagePreview');
+                    const placeholder = document.getElementById('placeholderImage');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    imageUploaded = true; // Mark image as uploaded
+                }
+                reader.readAsDataURL(file);
+            }
+            else {
+                imageUploaded = false;
+            }
+        }
+
+        // Show modal when image is required
+        function showImageRequiredModal() {
+            const modal = document.getElementById('imageRequiredModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('imageRequiredModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto'; // Re-enable scrolling
+
+            // Focus on the upload button to guide user
+            const uploadButton = document.getElementById('profile_image');
+            if (uploadButton) {
+                uploadButton.focus();
+            }
+        }
+
+        // Form validation before submission
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const imageInput = document.getElementById('profile_image');
+
+            // Prevent form submission without image
+            form.addEventListener('submit', function (event) {
+                if (!imageUploaded || !imageInput.files || imageInput.files.length === 0) {
+                    event.preventDefault(); // Stop form submission
+                    event.stopPropagation();
+                    showImageRequiredModal(); // Show the modal
+                    return false;
+                }
+                return true;
+            });
+
+            // Check if image was removed
+            imageInput.addEventListener('change', function () {
+                if (!this.files || this.files.length === 0) {
+                    imageUploaded = false;
+                    const preview = document.getElementById('imagePreview');
+                    const placeholder = document.getElementById('placeholderImage');
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'block';
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const messages = document.querySelectorAll('.message-item');
+            messages.forEach((msg, index) => {
+                setTimeout(() => {
+                    msg.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    msg.style.transform = 'translateX(0)';
+                    msg.style.opacity = '1';
+                }, index * 150);
+            });
+
+            setTimeout(() => {
+                messages.forEach((msg, index) => {
+                    setTimeout(() => {
+                        dismissMessage(msg.querySelector('button'));
+                    }, index * 100);
+                });
+            }, 5000);
+        });
+
+        function dismissMessage(button) {
+            const messageItem = button.closest('.message-item');
+            messageItem.style.transition = 'all 0.4s ease-in-out';
+            messageItem.style.transform = 'translateX(120%)';
+            messageItem.style.opacity = '0';
+
+            setTimeout(() => {
+                messageItem.remove();
+
+
+                // Remove container if no messages left
+                const container = document.getElementById('messageContainer');
+                if (container && container.querySelectorAll('.message-item').length === 0) {
+                    container.remove();
+                }
+            }, 400);
+        }
+    </script>
+</body>
+
+</html>

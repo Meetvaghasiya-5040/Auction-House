@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction House - Change Password</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%),
+                        url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%23667eea"/><path d="M50 10 L60 30 L80 30 L65 42 L70 62 L50 50 L30 62 L35 42 L20 30 L40 30 Z" fill="rgba(255,255,255,0.03)"/></svg>');
+            background-size: cover, 80px 80px;
+            background-attachment: fixed;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 20s ease-in-out infinite;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-30px) translateX(20px); }
+        }
+        .clip-corner {
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        }
+        @media (min-width: 640px) {
+            .clip-corner {
+                clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+            }
+        }
+        .animated-shield {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+            50% { filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)); }
+        }
+        .feature-card {
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .password-strength {
+            height: 4px;
+            background: #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .password-strength.weak { width: 33.33%; background: #ef4444; }
+        .password-strength.medium { width: 66.66%; background: #f59e0b; }
+        .password-strength.strong { width: 100%; background: #10b981; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8">
+    <div class="container mx-auto max-w-7xl relative z-10 w-full">
+        <div class="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-center">
+            
+            
+            <div class="hidden lg:block space-y-4 xl:space-y-6">
+                <div class="text-white space-y-3 xl:space-y-4">
+                    <h2 class="text-3xl xl:text-5xl font-bold leading-tight">
+                        Secure Your<br/>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-pink-200">
+                            Auction Account
+                        </span>
+                    </h2>
+                    <p class="text-indigo-100 text-base xl:text-lg">
+                        Update your password to keep your bids and purchases protected
+                    </p>
+                </div>
+
+                
+                <div class="space-y-3 xl:space-y-4 mt-6 xl:mt-8">
+                    <div class="feature-card bg-white/10 p-4 xl:p-5 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3 xl:space-x-4">
+                            <div class="bg-green-400/20 p-2 xl:p-3 flex-shrink-0">
+                                <svg class="w-5 h-5 xl:w-6 xl:h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-base xl:text-lg mb-1">Bank-Level Security</h3>
+                                <p class="text-indigo-100 text-xs xl:text-sm">Your password is encrypted with industry-standard protocols</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card bg-white/10 p-4 xl:p-5 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3 xl:space-x-4">
+                            <div class="bg-blue-400/20 p-2 xl:p-3 flex-shrink-0">
+                                <svg class="w-5 h-5 xl:w-6 xl:h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-base xl:text-lg mb-1">Protected Transactions</h3>
+                                <p class="text-indigo-100 text-xs xl:text-sm">Secure password ensures safe bidding and purchases</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-card bg-white/10 p-4 xl:p-5 backdrop-blur-md border border-white/20">
+                        <div class="flex items-start space-x-3 xl:space-x-4">
+                            <div class="bg-purple-400/20 p-2 xl:p-3 flex-shrink-0">
+                                <svg class="w-5 h-5 xl:w-6 xl:h-6 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-base xl:text-lg mb-1">Strong Password Policy</h3>
+                                <p class="text-indigo-100 text-xs xl:text-sm">Minimum 8 characters with mixed case and numbers</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 xl:p-5 mt-6 xl:mt-8">
+                    <h3 class="text-white font-semibold text-base xl:text-lg mb-2">Password Best Practices</h3>
+                    <ul class="space-y-2 text-indigo-100 text-xs xl:text-sm">
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>Use a unique password for your auction account</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>Include uppercase, lowercase, numbers, and symbols</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>Avoid personal information like birthdays or names</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-300 mr-2">✓</span>
+                            <span>Update your password regularly every 3-6 months</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            
+            <div class="w-full max-w-md mx-auto lg:mx-0">
+                
+                <div class="lg:hidden text-center mb-6 sm:mb-8">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-white leading-tight mb-2">
+                        Secure Your<br/>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-pink-200">
+                            Auction Account
+                        </span>
+                    </h2>
+                    <p class="text-indigo-100 text-sm sm:text-base">
+                        Create a strong password for your account
+                    </p>
+                </div>
+
+                <div class="bg-white/95 backdrop-blur-sm shadow-2xl overflow-hidden clip-corner">
+                    <div class="bg-gradient-to-r from-indigo-400 to-purple-400 px-5 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 text-center">
+                        <div class="inline-block bg-white/20 backdrop-blur-md px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 mb-2 sm:mb-3">
+                            <svg class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 mx-auto text-white animated-shield" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl sm:text-2xl md:text-3xl font-bold text-white mb-1">Change Password</h1>
+                        <p class="text-indigo-50 text-xs sm:text-sm">Protect your auction account with a strong password</p>
+                        <p class="text-indigo-50 text-xs sm:text-sm">Email: {{ useremail }}</p>
+
+                    </div>
+
+                    
+                    <div class="px-5 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
+                        <form method="post" id="passwordForm" class="space-y-4 sm:space-y-5 md:space-y-6">
+                            {% csrf_token %}
+                            
+                            <div>
+                                <label for="newPassword" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                    New Password
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-4 w-4 sm:h-5 sm:w-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="password" 
+                                        id="newPassword" 
+                                        name="new_password" 
+                                        required
+                                        minlength="8"
+                                        class="w-full pl-8 sm:pl-10 pr-10 sm:pr-12 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                        placeholder="Enter new password"
+                                        autocomplete="new-password"
+                                    >
+                                    <button 
+                                        type="button" 
+                                        onclick="togglePassword('newPassword')"
+                                        class="absolute inset-y-0 right-0 pr-2.5 sm:pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        <svg class="h-4 w-4 sm:h-5 sm:w-5" id="newPasswordIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <div class="w-full bg-gray-200 h-1 overflow-hidden">
+                                        <div id="strengthBar" class="password-strength h-full transition-all duration-300"></div>
+                                    </div>
+                                    <p id="strengthText" class="text-xs text-gray-500 mt-1">Password strength: Not set</p>
+                                </div>
+                                <p class="mt-1.5 sm:mt-2 text-xs text-gray-500">
+                                    Minimum 8 characters with uppercase, lowercase, and numbers
+                                </p>
+                            </div>
+
+                            
+                            <div>
+                                <label for="confirmPassword" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                    Confirm Password
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-4 w-4 sm:h-5 sm:w-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                        </svg>
+                                    </div>
+                                    <input 
+                                        type="password" 
+                                        id="confirmPassword" 
+                                        name="confirm_password" 
+                                        required
+                                        minlength="8"
+                                        class="w-full pl-8 sm:pl-10 pr-10 sm:pr-12 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 focus:border-indigo-400 focus:outline-none transition-colors bg-gray-50 focus:bg-white text-gray-900"
+                                        placeholder="Confirm your password"
+                                        autocomplete="new-password"
+                                    >
+                                    <button 
+                                        type="button" 
+                                        onclick="togglePassword('confirmPassword')"
+                                        class="absolute inset-y-0 right-0 pr-2.5 sm:pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        <svg class="h-4 w-4 sm:h-5 sm:w-5" id="confirmPasswordIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p id="matchStatus" class="mt-1.5 sm:mt-2 text-xs"></p>
+                            </div>
+
+                            <button 
+                                type="submit"
+                                class="w-full mt-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-2.5 sm:py-3 px-4 text-sm sm:text-base transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                            >
+                                Update Password
+                            </button>
+                        </form>
+
+                        
+                        <div class="text-center mt-4 sm:mt-6 pt-4 border-t border-gray-200">
+                            <a href="{% url 'login' %}" class="text-gray-500 hover:text-gray-700 text-xs sm:text-sm transition-colors inline-flex items-center">
+                                <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                Back to Login
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="lg:hidden bg-white/10 backdrop-blur-md border border-white/20 p-3 sm:p-4 mt-4 sm:mt-6">
+                    <h3 class="text-white font-semibold text-sm sm:text-base mb-2 text-center">🔒 Password Tips</h3>
+                    <div class="space-y-1.5 text-indigo-100 text-xs">
+                        <p>✓ Use a unique password for your account</p>
+                        <p>✓ Mix uppercase, lowercase, and numbers</p>
+                        <p>✓ Avoid personal information</p>
+                        <p>✓ Update password every 3-6 months</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            
+            return strength;
+        }
+
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = document.getElementById(fieldId + 'Icon');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>';
+            } else {
+                field.type = 'password';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+            }
+        }
+
+        function checkPasswordMatch() {
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            const matchStatus = document.getElementById('matchStatus');
+            
+            if (confirmPass === '') {
+                matchStatus.textContent = '';
+                matchStatus.className = 'mt-1.5 sm:mt-2 text-xs';
+            } else if (newPass === confirmPass) {
+                matchStatus.textContent = '✓ Passwords match';
+                matchStatus.className = 'mt-1.5 sm:mt-2 text-xs text-green-600';
+            } else {
+                matchStatus.textContent = '✗ Passwords do not match';
+                matchStatus.className = 'mt-1.5 sm:mt-2 text-xs text-red-600';
+            }
+        }
+
+        document.getElementById('newPassword').addEventListener('input', function() {
+            const password = this.value;
+            const strength = checkPasswordStrength(password);
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            
+            if (password.length === 0) {
+                strengthBar.className = 'password-strength h-full transition-all duration-300';
+                strengthText.textContent = 'Password strength: Not set';
+                strengthText.className = 'text-xs text-gray-500 mt-1';
+            } else if (strength <= 2) {
+                strengthBar.className = 'password-strength weak h-full transition-all duration-300';
+                strengthText.textContent = 'Password strength: Weak';
+                strengthText.className = 'text-xs text-red-600 mt-1';
+            } else if (strength <= 4) {
+                strengthBar.className = 'password-strength medium h-full transition-all duration-300';
+                strengthText.textContent = 'Password strength: Medium';
+                strengthText.className = 'text-xs text-yellow-600 mt-1';
+            } else {
+                strengthBar.className = 'password-strength strong h-full transition-all duration-300';
+                strengthText.textContent = 'Password strength: Strong';
+                strengthText.className = 'text-xs text-green-600 mt-1';
+            }
+            
+            checkPasswordMatch();
+        });
+
+        document.getElementById('confirmPassword').addEventListener('input', checkPasswordMatch);
+
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            
+            if (newPass !== confirmPass) {
+                e.preventDefault();
+                alert('Passwords do not match. Please try again.');
+                return;
+            }
+            
+            if (newPass.length < 8) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long.');
+                return;
+            }
+            
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('newPassword').focus();
+        });
+    </script>
+</body>
+</html>
