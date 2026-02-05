@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations - You Won!</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .trophy {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .lot-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .lot-card h2 {
+            color: #1e40af;
+            margin: 0 0 12px 0;
+            font-size: 24px;
+        }
+
+        .lot-card p {
+            margin: 8px 0;
+            color: #475569;
+        }
+
+        .winning-bid {
+            background: #22c55e;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .winning-bid .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .winning-bid .amount {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-left: 4px solid #fbbf24;
+            padding: 16px;
+            margin: 24px 0;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #0f172a;
+            color: white;
+            padding: 14px 32px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 24px 0;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 24px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="trophy">🏆</div>
+            <h1>Congratulations!</h1>
+            <p style="margin: 8px 0 0 0; opacity: 0.9;">You Won the Auction</p>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Dear {{ winner_name }},</p>
+
+            <p>We are thrilled to inform you that you have successfully won the following lot in our auction!</p>
+
+            <div class="lot-card">
+                <h2>Lot #{{ lot.lot_number }}: {{ lot.title }}</h2>
+                <p><strong>Auction:</strong> {{ auction.title }}</p>
+                <p><strong>Category:</strong> {{ lot.lot_catagory.name|default:"Uncategorized" }}</p>
+                <p><strong>Items:</strong> {{ lot.items.count }} item(s)</p>
+            </div>
+
+            <div class="winning-bid">
+                <div class="label">YOUR WINNING BID</div>
+                <div class="amount">₹{{ winning_bid|floatformat:2 }}</div>
+            </div>
+
+            <div class="info-box">
+                <p><strong>📄 Invoice Attached</strong></p>
+                <p>Please find your detailed invoice attached to this email. The payment has been processed through your
+                    wallet.</p>
+            </div>
+
+            <div class="info-box">
+                <p><strong>📦 Next Steps</strong></p>
+                <p>1. Review the attached invoice for complete details</p>
+                <p>2. Our team will contact you within 24 hours regarding delivery/pickup</p>
+                <p>3. Keep this email for your records</p>
+            </div>
+
+            <p>Thank you for participating in our auction. We look forward to serving you again!</p>
+
+            <p style="margin-top: 32px;">
+                Best regards,<br>
+                <strong>Auction House Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 Auction House. All rights reserved.</p>
+            <p>If you have any questions, please contact us at support@auctionhouse.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

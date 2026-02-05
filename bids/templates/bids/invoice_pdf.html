@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 12px;
+            color: #333333;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .invoice-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            text-align: left;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .total-row td {
+            font-weight: bold;
+            border-top: 2px solid #333;
+            font-size: 14px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <table>
+            <tr>
+                <td>
+                    <div class="company-name">Auction House</div>
+                    <div>Premium Online Auctions</div>
+                </td>
+                <td style="text-align: right;">
+                    <div class="invoice-title">INVOICE</div>
+                    <div>{{ invoice_number }}</div>
+                    <div>Date: {{ invoice_date }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table>
+        <tr>
+            <td width="50%" valign="top">
+                <div class="section-title">Bill To</div>
+                <div><strong>{{ winner.get_full_name|default:winner.username }}</strong></div>
+                <div>{{ winner.email }}</div>
+            </td>
+            <td width="50%" valign="top">
+                <div class="section-title">Auction Details</div>
+                <div><strong>Auction:</strong> {{ auction.title }}</div>
+                <div><strong>Lot:</strong> #{{ lot.lot_number }} - {{ lot.title }}</div>
+                <div><strong>Status:</strong> Paid
+                    <pdf:icon name="icon-check" />
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Items</div>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Item</th>
+                <th>Category</th>
+                <th style="text-align: right;">Est. Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <strong>{{ item.title }}</strong><br />
+                    <small>{{ item.description|truncatewords:10 }}</small>
+                </td>
+                <td>{{ item.item_catagory.name|default:"-" }}</td>
+                <td style="text-align: right;">{{ item.estimated_value|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="section-title">Summary</div>
+    <table style="width: 50%; margin-left: auto;">
+        <tr>
+            <td>Winning Bid</td>
+            <td style="text-align: right;">{{ winning_bid|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td>Commission (10%)</td>
+            <td style="text-align: right;">{{ admin_commission|floatformat:2 }}</td>
+        </tr>
+        <tr class="total-row">
+            <td>TOTAL PAID</td>
+            <td style="text-align: right;">{{ total_amount|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <div id="footerContent" class="footer">
+        Thank you for your business! | support@auctionhouse.com | www.auctionhouse.com
+    </div>
+</body>
+
+</html>

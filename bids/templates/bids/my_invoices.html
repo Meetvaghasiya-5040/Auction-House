@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Invoices | Auction House{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 py-12">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6">
+        
+        <!-- Header -->
+        <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-2 uppercase tracking-tight">My Invoices</h1>
+                <p class="text-slate-500 text-lg">Manage and download your auction invoices.</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-white p-4 border border-slate-200 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 bg-purple-50 flex items-center justify-center text-purple-600">
+                        <i class="fas fa-file-invoice-dollar text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Invoices</div>
+                        <div class="text-2xl font-black text-slate-900">{{ invoices.count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoices List -->
+        <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+            {% if invoices %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider border-b border-slate-800">
+                            <th class="p-5 font-bold">Invoice #</th>
+                            <th class="p-5 font-bold">Date Issued</th>
+                            <th class="p-5 font-bold">Auction Item</th>
+                            <th class="p-5 font-bold">Amount</th>
+                            <th class="p-5 font-bold">Status</th>
+                            <th class="p-5 font-bold text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for invoice in invoices %}
+                        <tr class="hover:bg-slate-50 transition-colors group">
+                            <td class="p-5">
+                                <a href="{% url 'invoice_detail' invoice.id %}" class="font-bold text-purple-600 hover:text-purple-800 hover:underline font-mono">
+                                    {{ invoice.invoice_number }}
+                                </a>
+                            </td>
+                            <td class="p-5 text-slate-600 font-medium">
+                                {{ invoice.issued_at|date:"M d, Y" }}
+                            </td>
+                            <td class="p-5">
+                                <div class="font-bold text-slate-900">{{ invoice.lot.title }}</div>
+                                <div class="text-xs text-slate-500">{{ invoice.lot.auction.title }}</div>
+                            </td>
+                            <td class="p-5 font-black text-slate-900">
+                                ₹{{ invoice.amount|floatformat:2 }}
+                            </td>
+                            <td class="p-5">
+                                {% if invoice.status == 'paid' %}
+                                    <span class="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold uppercase tracking-wide border border-green-200">
+                                        <i class="fas fa-check mr-1.5"></i> Paid
+                                    </span>
+                                {% elif invoice.status == 'pending' %}
+                                    <span class="inline-flex items-center px-2.5 py-1 bg-yellow-50 text-yellow-700 text-xs font-bold uppercase tracking-wide border border-yellow-200">
+                                        <i class="fas fa-clock mr-1.5"></i> Pending
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-1 bg-red-50 text-red-700 text-xs font-bold uppercase tracking-wide border border-red-200">
+                                        {{ invoice.status }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="p-5 text-right">
+                                <a href="{% url 'invoice_detail' invoice.id %}" class="inline-flex items-center justify-center bg-slate-900 hover:bg-purple-600 text-white px-4 py-2 text-sm font-bold transition-all uppercase tracking-wider group-hover:shadow-lg">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% else %}
+            <!-- Empty State -->
+            <div class="py-20 text-center">
+                <div class="w-20 h-20 bg-slate-50 mx-auto flex items-center justify-center text-slate-300 mb-6 border border-slate-100">
+                    <i class="fas fa-file-invoice text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">No Invoices Found</h3>
+                <p class="text-slate-500 max-w-md mx-auto mb-8">You haven't generated any invoices yet. Win an auction to get started!</p>
+                <a href="{% url 'auctions' %}" class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 font-bold uppercase tracking-wider transition-colors shadow-lg hover:shadow-xl">
+                    Browse Auctions
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

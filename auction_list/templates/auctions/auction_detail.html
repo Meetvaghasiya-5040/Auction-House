@@ -1,0 +1,730 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ auction.title }} | Auction House{% endblock %}
+
+{% block content %}
+<style>
+    .cta-primary {
+        display: inline-block;
+        padding: 14px 28px;
+        background-color: #facc15;
+        color: #000000;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        font-size: 0.8rem;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        transition: all 0.3s ease;
+    }
+
+    .cta-primary:hover {
+        background-color: #fde047;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .cta-secondary {
+        display: inline-block;
+        padding: 14px 28px;
+        background-color: transparent;
+        color: #ffffff;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        font-size: 0.8rem;
+        border: 2px solid #ffffff;
+        transition: all 0.3s ease;
+    }
+
+    .cta-secondary:hover {
+        background-color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        color: #000;
+    }
+</style>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb-section bg-slate-50 border-b border-slate-200">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-3">
+        <nav class="flex items-center gap-2 text-xs">
+            <a href="/" class="text-slate-500 hover:text-slate-900 font-semibold transition-colors">Home</a>
+            <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+            <a href="{% url 'auctions' %}"
+                class="text-slate-500 hover:text-slate-900 font-semibold transition-colors">Auctions</a>
+            <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+            <span class="text-slate-900 font-bold">{{ auction.title }}</span>
+        </nav>
+    </div>
+</div>
+
+<!-- Auction Header Section -->
+<div class="hero-section bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b-4 border-yellow-400">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-12 md:py-16">
+        <div class="grid md:grid-cols-2 gap-10 items-center">
+            <div class="hero-content">
+                <div class="overflow-hidden mb-3">
+                    <span class="status-badge inline-block px-3 py-1.5 text-xs font-bold uppercase tracking-wider
+                        {% if auction.status == 'live' %}bg-green-500 text-white animate-pulse
+                        {% elif auction.status == 'scheduled' %}bg-blue-500 text-white
+                        {% elif auction.status == 'completed' %}bg-slate-500 text-white
+                        {% else %}bg-yellow-400 text-slate-900{% endif %}">
+                        {{ auction.get_status_display }}
+                    </span>
+                </div>
+                <div class="overflow-hidden mb-4">
+                    <h1
+                        class="hero-title text-3xl md:text-5xl font-black text-white uppercase tracking-tight leading-tight">
+                        {{ auction.title }}
+                    </h1>
+                </div>
+                <div class="overflow-hidden mb-6">
+                    <p class="hero-desc text-slate-300 text-sm md:text-base leading-relaxed">
+                        {{ auction.description }}
+                    </p>
+                </div>
+                <div class="overflow-hidden mb-6">
+                    <div class="hero-meta flex flex-wrap gap-5">
+                        <div>
+                            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Auction ID
+                            </div>
+                            <div class="text-lg font-black text-yellow-400">#{{ auction.id }}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Hosted By
+                            </div>
+                            <div class="text-base font-bold text-white">
+                                {{auction.created_by.get_full_name|default:auction.created_by.username }}</div>
+                        </div>
+                        {% if auction.approved_by %}
+                        <div>
+                            <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Verified By
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-check-circle text-green-400 text-sm"></i>
+                                <span
+                                    class="text-sm font-bold text-white">{{auction.approved_by.get_full_name|default:auction.approved_by.username}}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="overflow-hidden">
+                    <div class="cta-section flex flex-wrap gap-3">
+                        <a href="{% url 'view_lots' auction.id %}" class="cta-primary">
+                            <i class="fas fa-gavel mr-2"></i>
+                            View All Lots
+                        </a>
+                        {% if auction.status == 'live' or auction.status == 'scheduled' %}
+                        {% if register %}
+                        <a href="{% url 'auction_unregister' auction.id %}" class="cta-secondary">
+                            <i class="fas fa-bell mr-2"></i>
+                            Unregister
+                        </a>
+                        {% else %}
+                        <a href="{% url 'auction_register' auction.id %}" class="cta-secondary">
+                            <i class="fas fa-bell mr-2"></i>
+                            Register
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-sidebar">
+                <div class="timer-card bg-white border-4 border-yellow-400 p-6">
+                    <div class="text-center">
+                        <div class="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3">
+                            {% if auction.status == 'live' %}Auction Ends In{% elif auction.status == 'scheduled' %}Auction Starts In{% else %}Auction Timeline{% endif %}
+                        </div>
+                        <div class="countdown-timer grid grid-cols-4 gap-3 mb-5">
+                            <div class="timer-unit">
+                                <div class="text-2xl md:text-3xl font-black text-slate-900" id="days">00</div>
+                                <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mt-1">Days
+                                </div>
+                            </div>
+                            <div class="timer-unit">
+                                <div class="text-2xl md:text-3xl font-black text-slate-900" id="hours">00</div>
+                                <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mt-1">Hours
+                                </div>
+                            </div>
+                            <div class="timer-unit">
+                                <div class="text-2xl md:text-3xl font-black text-slate-900" id="minutes">00</div>
+                                <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mt-1">Mins
+                                </div>
+                            </div>
+                            <div class="timer-unit">
+                                <div class="text-2xl md:text-3xl font-black text-slate-900" id="seconds">00</div>
+                                <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mt-1">Secs
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-5 border-t-2 border-slate-200">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Total
+                                    Lots</span>
+                                <span class="text-2xl font-black text-slate-900">{{ total_lots }}</span>
+                            </div>
+                            {% if auction.buyer_premium_percentage %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Buyer's
+                                    Premium</span>
+                                <span class="text-base font-black text-blue-600">{{ auction.buyer_premium_percentage}}%</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats Bar -->
+<div class="stats-bar bg-white border-b border-slate-200">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="stat-item text-center md:text-left border-r border-slate-200 last:border-r-0 pr-4">
+                <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1.5">Auction Type</div>
+                <div class="text-base font-bold text-slate-900">{{ auction.get_auction_type_display }}</div>
+            </div>
+            <div class="stat-item text-center md:text-left border-r border-slate-200 last:border-r-0 pr-4">
+                <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1.5">Min Increment</div>
+                <div class="text-base font-bold text-blue-600">₹{{ auction.min_bid_increment }}</div>
+            </div>
+            <div class="stat-item text-center md:text-left border-r border-slate-200 last:border-r-0 pr-4">
+                <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1.5">Start Date</div>
+                <div class="text-base font-bold text-slate-900">{{ auction.start_date|date:"M d" }}</div>
+            </div>
+            <div class="stat-item text-center md:text-left pr-4">
+                <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1.5">End Date</div>
+                <div class="text-base font-bold text-red-600">{{ auction.end_date|date:"M d" }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-8 md:py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        <!-- Sidebar -->
+        <aside class="lg:col-span-1 space-y-5 sidebar-content">
+
+            <!-- Schedule Card -->
+            <div class="schedule-card bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 p-5">
+                <div class="flex items-center gap-2.5 mb-3">
+                    <div class="w-8 h-8 bg-blue-500 flex items-center justify-center">
+                        <i class="far fa-calendar-alt text-white text-sm"></i>
+                    </div>
+                    <h2 class="text-sm font-bold uppercase tracking-tight text-slate-900">Schedule</h2>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="pb-3 border-b border-blue-200">
+                        <div class="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1.5">Start Date
+                        </div>
+                        <div class="text-base font-bold text-slate-900">{{ auction.start_date|date:"F d, Y" }}</div>
+                        <div class="text-xs text-slate-600 mt-0.5">{{ auction.start_date|date:"h:i A" }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1.5">End Date</div>
+                        <div class="text-base font-bold text-red-600">{{ auction.end_date|date:"F d, Y" }}</div>
+                        <div class="text-xs text-slate-600 mt-0.5">{{ auction.end_date|date:"h:i A" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location Card -->
+            {% if auction.location %}
+            <div class="location-card bg-white border-2 border-slate-200 p-5">
+                <div class="flex items-center gap-2.5 mb-3">
+                    <div class="w-8 h-8 bg-slate-900 flex items-center justify-center">
+                        <i class="fas fa-map-marker-alt text-white text-sm"></i>
+                    </div>
+                    <h2 class="text-sm font-bold uppercase tracking-tight text-slate-900">Location</h2>
+                </div>
+                <p class="text-xs font-semibold text-slate-700">{{ auction.location }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Features Card -->
+            <div class="features-card bg-gradient-to-br from-green-50 to-white border-2 border-green-200 p-5">
+                <h2 class="text-sm font-bold uppercase tracking-tight text-slate-900 mb-3">Features</h2>
+                <ul class="space-y-2.5">
+                    {% if auction.allow_proxy_bidding %}
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-check-circle text-green-500 mt-0.5 text-sm"></i>
+                        <div>
+                            <div class="font-semibold text-xs text-slate-900">Proxy Bidding</div>
+                            <div class="text-xs text-slate-600">Set your max bid automatically</div>
+                        </div>
+                    </li>
+                    {% endif %}
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-shield-alt text-green-500 mt-0.5 text-sm"></i>
+                        <div>
+                            <div class="font-semibold text-xs text-slate-900">Secure Platform</div>
+                            <div class="text-xs text-slate-600">Protected transactions</div>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <i class="fas fa-gavel text-green-500 mt-0.5 text-sm"></i>
+                        <div>
+                            <div class="font-semibold text-xs text-slate-900">Fair Bidding</div>
+                            <div class="text-xs text-slate-600">Transparent process</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Terms Card -->
+            <div class="terms-card bg-slate-50 border-2 border-slate-200 p-5">
+                <h2 class="text-sm font-bold uppercase tracking-tight text-slate-900 mb-3">Terms & Conditions</h2>
+                <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                    {% if auction.terms_and_conditions %}
+                    <p>{{ auction.terms_and_conditions|truncatewords:50 }}</p>
+                    {% else %}
+                    <p>By bidding in this auction, you agree to the Auction House terms and conditions.</p>
+                    <p class="mt-1.5">All bids are legally binding. Buyer's premium applies to all successful bids.</p>
+                    <p class="mt-1.5">Payment must be completed within 48 hours of auction close.</p>
+                    {% endif %}
+                </div>
+                <a href="#"
+                    class="inline-block mt-3 text-xs font-semibold text-blue-600 hover:text-blue-800 uppercase tracking-wider">
+                    Read Full Terms <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Lots Section -->
+        <main class="lg:col-span-3 lots-content">
+            <div class="lots-header mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-black uppercase tracking-tight text-slate-900 mb-1.5">
+                        Auction Lots
+                    </h2>
+                    <p class="text-sm text-slate-600">Browse {{ total_lots }} lot{{ total_lots|pluralize }} available in
+                        this auction</p>
+                </div>
+                <div class="flex gap-2">
+                    <select
+                        class="sort-select px-3 py-2 border-2 border-slate-300 text-xs font-semibold text-slate-700 bg-white hover:border-slate-900 transition-colors focus:outline-none focus:border-slate-900">
+                        <option>Sort by Lot Number</option>
+                        <option>Sort by Price: Low to High</option>
+                        <option>Sort by Price: High to Low</option>
+                        <option>Sort by Status</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Mobile: Cards View -->
+            <div class="md:hidden space-y-4 mobile-lots">
+                {% for lot in lots %}
+                <article
+                    class="lot-card-mobile bg-white border-2 border-slate-200 overflow-hidden hover:border-slate-400 hover:shadow-lg transition-all duration-300">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span class="text-xs font-mono font-semibold text-slate-400 block mb-1">LOT #{{ lot.lot_number }}</span>
+                                <span class="status-badge-sm inline-block px-2 py-1 text-xs font-bold uppercase tracking-wider border-2
+                                    {% if lot.status == 'active' %}border-green-500 bg-green-500 text-white
+                                    {% elif lot.status == 'sold' %}border-slate-500 bg-slate-500 text-white
+                                    {% else %}border-slate-300 text-slate-600{% endif %}">
+                                    {{ lot.status }}
+                                </span>
+                            </div>
+                            {% if lot.is_timed %}
+                            <span
+                                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold">
+                                <i class="far fa-clock text-xs"></i>
+                                Timed
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <h3 class="text-base font-bold text-slate-900 mb-2 uppercase leading-tight">{{ lot.title }}</h3>
+                        <p class="text-xs text-slate-600 mb-3 line-clamp-2">{{ lot.description|truncatewords:20 }}</p>
+
+                        <div class="grid grid-cols-2 gap-3 mb-3 pb-3 border-b border-slate-200">
+                            <div>
+                                <div class="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1">Starting
+                                    Bid</div>
+                                <div class="text-base font-bold text-slate-900">₹{{ lot.starting_bid }}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1">Current
+                                    Bid</div>
+                                <div class="text-base font-bold text-blue-600">
+                                    ₹{{lot.current_bid|default:lot.starting_bid }}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-tag text-slate-400 text-xs"></i>
+                                <span class="text-xs font-semibold text-slate-700">{{ lot.lot_catagory.name }}</span>
+                            </div>
+                            <div class="text-xs text-slate-500">
+                                <i class="fas fa-gavel mr-1"></i>
+                                {{ lot.bids.count }} bid{{ lot.bids.count|pluralize }}
+                            </div>
+                        </div>
+
+                        <a href="{% url 'lot_detail' lot.id %}"
+                            class="block text-center py-2.5 bg-slate-900 border-2 border-slate-900 text-white font-bold text-xs uppercase tracking-wider hover:bg-white hover:text-slate-900 transition-all duration-300">
+                            <i class="fas fa-gavel mr-1.5"></i>
+                            Place Bid
+                        </a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Desktop: Table View -->
+            <div class="hidden md:block desktop-lots overflow-hidden border-2 border-slate-900">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900 text-white">
+                        <tr>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wider">Lot Details</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wider">Category</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wider">Items</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wider text-right">Starting Bid
+                            </th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wider text-right">Current Bid</th>
+                            <th class="px-5 py-3 text-xs font-bold uppercase tracking-wider text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y-2 divide-slate-100 bg-white">
+                        {% for lot in lots %}
+                        <tr class="lot-row hover:bg-slate-50 transition-colors group">
+                            <td class="px-5 py-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="flex-shrink-0">
+                                        <div
+                                            class="w-10 h-10 bg-slate-100 border-2 border-slate-300 flex items-center justify-center group-hover:border-slate-900 transition-colors">
+                                            <span class="font-bold text-slate-900 text-xs">{{ lot.lot_number }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-0.5">
+                                            <span class="font-mono text-xs text-slate-400">LOT #{{lot.lot_number}}</span>
+                                            <span class="status-dot w-1.5 h-1.5 rounded-full
+                                                {% if lot.status == 'active' %}bg-green-500
+                                                {% elif lot.status == 'sold' %}bg-slate-500
+                                                {% else %}bg-slate-300{% endif %}"></span>
+                                            <span class="text-xs font-semibold uppercase text-slate-500">{{lot.status}}</span>
+                                        </div>
+                                        <h3
+                                            class="font-bold text-slate-900 uppercase text-sm mb-0.5 group-hover:text-blue-600 transition-colors">
+                                            {{ lot.title }}
+                                        </h3>
+                                        <p class="text-xs text-slate-600 line-clamp-1">
+                                            {{lot.description|truncatewords:15 }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span
+                                    class="inline-block px-2.5 py-1 bg-slate-100 border border-slate-300 text-xs font-semibold uppercase text-slate-700">
+                                    {{ lot.lot_catagory.name }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="text-center">
+                                    <div class="text-xl font-bold text-slate-900">{{ lot.item_count }}</div>
+                                    <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">
+                                        Item{{lot.item_count|pluralize }}</div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 text-right">
+                                <div class="font-bold text-slate-900 text-base">₹{{ lot.starting_bid }}</div>
+                                <div class="text-xs uppercase font-semibold text-slate-400">Starting</div>
+                            </td>
+                            <td class="px-5 py-4 text-right">
+                                <div class="font-bold text-blue-600 text-base">
+                                    ₹{{lot.current_bid|default:lot.starting_bid }}</div>
+                                <div class="text-xs font-semibold text-slate-500">
+                                    <i class="fas fa-gavel mr-1"></i>
+                                    {{ lot.bids.count }} Bid{{ lot.bids.count|pluralize }}
+                                </div>
+                            </td>
+                            {% if lot.status == 'active' %}
+                            <td class="px-5 py-4 text-center">
+                                <a href="{% url 'lot_detail' lot.id %}"
+                                    class="inline-block px-5 py-2.5 bg-slate-900 border-2 border-slate-900 font-bold text-xs uppercase tracking-wider text-white hover:bg-white hover:text-slate-900 transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-gavel mr-1"></i>
+                                    Bid Now
+                                </a>
+                            </td>
+                            {% elif lot.status == 'sold' %}
+                            <td class="px-5 py-4 text-center">
+                                <span
+                                    class="inline-block px-5 py-2.5 bg-slate-500 border-2 border-slate-500 font-bold text-xs uppercase tracking-wider text-white">
+                                    <i class="fas fa-check mr-1"></i>
+                                    Sold
+                                </span>
+                            </td>
+                            {% elif lot.status == 'draft' %}
+                            <td class="px-5 py-4 text-center">
+                                <span
+                                    class="inline-block px-5 py-2.5 bg-slate-500 border-2 border-slate-500 font-bold text-xs uppercase tracking-wider text-white">
+                                    <i class="fas fa-check mr-1"></i>
+                                    Not start
+                                </span>
+                            </td>
+                            {% else %}
+                            <td class="px-5 py-4 text-center">
+                                <span
+                                    class="inline-block px-5 py-2.5 bg-slate-400 border-2 border-slate-400 font-bold text-xs uppercase tracking-wider text-white">
+                                    <i class="fas fa-times mr-1"></i>
+                                    Unsold
+                                </span>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-5 py-16 text-center">
+                                <i class="fas fa-inbox text-5xl text-slate-300 mb-3"></i>
+                                <p class="text-slate-400 font-semibold text-base">No lots found for this auction.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section bg-gradient-to-r from-slate-900 to-slate-700 border-t-4 border-yellow-400 mt-12">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-12 text-center">
+        <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-3">Ready to Start Bidding?
+        </h2>
+        <p class="text-slate-300 text-sm mb-6 max-w-2xl mx-auto">Join thousands of satisfied bidders and discover unique
+            items in our auctions.</p>
+        <div class="flex flex-wrap justify-center gap-3">
+            <a href="{% url 'view_lots' auction.id %}"
+                class="px-6 py-3 bg-yellow-400 text-slate-900 font-bold text-sm uppercase tracking-wider hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105">
+                Browse All Lots
+            </a>
+            <a href="#"
+                class="px-6 py-3 border-2 border-white text-white font-bold text-sm uppercase tracking-wider hover:bg-white hover:text-slate-900 transition-all duration-300">
+                Register to Bid
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero section animations
+        const heroTl = gsap.timeline();
+        heroTl.from(".status-badge", {
+            duration: 0.6,
+            y: 20,
+            opacity: 0,
+            ease: "back.out(1.7)"
+        })
+            .from(".hero-title", {
+                duration: 0.8,
+                y: 50,
+                opacity: 0,
+                ease: "power3.out"
+            }, "-=0.3")
+            .from(".hero-desc", {
+                duration: 0.6,
+                y: 30,
+                opacity: 0,
+                ease: "power2.out"
+            }, "-=0.4")
+            .from(".hero-meta > div", {
+                duration: 0.5,
+                y: 20,
+                opacity: 0,
+                stagger: 0.1,
+                ease: "power2.out"
+            }, "-=0.3")
+            .from(".cta-buttons a", {
+                duration: 0.5,
+                scale: 0.9,
+                opacity: 0,
+                stagger: 0.1,
+                ease: "back.out(1.7)"
+            }, "-=0.2")
+            .from(".timer-card", {
+                duration: 0.8,
+                x: 50,
+                opacity: 0,
+                ease: "power3.out"
+            }, "-=0.8");
+
+        // Stats bar animation
+        gsap.from(".stats-bar .stat-item", {
+            scrollTrigger: {
+                trigger: ".stats-bar",
+                start: "top 80%",
+            },
+            duration: 0.6,
+            y: 30,
+            opacity: 0,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+
+        // Sidebar animations
+        gsap.from(".sidebar-content > div", {
+            scrollTrigger: {
+                trigger: ".sidebar-content",
+                start: "top 70%",
+            },
+            duration: 0.8,
+            x: -50,
+            opacity: 0,
+            stagger: 0.15,
+            ease: "power3.out"
+        });
+
+        // Lots header animation
+        gsap.from(".lots-header", {
+            scrollTrigger: {
+                trigger: ".lots-header",
+                start: "top 80%",
+            },
+            duration: 0.8,
+            y: 40,
+            opacity: 0,
+            ease: "power3.out"
+        });
+
+        // Mobile cards animation
+        gsap.from(".lot-card-mobile", {
+            scrollTrigger: {
+                trigger: ".mobile-lots",
+                start: "top 80%",
+            },
+            duration: 0.6,
+            y: 40,
+            opacity: 0,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+
+        // Desktop table rows animation
+        gsap.from(".lot-row", {
+            scrollTrigger: {
+                trigger: ".desktop-lots",
+                start: "top 80%",
+            },
+            duration: 0.6,
+            x: -30,
+            opacity: 0,
+            stagger: 0.08,
+            ease: "power2.out"
+        });
+
+        // CTA section animation
+        gsap.from(".cta-section > div > *", {
+            scrollTrigger: {
+                trigger: ".cta-section",
+                start: "top 80%",
+            },
+            duration: 0.8,
+            y: 40,
+            opacity: 0,
+            stagger: 0.15,
+            ease: "power3.out"
+        });
+
+        // Polling Integration for Real-Time Status Updates
+        const auctionId = "{{ auction.id }}";
+
+        function pollAuctionStatus() {
+            fetch(`/auctions/updates/?ids=${auctionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const auctionData = data[auctionId];
+                    if (auctionData) {
+                        const currentStatus = "{{ auction.status }}"; // Initial status from template render
+                        // We need to track client-side status to avoid infinite reloads if we don't reload page
+                        // But since we reload on change, comparing with server-sent status is key.
+
+                        // Logic: If server status is different from what page thinks *and* it's a significant change
+                        // For now, simpler: If the badge text doesn't match the new status display, reload.
+                        const badge = document.querySelector('.status-badge');
+                        const currentBadgeText = badge ? badge.innerText.trim() : '';
+
+                        // Check for Live transition
+                        if (auctionData.status === 'live' && !currentBadgeText.includes('Live')) {
+                            console.log('Auction went live! Reloading...');
+                            window.location.reload();
+                        }
+
+                        // Check for Completed transition
+                        if (auctionData.status === 'completed' && !currentBadgeText.includes('Ended') && !currentBadgeText.includes('Completed')) {
+                            console.log('Auction ended! Reloading...');
+                            window.location.reload();
+                        }
+                    }
+                })
+                .catch(err => console.error('Polling error:', err));
+        }
+
+        // Poll every 5 seconds
+        setInterval(pollAuctionStatus, 5000);
+
+        // Countdown Timer
+        const endDate = new Date("{{ auction.end_date|date:'Y-m-d H:i:s' }}").getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = endDate - now;
+
+            if (distance < 0) {
+                document.getElementById("days").textContent = "00";
+                document.getElementById("hours").textContent = "00";
+                document.getElementById("minutes").textContent = "00";
+                document.getElementById("seconds").textContent = "00";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").textContent = String(days).padStart(2, '0');
+            document.getElementById("hours").textContent = String(hours).padStart(2, '0');
+            document.getElementById("minutes").textContent = String(minutes).padStart(2, '0');
+            document.getElementById("seconds").textContent = String(seconds).padStart(2, '0');
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // Subtle pulse animation for timer
+        gsap.to(".timer-unit", {
+            scale: 1.03,
+            duration: 0.3,
+            stagger: {
+                each: 0.25,
+                repeat: -1,
+                yoyo: true
+            },
+            ease: "power1.inOut"
+        });
+    });
+</script>
+{% endblock %}

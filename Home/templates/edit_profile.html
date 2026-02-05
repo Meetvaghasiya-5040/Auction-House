@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - Auction House{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fas fa-user-edit"></i>
+                        Edit Profile
+                    </h2>
+                    <a href="{% url 'profile' %}"
+                        class="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-all backdrop-blur-sm">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                </div>
+                <p class="text-indigo-100 mt-2 text-sm">Update your personal information and profile appearance</p>
+            </div>
+
+            <!-- Form -->
+            <form method="POST" enctype="multipart/form-data" class="p-8 space-y-8">
+                {% csrf_token %}
+
+                <!-- Profile Image Section -->
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <div class="relative group">
+                        <div
+                            class="w-32 h-32 rounded-full border-4 border-indigo-100 shadow-lg overflow-hidden bg-slate-100">
+                            {% if profile.profile_image %}
+                            <img id="imagePreview" src="{{ profile.profile_image.url }}" alt="Profile"
+                                class="w-full h-full object-cover" />
+                            {% else %}
+                            <div id="placeholderPreview"
+                                class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-4xl">
+                                {{ profile.user.username|first|upper }}
+                            </div>
+                            <img id="imagePreview" src="#" alt="Profile" class="w-full h-full object-cover hidden" />
+                            {% endif %}
+                        </div>
+                        <label for="profile_image"
+                            class="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-full shadow-lg cursor-pointer transition-all transform hover:scale-110 border-2 border-white">
+                            <i class="fas fa-camera text-sm"></i>
+                            <input type="file" id="profile_image" name="profile_image" accept="image/*" class="hidden"
+                                onchange="previewImage(this)">
+                        </label>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium">Click camera icon to update photo</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Username -->
+                    <div>
+                        <label for="username" class="block text-sm font-bold text-slate-700 mb-2">Username</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                <i class="fas fa-at"></i>
+                            </span>
+                            <input type="text" id="username" name="username" value="{{ profile.user.username }}"
+                                required
+                                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold text-slate-700">
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" id="email" name="email" value="{{ profile.user.email }}" required
+                                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold text-slate-700">
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Phone Number -->
+                        <div>
+                            <label for="phone_number" class="block text-sm font-bold text-slate-700 mb-2">Phone
+                                Number</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <i class="fas fa-phone"></i>
+                                </span>
+                                <input type="text" id="phone_number" name="phone_number"
+                                    value="{{ profile.phone_number }}"
+                                    class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold text-slate-700"
+                                    placeholder="+91 98765 43210">
+                            </div>
+                        </div>
+
+                        <!-- Website -->
+                        <div>
+                            <label for="website" class="block text-sm font-bold text-slate-700 mb-2">Website</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <i class="fas fa-globe"></i>
+                                </span>
+                                <input type="url" id="website" name="website" value="{{ profile.website }}"
+                                    class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold text-slate-700"
+                                    placeholder="https://example.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    <div>
+                        <label for="bio" class="block text-sm font-bold text-slate-700 mb-2">About Me</label>
+                        <div class="relative">
+                            <textarea id="bio" name="bio" rows="3"
+                                class="w-full p-4 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold text-slate-700"
+                                placeholder="Tell us a bit about yourself...">{{ profile.bio }}</textarea>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1 text-right">Max 500 characters</p>
+                    </div>
+
+                    <!-- Address -->
+                    <div>
+                        <label for="address" class="block text-sm font-bold text-slate-700 mb-2">Shipping
+                            Address</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-4 text-slate-400">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </span>
+                            <textarea id="address" name="address" rows="3"
+                                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-semibold text-slate-700"
+                                placeholder="Enter your full shipping address for item delivery...">{{ profile.address }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Theme Color -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-3">Profile Theme</label>
+                        <div class="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                            {% for value, name in profile.THEME_CHOICES %}
+                            <label class="cursor-pointer group relative">
+                                <input type="radio" name="theme_color" value="{{ value }}" class="peer hidden" {% if profile.theme_color == value %}checked{% endif %}>
+                                <div
+                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-{{ value }}-500 to-{{ value }}-600 peer-checked:ring-4 peer-checked:ring-offset-2 peer-checked:ring-{{ value }}-500 transition-all transform hover:scale-110 shadow-sm">
+                                </div>
+                                <span
+                                    class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{{name|cut:"(Default)" }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="pt-6 border-t border-slate-100 flex items-center gap-4">
+                    <button type="submit"
+                        class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3.5 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                    <a href="{% url 'profile' %}"
+                        class="px-6 py-3.5 border border-slate-300 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var imagePreview = document.getElementById('imagePreview');
+                var placeholderPreview = document.getElementById('placeholderPreview');
+
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+
+                if (placeholderPreview) {
+                    placeholderPreview.classList.add('hidden');
+                }
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}
