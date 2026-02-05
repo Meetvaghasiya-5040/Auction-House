@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,17 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure--_lx4*%4c6t#i6a($ec-tet7xvio7qs14)&dkz5xlki30inv3q"
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure--_lx4*%4c6t#i6a($ec-tet7xvio7qs14)&dkz5xlki30inv3q")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
-
-# Admin Setting 
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
+# Admin Setting
 
 JAZZMIN_SETTINGS = {
-
     # --------------------------------------------------
     # BRANDING
     # --------------------------------------------------
@@ -45,7 +44,6 @@ JAZZMIN_SETTINGS = {
     "site_icon": None,
     "welcome_sign": "Welcome to Auction Admin Panel",
     "copyright": "Auction House © 2026",
-
     # --------------------------------------------------
     # UI BEHAVIOR
     # --------------------------------------------------
@@ -57,7 +55,6 @@ JAZZMIN_SETTINGS = {
         "auction_list",
         "auth",
     ],
-
     # --------------------------------------------------
     # TOP MENU LINKS
     # --------------------------------------------------
@@ -65,7 +62,6 @@ JAZZMIN_SETTINGS = {
         {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "View Site", "url": "/", "new_window": True},
     ],
-
     # --------------------------------------------------
     # USER MENU LINKS
     # --------------------------------------------------
@@ -73,13 +69,11 @@ JAZZMIN_SETTINGS = {
         {"name": "Profile", "url": "/profile/", "icon": "fas fa-user"},
         {"model": "auth.user"},
     ],
-
     # --------------------------------------------------
     # SIDEBAR MENU
     # --------------------------------------------------
     "show_sidebar": True,
     "navigation_expanded": True,
-
     # --------------------------------------------------
     # ICONS (VERY IMPORTANT)
     # --------------------------------------------------
@@ -87,61 +81,59 @@ JAZZMIN_SETTINGS = {
         "auth": "fas fa-users-cog",
         "auth.User": "fas fa-users",
         "auth.Group": "fas fa-shield-alt",
-
         "auction_list": "fas fa-gavel",
         "auction_list.Auction": "fas fa-gavel",
         "auction_list.Lot": "fas fa-box",
         "auction_list.Item": "fas fa-tags",
         "auction_list.Category": "fas fa-layer-group",
     },
-
     # --------------------------------------------------
     # DEFAULT ICONS
     # --------------------------------------------------
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-
     # --------------------------------------------------
     # UI TWEAKS
     # --------------------------------------------------
     "related_modal_active": True,
-    "custom_css": None,   # add custom css path if needed
+    "custom_css": None,  # add custom css path if needed
     "custom_js": None,
     "use_google_fonts_cdn": True,
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {
         "auth.user": "collapsible",
     },
-
     # --------------------------------------------------
     # TABLE UI
     # --------------------------------------------------
     "language_chooser": False,
-
     # --------------------------------------------------
     # DARK MODE (IMPORTANT)
     # --------------------------------------------------
-    "theme": "darkly",   # darkly | cyborg | flatly | minty | lumen
+    "theme": "darkly",  # darkly | cyborg | flatly | minty | lumen
 }
-
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
+    "daphne",
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'Home',
-    'auction_list',
+    "Home",
+    "auction_list",
+    "bids",
+    "channels",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -155,7 +147,13 @@ ROOT_URLCONF = "AuctionHouse.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'templates' , BASE_DIR / 'Home/templates' , BASE_DIR / 'auction_list/templates'],
+        "DIRS": [
+            BASE_DIR / "templates",
+            BASE_DIR / "Home/templates",
+            BASE_DIR / "auction_list/templates",
+            BASE_DIR / "custom_admin/templates",
+            BASE_DIR / "bids/templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -168,16 +166,29 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "AuctionHouse.wsgi.application"
+# ASGI Configuration
+ASGI_APPLICATION = "AuctionHouse.asgi.application"
 
+# Channels Layer (for WebSocket)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        # For production, use Redis:
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [('127.0.0.1', 6379)],
+        # },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 
@@ -205,7 +216,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"  # Indian Standard Time (IST)
 
 USE_I18N = True
 
@@ -216,33 +227,33 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 MESSAGE_TAGS = {
-    messages.DEBUG: 'debug',
-    messages.INFO: 'info',
-    messages.SUCCESS: 'success',
-    messages.WARNING: 'warning',
-    messages.ERROR: 'error',
+    messages.DEBUG: "debug",
+    messages.INFO: "info",
+    messages.SUCCESS: "success",
+    messages.WARNING: "warning",
+    messages.ERROR: "error",
 }
 
-MESSAGE_LEVEL = messages.DEBUG 
+MESSAGE_LEVEL = messages.DEBUG
 
-MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"  
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "meetvaghasiya166@gmail.com" 
-EMAIL_HOST_PASSWORD = (
-    "uycl kjms nuuh bysv" 
-)
+EMAIL_HOST_USER = "meetvaghasiya166@gmail.com"
+EMAIL_HOST_PASSWORD = "uycl kjms nuuh bysv"
