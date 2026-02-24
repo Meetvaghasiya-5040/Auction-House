@@ -108,72 +108,6 @@
                             the item.</p>
                     </div>
 
-                    {% if lot.status == 'shipped' %}
-                    <a href="{% url 'confirm_delivery' lot.id %}"
-                        class="block w-full text-center py-3 bg-green-600 text-white font-bold uppercase rounded-lg hover:bg-green-700 transition-colors mt-4">
-                        Confirm Receipt
-                    </a>
-                    {% endif %}
-
-                    {% elif request.user.is_staff %}
-                    <!-- Admin View (Warehouse Management) -->
-
-                    <!-- ADMIN AS SELLER FALLBACK: If Admin is also the Owner and status is 'paid', show shipping form -->
-                    {% if lot.status == 'paid' and lot.items.first.owner == request.user %}
-                    <form action="{% url 'mark_shipped_to_warehouse' lot.id %}" method="POST" class="space-y-3 mb-4">
-                        {% csrf_token %}
-                        <input type="text" name="tracking_number" placeholder="Enter tracking number to warehouse"
-                            class="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-slate-900 text-sm">
-                        <button type="submit"
-                            class="w-full py-3 bg-amber-600 text-white font-bold uppercase rounded-lg hover:bg-amber-700 transition-colors">
-                            Mark Shipped to Warehouse (As Seller)
-                        </button>
-                    </form>
-                    {% endif %}
-
-                    {% if lot.status == 'shipped_to_warehouse' %}
-                    <a href="{% url 'mark_at_warehouse' lot.id %}"
-                        class="block w-full text-center py-3 bg-indigo-600 text-white font-bold uppercase rounded-lg hover:bg-indigo-700 transition-colors mt-4">
-                        Mark as Received at Warehouse
-                    </a>
-                    {% elif lot.status == 'at_warehouse' %}
-                    <a href="{% url 'mark_shipped_to_buyer' lot.id %}"
-                        class="block w-full text-center py-3 bg-purple-600 text-white font-bold uppercase rounded-lg hover:bg-purple-700 transition-colors mt-4">
-                        Ship to Buyer
-                    </a>
-                    {% endif %}
-
-                    {% if lot.status == 'shipped' %}
-                    <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                        <p class="text-xs font-bold text-slate-700 uppercase mb-2">Verify Buyer Code</p>
-                        <div class="flex gap-2">
-                            <input type="text" id="delivery-otp" placeholder="6-digit code"
-                                class="flex-1 px-3 py-2 border border-slate-300 rounded text-sm focus:border-slate-900">
-                            <button onclick="verifyOtp({{ lot.id }})"
-                                class="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded hover:bg-green-700">
-                                Verify
-                            </button>
-                        </div>
-                        <div id="otp-message" class="text-[10px] mt-1 hidden"></div>
-                    </div>
-                    {% endif %}
-
-                    {% elif lot.items.first.owner == request.user %}
-                    <!-- Seller View -->
-                    {% if lot.status == 'paid' %}
-                    <form action="{% url 'mark_shipped_to_warehouse' lot.id %}" method="POST" class="space-y-3">
-                        {% csrf_token %}
-                        <input type="text" name="tracking_number" placeholder="Enter tracking number to warehouse"
-                            class="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-slate-900 text-sm">
-                        <button type="submit"
-                            class="w-full py-3 bg-amber-600 text-white font-bold uppercase rounded-lg hover:bg-amber-700 transition-colors">
-                            Mark Shipped to Warehouse
-                        </button>
-                    </form>
-                    {% endif %}
-
-                    <!-- OTP Verification removed for Seller. Only Admin can verify. -->
-                    {% endif %}
                 </div>
             </div>
             {% endif %}
@@ -875,51 +809,7 @@
         }
     }
 
-    async function verifyOtp(lotId) {
-        const otpInput = document.getElementById('delivery-otp');
-        const otp = otpInput ? otpInput.value : '';
-        const messageEl = document.getElementById('otp-message');
 
-        if (!otp || otp.length !== 6) {
-            if (messageEl) {
-                messageEl.textContent = 'Please enter a 6-digit code';
-                messageEl.className = 'text-[10px] mt-1 text-red-600';
-                messageEl.classList.remove('hidden');
-            }
-            return;
-        }
-
-        try {
-            const formData = new FormData();
-            formData.append('lot_id', lotId);
-            formData.append('otp', otp);
-            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-            const response = await fetch('{% url "verify_delivery_otp" %}', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                if (messageEl) {
-                    messageEl.textContent = data.message;
-                    messageEl.className = 'text-[10px] mt-1 text-green-600';
-                    messageEl.classList.remove('hidden');
-                }
-                setTimeout(() => window.location.reload(), 2000);
-            } else {
-                if (messageEl) {
-                    messageEl.textContent = data.error;
-                    messageEl.className = 'text-[10px] mt-1 text-red-600';
-                    messageEl.classList.remove('hidden');
-                }
-            }
-        } catch (e) {
-            console.error("OTP verification error:", e);
-        }
-    }
-    window.verifyOtp = verifyOtp;
 
     async function fetchUpdates() {
         try {

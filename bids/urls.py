@@ -16,7 +16,7 @@ urlpatterns = [
     path('invoices/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
     path('verify-payment-pin/', views.verify_payment_pin, name='verify_payment_pin'),
     path('lot/<slug:slug>/payment-modal/', views.payment_modal_fragment, name='payment_modal_fragment'),
-    path('lot/<int:lot_id>/mark-shipped-to-warehouse/', views.mark_shipped_to_warehouse, name='mark_shipped_to_warehouse'),
+
     path('lot/<int:lot_id>/mark-at-warehouse/', views.mark_at_warehouse, name='mark_at_warehouse'),
     path('lot/<int:lot_id>/mark-shipped-to-buyer/', views.mark_shipped_to_buyer, name='mark_shipped_to_buyer'),
     path('lot/<int:lot_id>/confirm-delivery/', views.confirm_delivery, name='confirm_delivery'),

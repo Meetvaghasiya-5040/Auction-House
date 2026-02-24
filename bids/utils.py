@@ -101,6 +101,22 @@ def check_expired_payments(lot=None):
                 
                 print(f"-> Offered to next bidder: {next_bid.user.username}")
                 
+                # Send email to the new winner
+                import threading
+                def send_new_winner_notification_bg(lot_id):
+                    try:
+                        from auction_list.models import Lot
+                        from bids.invoice_generator import generate_invoice
+                        from bids.email_utils import send_winner_email
+                        lot_obj = Lot.objects.select_related('winning_bidder').get(id=lot_id)
+                        if lot_obj.winning_bidder:
+                            path = generate_invoice(lot_obj, lot_obj.winning_bidder)
+                            if path:
+                                send_winner_email(lot_obj, lot_obj.winning_bidder, path)
+                    except Exception as e:
+                        print(f"Background Email Error: {e}")
+                threading.Thread(target=send_new_winner_notification_bg, args=(lot.id,)).start()
+                
             else:
                 # 4. No more bidders - Mark Unsold
                 lot.status = 'unsold'

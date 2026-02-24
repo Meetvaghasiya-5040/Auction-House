@@ -198,8 +198,22 @@ def get_bid_updates(request, slug):
         
         # If time is up and lot is still active, close it
         if lot.status == 'active' and (lot.is_auction_ended() or (time_remaining is not None and remaining_seconds <= 0)):
-            lot.close_lot()
-            lot.refresh_from_db()
+            if lot.close_lot():
+                lot.refresh_from_db()
+                if lot.winning_bidder:
+                    import threading
+                    def send_winner_notification_bg(lot_id):
+                        try:
+                            from auction_list.models import Lot
+                            from bids.invoice_generator import generate_invoice
+                            from bids.email_utils import send_winner_email
+                            lot_obj = Lot.objects.select_related('winning_bidder').get(id=lot_id)
+                            path = generate_invoice(lot_obj, lot_obj.winning_bidder)
+                            if path:
+                                send_winner_email(lot_obj, lot_obj.winning_bidder, path)
+                        except Exception as e:
+                            print(f"Background Email Error: {e}")
+                    threading.Thread(target=send_winner_notification_bg, args=(lot.id,)).start()
             
         # Serialize recent bids
         recent_bids = lot.recent_bids
@@ -457,40 +471,6 @@ def payment_modal_fragment(request, slug):
     # Render just the partial
     return render(request, 'lots/partials/payment_modal.html', context)
 
-
-@login_required
-def mark_shipped_to_warehouse(request, lot_id):
-    """View for seller to mark a lot as shipped to the warehouse"""
-    lot = get_object_or_404(Lot, id=lot_id)
-    
-    # Check if user is the owner of any item in this lot
-    if not lot.items.filter(owner=request.user).exists():
-        messages.error(request, "You are not authorized to mark this lot as shipped.")
-        return redirect('lot_detail', slug=lot.slug)
-    
-    if lot.status != 'paid':
-        messages.error(request, "Lot must be paid before shipping to warehouse.")
-        return redirect('lot_detail', slug=lot.slug)
-    
-    try:
-        from auction_list.models import Delivery
-        delivery = lot.delivery
-        delivery.status = 'shipped_to_warehouse'
-        delivery.shipped_at = timezone.now()
-        
-        if request.method == 'POST':
-            delivery.tracking_number = request.POST.get('tracking_number')
-        
-        delivery.save()
-        
-        lot.status = 'shipped_to_warehouse'
-        lot.save()
-        
-        messages.success(request, f"Lot #{lot.lot_number} marked as shipped to warehouse.")
-    except Exception as e:
-        messages.error(request, f"Error updating delivery: {str(e)}")
-        
-    return redirect('lot_detail', slug=lot.slug)
 
 
 @staff_member_required

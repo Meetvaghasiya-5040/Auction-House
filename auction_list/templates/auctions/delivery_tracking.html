@@ -65,30 +65,7 @@
                 <div class="p-6 md:p-10" style="background: rgba(248, 250, 252, 0.5);">
                     {% with status=delivery.status|default:lot.status %}
 
-                    <!-- Calculate progress percentage -->
-                    {% if status == 'delivered' %}
-                    {% with progress=100 %}
-                    {% endwith %}
-                    {% endif %}
-                    {% if status == 'shipped' %}
-                    {% with progress=75 %}
-                    {% endwith %}
-                    {% endif %}
-                    {% if status == 'at_warehouse' or status == 'shipped_to_warehouse' %}
-                    {% with progress=50 %}
-                    {% endwith %}
-                    {% endif %}
-                    {% if status != 'sold' and status != 'draft' and status != 'active' and status != 'delivered' and
-                    status != 'shipped' and status != 'at_warehouse' and status != 'shipped_to_warehouse' %}
-                    {% with progress=25 %}
-                    {% endwith %}
-                    {% endif %}
-                    {% if status == 'sold' or status == 'draft' or status == 'active' %}
-                    {% with progress=0 %}
-                    {% endwith %}
-                    {% endif %}
-
-                    {% with progress=progress|default:0 %}
+                    <!-- Progress calculated in view context -->
                     <div class="relative">
                         <!-- Progress Bar Background -->
                         <div class="absolute left-0 top-5 w-full h-2"
@@ -98,7 +75,7 @@
                         <!-- Progress Bar Fill -->
                         <div class="absolute left-0 top-5 h-2 transition-all duration-500 progress-bar"
                             style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(16, 185, 129, 0.9) 100%); z-index: 1;"
-                            data-progress="{{ progress }}">
+                            data-progress="{{ progress|default:0 }}">
                         </div>
 
                         <!-- Steps Container -->
@@ -181,7 +158,8 @@
                 <!-- Item Details Section -->
                 <div class="p-6" style="border-top: 1px solid rgba(243, 244, 246, 1);">
                     <h3 class="font-bold text-lg mb-4" style="color: rgba(31, 41, 55, 1);">
-                        <i class="fas fa-box-open mr-2" style="color: rgba(59, 130, 246, 1);"></i>Item Details
+                        <i class="fas fa-box-open mr-2" style="color: rgba(59, 130, 246, 1);"></i>Item
+                        Details
                     </h3>
                     <div class="flex flex-col sm:flex-row gap-4">
                         {% with img_url=item.get_image_urls.0 %}
@@ -247,12 +225,14 @@
                             <div>
                                 <span class="block text-xs font-semibold mb-1"
                                     style="color: rgba(107, 114, 128, 1);">Name</span>
-                                <p style="color: rgba(31, 41, 55, 1);">{{request.user.profile.user.username }}</p>
+                                <p style="color: rgba(31, 41, 55, 1);">
+                                    {{request.user.profile.user.username }}</p>
                             </div>
                             <div>
                                 <span class="block text-xs font-semibold mb-1"
                                     style="color: rgba(107, 114, 128, 1);">Phone</span>
-                                <p style="color: rgba(31, 41, 55, 1);">{{request.user.profile.phone_number }}</p>
+                                <p style="color: rgba(31, 41, 55, 1);">
+                                    {{request.user.profile.phone_number }}</p>
                             </div>
                             <div class="md:col-span-2">
                                 <span class="block text-xs font-semibold mb-1"

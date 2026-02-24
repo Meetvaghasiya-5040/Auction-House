@@ -237,10 +237,24 @@ def user_delivery_tracking(request, lot_id):
     # Get delivery object if it exists
     delivery = getattr(lot, 'delivery', None)
     
+    # Calculate progress for the UI
+    status = delivery.status if delivery else lot.status
+    if status == 'delivered':
+        progress = 100
+    elif status == 'shipped':
+        progress = 75
+    elif status in ['at_warehouse', 'shipped_to_warehouse']:
+        progress = 50
+    elif status in ['sold', 'draft', 'active']:
+        progress = 0
+    else:
+        progress = 25
+    
     context = {
         'lot': lot,
         'delivery': delivery,
         'item': lot.items.first(), # Assuming single item lots for now or primary item
+        'progress': progress,
     }
     return render(request, 'auctions/delivery_tracking.html', context)
 

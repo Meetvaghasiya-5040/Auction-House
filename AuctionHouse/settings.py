@@ -60,7 +60,7 @@ UNFOLD = {
                     {"title": "Bids", "icon": "gavel", "link": "/admin/bids/bid/"},
                     {"title": "Transactions", "icon": "receipt_long", "link": "/admin/bids/transaction/"},
                     {"title": "Wallets", "icon": "category", "link": "/admin/bids/wallet/"},
-                    {"title": "Admin Wallet", "icon": "inventory_2", "link": "/admin/bids/admin_wallet/"},
+                    {"title": "Admin Wallet", "icon": "inventory_2", "link": "/admin/bids/adminwallet   /"},
                 ],
             },
             {
