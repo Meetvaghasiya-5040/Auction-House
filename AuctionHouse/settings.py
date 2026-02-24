@@ -64,7 +64,7 @@ UNFOLD = {
                 "title": "Users",
                 "separator": True,
                 "items": [
-                    {"title": "Users", "icon": "gavel", "link": "/admin/users/user/"},
+                    {"title": "Users", "icon": "gavel", "link": "/admin/auth/user/"},
                 ],
             },
         ],
@@ -79,7 +79,7 @@ UNFOLD = {
         "show_help_text": False,
     },
     "BREADCRUMBS": False,
-    "SHOW_FILTERS": False,
+    "SHOW_FILTERS": True,
     # Remove CHANGELIST_ACTIONS, EXTRA_JS, EXTRA_CSS related to filter_toggle
 }
 

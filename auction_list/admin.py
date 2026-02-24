@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import Auction, Item, Lot, Catagory, AuctionRegister, LotRegister,Invoice
 from django import forms
 from django.utils.html import format_html
@@ -9,7 +10,8 @@ from django.utils.safestring import mark_safe
 # Register your models here.
 
 
-class AuctionAdmin(admin.ModelAdmin):
+class AuctionAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = (
         "title",
         "status_badge",
@@ -91,7 +93,8 @@ admin.site.register(Auction, AuctionAdmin)
 
 
 @admin.register(Catagory)
-class CatagoryAdmin(admin.ModelAdmin):
+class CatagoryAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = ["name", "item_count", "available_count", "created_at"]
     search_fields = ["name", "description"]
     list_filter = ("item_count", "available_count", "created_at")
@@ -114,7 +117,8 @@ class CatagoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(Item)
-class ItemAdmin(admin.ModelAdmin):
+class ItemAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = [
         "title",
         "item_catagory",
@@ -258,7 +262,8 @@ class LotAdminForm(forms.ModelForm):
 
 
 @admin.register(Lot)
-class LotAdmin(admin.ModelAdmin):
+class LotAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = (
         "lot_number",
         "title",
@@ -388,7 +393,8 @@ class LotAdmin(admin.ModelAdmin):
         js = ("admin/js/lot_item_filter.js",)
 
 
-class InvoiceAdmin(admin.ModelAdmin):
+class InvoiceAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = (
         "user",'lot','amount','issued_at'
     )

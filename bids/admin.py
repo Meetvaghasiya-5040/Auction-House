@@ -1,9 +1,11 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import Wallet, Bid, Transaction,AdminWallet
 
 
 @admin.register(Wallet)
-class WalletAdmin(admin.ModelAdmin):
+class WalletAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = ['user', 'balance', 'created_at', 'updated_at']
     list_filter = ('user', 'created_at', 'updated_at')
     actions = ["delete_selected"]
@@ -26,7 +28,8 @@ class WalletAdmin(admin.ModelAdmin):
 
 
 @admin.register(Bid)
-class BidAdmin(admin.ModelAdmin):
+class BidAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = ['user', 'lot', 'amount', 'timestamp', 'is_winning', 'is_auto_bid']
     list_filter = ('user', 'lot', 'amount', 'timestamp', 'is_winning', 'is_auto_bid')
     actions = ["delete_selected"]
@@ -49,7 +52,8 @@ class BidAdmin(admin.ModelAdmin):
 
 
 @admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = ['transaction_type', 'amount', 'timestamp']
     search_fields = ['wallet__user__username', 'description']
     readonly_fields = ['timestamp']
@@ -71,7 +75,8 @@ class TransactionAdmin(admin.ModelAdmin):
     )
 
 @admin.register(AdminWallet)
-class AdminWalletAdmin(admin.ModelAdmin):
+class AdminWalletAdmin(ModelAdmin):
+    list_filter_submit = True
     list_display = ['balance']
     list_filter = ('balance',)
     actions = ["delete_selected"]
