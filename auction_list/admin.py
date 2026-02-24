@@ -129,7 +129,7 @@ class ItemAdmin(ModelAdmin):
         "created_at",
     ]
     search_fields = ["title", "description", "item_catagory__name"]
-    list_filter = ("item_catagory", "owner", "current_lot", "created_at")
+    list_filter = ("item_catagory", "owner", "lots", "created_at")
     actions = ["delete_selected"]
 
     readonly_fields = [
@@ -139,7 +139,7 @@ class ItemAdmin(ModelAdmin):
         "preview_image",
     ]
     list_per_page = 20
-    list_select_related = ("item_catagory", "owner", "current_lot")
+    list_select_related = ("item_catagory", "owner")
     fieldsets = (
         (
             "Basic Information",
