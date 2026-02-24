@@ -28,45 +28,24 @@ SECRET_KEY = "django-insecure--_lx4*%4c6t#i6a($ec-tet7xvio7qs14)&dkz5xlki30inv3q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["auction-house-5.onrender.com",'127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 UNFOLD = {
     "SITE_TITLE": "EasyBid Admin",
     "SITE_HEADER": "EasyBid",
     "SITE_URL": "/",
-    "SITE_ICON": None,
 
-    # --- THEME SETTINGS ---
     "SHOW_THEME_SWITCHER": True,
 
-    # --- COLOR PALETTE ---
-    "COLORS": {
-        "primary": {
-            "50": "#f5f3ff",
-            "100": "#ede9fe",
-            "200": "#ddd6fe",
-            "300": "#c4b5fd",
-            "400": "#a78bfa",
-            "500": "#7c3aed",
-            "600": "#6d28d9",
-            "700": "#4c1d95",
-            "800": "#371a63",
-            "900": "#2e1065",
-            "950": "#1e0b3b",
-        },
-    },
-
-    # --- SIDEBAR NAVIGATION ---
     "SIDEBAR": {
-        "show_search": True,
+        "show_search": False,
         "show_all_applications": False,
         "navigation": [
             {
                 "title": "Auction List",
                 "separator": True,
                 "items": [
-
                     {"title": "Auctions", "icon": "gavel", "link": "/admin/auction_list/auction/"},
                     {"title": "Categories", "icon": "grid_view", "link": "/admin/auction_list/catagory/"},
                     {"title": "Invoices", "icon": "receipt_long", "link": "/admin/auction_list/invoice/"},
@@ -74,48 +53,31 @@ UNFOLD = {
                     {"title": "Lots", "icon": "inventory_2", "link": "/admin/auction_list/lot/"},
                 ],
             },
-            {
-                "title": "Authentication",
-                "separator": True,
-                "items": [
-                    {"title": "Groups", "icon": "group", "link": "/admin/auth/group/"},
-                    {"title": "Users", "icon": "person", "link": "/admin/auth/user/"},
-                ],
-            },
-            {
-                "title": "Bids & Finances",
-                "separator": True,
-                "items": [
-                    {"title": "Admin wallets", "icon": "account_balance", "link": "/admin/bids/adminwallet/"},
-                    {"title": "Bids", "icon": "monetization_on", "link": "/admin/bids/bid/"},
-                    {"title": "Transactions", "icon": "paid", "link": "/admin/bids/transaction/"},
-                    {"title": "Wallets", "icon": "wallet", "link": "/admin/bids/wallet/"},
-                ],
-            },
-            {
-                "title": "Home",
-                "separator": True,
-                "items": [
-                    {"title": "Profiles", "icon": "account_circle", "link": "/admin/Home/profile/"},
-                ],
-            },
         ],
     },
 
-    # --- GENERAL SETTINGS ---
-    "TABS": [],
     "LIST_VIEW": {
-        "compact": False,
-        "sticky_header": True,
+        "compact": True,
+        "sticky_header": False,
     },
-    "FORM": {
-        "show_collapsible_help": True,
-        "horizontal_fields": True,
-        "show_help_text": True,
-    },
-    "BREADCRUMBS": True,
-}
 
+    "FORM": {
+        "show_collapsible_help": False,
+        "horizontal_fields": False,
+        "show_help_text": False,
+    },
+
+    "BREADCRUMBS": False,
+    "SHOW_FILTERS": False,
+
+    "CHANGELIST_ACTIONS": [
+        {
+            "title": "Filter",
+            "icon": "filter",
+            "onclick": "toggleFilters()",
+        },
+    ],
+}
 
 
 # Application definition

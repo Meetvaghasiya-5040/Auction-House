@@ -22,6 +22,7 @@ class AuctionAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "auction_type", "start_date", "end_date", "created_by")
     search_fields = ("title", "description", "location")
+    list_select_related = ("title", "description", "location", "created_by")
     readonly_fields = (
         "created_at",
         "updated_at",
@@ -95,6 +96,7 @@ class CatagoryAdmin(admin.ModelAdmin):
     search_fields = ["name", "description"]
     list_filter_submit = True
     list_per_page = 20
+    list_select_related = ("name", "description", "created_at")
 
     def item_count(self, obj):
         count = obj.total_items
@@ -133,7 +135,7 @@ class ItemAdmin(admin.ModelAdmin):
         "preview_image",
     ]
     list_per_page = 20
-
+    list_select_related = ("item_catagory", "owner", "current_lot")
     fieldsets = (
         (
             "Basic Information",
@@ -267,6 +269,7 @@ class LotAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("lot_catagory", "auction", "status", "created_at")
+    list_select_related = ("lot_catagory", "auction", "status", "created_at")
     readonly_fields = (
         "starting_bid",
         "created_at",
@@ -388,8 +391,10 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_display = (
         "user",'lot','amount','issued_at'
     )
+    list_select_related = ("user", "lot", "amount", "issued_at")
     list_filter_submit = True
-    list_filter_submit = True
+    list_filter = ("user", "lot", "amount", "issued_at")
+    list_per_page = 20
 
 admin.site.register(LotRegister)
 admin.site.register(AuctionRegister)
