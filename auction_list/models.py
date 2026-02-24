@@ -108,16 +108,24 @@ class Item(models.Model):
     def get_image_urls(self):
         """
         Return a list of fully-resolved image URLs.
-        - If Cloudinary is active, default_storage.save() stores full https:// URLs → return as-is.
-        - If using local storage, paths are relative (e.g. 'item_images/foo.jpg') → prepend /media/.
+        - Full https:// URLs (already Cloudinary) → returned as-is.
+        - Relative paths (legacy local paths) → resolved via default_storage.url()
+          which returns the Cloudinary CDN URL on Render, or /media/path locally.
         """
+        from django.core.files.storage import default_storage
         urls = []
         for path in (self.images or []):
+            if not path:
+                continue
             if path.startswith("http://") or path.startswith("https://"):
-                urls.append(path)            # Already a full Cloudinary URL
-            elif path:
-                urls.append(f"/media/{path}")  # Local dev path
+                urls.append(path)       # Already a full URL — use as-is
+            else:
+                try:
+                    urls.append(default_storage.url(path))  # Resolves via active storage backend
+                except Exception:
+                    urls.append(f"/media/{path}")           # Fallback for local dev
         return urls
+
 
     
 

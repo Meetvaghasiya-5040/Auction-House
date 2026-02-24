@@ -230,13 +230,13 @@ class ItemAdmin(ModelAdmin):
 
     def mark_as_available(self, request, queryset):
         qs = queryset.exclude(lots__isnull=False)
-        count = qs.update(status="available")
-        self.message_user(request, f"{count} item(s) marked as available.")
+        count = qs.update(status="Available")
+        self.message_user(request, f"{count} item(s) marked as Available.")
 
     def mark_as_sold(self, request, queryset):
         qs = queryset.exclude(lots__isnull=False)
-        count = qs.update(status="sold")
-        self.message_user(request, f"{count} item(s) marked as sold.")
+        count = qs.update(status="Sold")
+        self.message_user(request, f"{count} item(s) marked as Sold.")
 
 
 class LotAdminForm(forms.ModelForm):
@@ -349,24 +349,24 @@ class LotAdmin(ModelAdmin):
         removed = old_items - new_items
 
         for item in added:
-            item.status = "sold" if lot.status == "sold" else "lotted"
+            item.status = "Sold" if lot.status == "sold" else "Lotted"
             item.save(update_fields=["status"])
 
         for item in removed:
             if not item.lots.exclude(pk=lot.pk).exists():
-                item.status = "available"
+                item.status = "Available"
                 item.save(update_fields=["status"])
 
         if old_status != "sold" and lot.status == "sold":
             for item in new_items:
-                if item.status != "sold":
-                    item.status = "sold"
+                if item.status != "Sold":
+                    item.status = "Sold"
                     item.save(update_fields=["status"])
 
         if old_status == "sold" and lot.status != "sold":
             for item in new_items:
-                if item.status == "sold":
-                    item.status = "lotted"
+                if item.status == "Sold":
+                    item.status = "Lotted"
                     item.save(update_fields=["status"])
 
     # ---------- STARTING BID ----------
@@ -379,7 +379,7 @@ class LotAdmin(ModelAdmin):
     # ---------- M2M FILTER ----------
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "items":
-            qs = Item.objects.filter(status="available")
+            qs = Item.objects.filter(status="Available")
             if request.resolver_match and request.resolver_match.kwargs.get(
                 "object_id"
             ):

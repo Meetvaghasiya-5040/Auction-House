@@ -156,8 +156,10 @@ def add_item_view(request):
         for image in images:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{timestamp}_{image.name}"
-            image_path = default_storage.save(f"item_images/{filename}", image)
-            images_paths.append(image_path)
+            saved_path = default_storage.save(f"item_images/{filename}", image)
+            # Get the permanent URL (Cloudinary CDN on Render, /media/ path locally)
+            image_url = default_storage.url(saved_path)
+            images_paths.append(image_url)
         
         # Calculate Shipping Fee
         # try:
@@ -199,6 +201,9 @@ def add_item_view(request):
 
 def delete_item_view(request, slug):
     item = get_object_or_404(Item, slug=slug, owner=request.user)
+    if item.status in ('Lotted', 'Sold'):
+        messages.error(request, f'Cannot delete "{item.title}" — it is currently {item.status}.')
+        return redirect('profile')
     if request.method == "POST":
         item.delete()
         return redirect("profile")
@@ -206,6 +211,9 @@ def delete_item_view(request, slug):
 
 def edit_item_view(request, slug):
     item = get_object_or_404(Item, slug=slug, owner=request.user)
+    if item.status in ('Lotted', 'Sold'):
+        messages.error(request, f'Cannot edit "{item.title}" — it is currently {item.status}.')
+        return redirect('profile')
     if request.method == "POST":
         item.title = request.POST.get("title")
         item.estimated_value = request.POST.get("estimated_value")
