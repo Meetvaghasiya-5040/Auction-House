@@ -31,7 +31,7 @@ SECRET_KEY = "django-insecure--_lx4*%4c6t#i6a($ec-tet7xvio7qs14)&dkz5xlki30inv3q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['auction-house-5.onrender.com', 'localhost', '127.0.0.1']
 
 UNFOLD = {
     "SITE_TITLE": "EasyBid Admin",
@@ -164,10 +164,19 @@ CHANNEL_LAYERS = {
 }
 
 # Database — uses DATABASE_URL on Render, falls back to SQLite for local dev
+import os
+import dj_database_url
+
 _DATABASE_URL = os.environ.get("DATABASE_URL")
 if _DATABASE_URL:
-    DATABASES = {"default": dj_database_url.parse(_DATABASE_URL)}
+    # Render Postgres — SSL required
+    DATABASES = {"default": dj_database_url.config(
+        default=_DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True,
+    )}
 else:
+    # Local development — use SQLite (no SSL)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

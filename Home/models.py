@@ -8,7 +8,6 @@ class Profile(models.Model):
         upload_to="profile_images/",
         blank=True,
         null=True,
-        default="profile_images/default.png",
     )
     THEME_CHOICES = [
         ('indigo', 'Indigo (Default)'),

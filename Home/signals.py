@@ -5,12 +5,12 @@ from .models import Profile
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
+    """Create a Profile when a new User is created."""
     if created:
-        Profile.objects.create(user=instance)
+        # Only create if one doesn't already exist
+        # (register_view may have already created it with an image)
+        Profile.objects.get_or_create(user=instance)
 
-@receiver(post_save, sender=User)
-def save_profile(sender, instance, **kwargs):
-    try:
-        instance.profile.save()
-    except Profile.DoesNotExist:
-        Profile.objects.create(user=instance)
+# NOTE: The save_profile signal that called instance.profile.save() on every
+# User.save() has been intentionally removed. It was overwriting the profile
+# image set during registration because login() triggers User.save() internally.

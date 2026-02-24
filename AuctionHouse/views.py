@@ -135,14 +135,14 @@ def register_view(request):
                 password=make_password(password),
             )
 
-            # Save profile image to Cloudinary. Isolated so any upload error
-            # does NOT prevent the user being redirected home.
+            # The create_profile signal has already created the Profile row.
+            # Fetch it, set the image, then save — all in one shot.
             if profile_image:
                 try:
-                    profile, created = Profile.objects.get_or_create(user=user)
+                    profile = Profile.objects.get(user=user)
                     profile.profile_image = profile_image
-                    profile.save()
-                    # Note: PIL local-resize removed — Cloudinary handles the image.
+                    profile.save(update_fields=['profile_image'])
+                    # Note: Cloudinary handles the image storage automatically.
                 except Exception:
                     # Upload failed — registration continues without image.
                     pass
