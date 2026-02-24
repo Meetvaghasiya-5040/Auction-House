@@ -207,6 +207,47 @@ class Bid(models.Model):
                 latest_txn.related_bid = self
                 latest_txn.transaction_type = 'bid_placed'
                 latest_txn.save()
+            
+            # Broadcast bid update via WebSocket
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                async_to_sync(channel_layer.group_send)(
+                    f'lot_{self.lot.id}',
+                    {
+                        'type': 'bid_update',
+                        'bid': {
+                            'user': self.user.username,
+                            'amount': float(self.amount),
+                            'current_bid': float(self.lot.current_bid),
+                            'minimum_bid': float(self.lot.get_minimum_bid()),
+                            'timestamp': self.timestamp.isoformat(),
+                            'is_winning': self.is_winning
+                        }
+                    }
+                )
+            
+            # Update hot status for lot and auction
+            from auction_list.utils import update_lot_hot_status, update_hot_status, get_hot_bid_count
+            
+            lot_is_hot = update_lot_hot_status(self.lot)
+            auction_is_hot = update_hot_status(self.lot.auction)
+            hot_bid_count = get_hot_bid_count(self.lot)
+            
+            # Broadcast hot status update if changed
+            if channel_layer and (lot_is_hot or auction_is_hot):
+                async_to_sync(channel_layer.group_send)(
+                    f'lot_{self.lot.id}',
+                    {
+                        'type': 'hot_status_update',
+                        'lot_is_hot': lot_is_hot,
+                        'auction_is_hot': auction_is_hot,
+                        'hot_bid_count': hot_bid_count
+                    }
+                )
+
 
 
 class Transaction(models.Model):
@@ -236,3 +277,48 @@ class Transaction(models.Model):
     
     def __str__(self):
         return f"{self.wallet.user.username} - {self.get_transaction_type_display()} - ₹{self.amount}"
+
+
+class PendingPayment(models.Model):
+    """Track pending payments for auction winners with timeout"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('expired', 'Expired'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    lot = models.ForeignKey('auction_list.Lot', on_delete=models.CASCADE, related_name='pending_payments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_payments')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(help_text="Payment deadline (15 minutes from creation)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    attempt_number = models.IntegerField(default=1, help_text="1 for first winner, 2 for second bidder")
+    pin_verified = models.BooleanField(default=False)
+    
+    class Meta:
+        verbose_name = 'Pending Payment'
+        verbose_name_plural = 'Pending Payments'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'expires_at']),
+            models.Index(fields=['lot', 'status']),
+        ]
+    
+    def __str__(self):
+        return f"Payment for Lot #{self.lot.lot_number} - {self.user.username} (Attempt {self.attempt_number})"
+    
+    def is_expired(self):
+        """Check if payment has expired"""
+        from django.utils import timezone
+        return timezone.now() > self.expires_at and self.status == 'pending'
+    
+    def time_remaining(self):
+        """Get time remaining for payment"""
+        from django.utils import timezone
+        if self.status != 'pending':
+            return None
+        remaining = self.expires_at - timezone.now()
+        return remaining if remaining.total_seconds() > 0 else None
+

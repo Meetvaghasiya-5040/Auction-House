@@ -5,8 +5,8 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.hashers import make_password
 from Home.models import Profile
 from PIL import Image
+from django.conf import settings
 from random import randint
-
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
@@ -146,6 +146,15 @@ def register_view(request):
                 if img.height > max_size[1] or img.width > max_size[0]:
                     img.thumbnail(max_size, Image.Resampling.LANCZOS)
                     img.save(img_path, quality=90, optimize=True)
+
+            
+            send_mail(
+                "Welcome to Auction House!",
+                f"Hi {first_name},\n\nThank you for registering with Auction House. We are excited to have you on board!\n\nBest regards,\nThe Auction House Team",
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=True,
+            )
 
             login(request, user)
 

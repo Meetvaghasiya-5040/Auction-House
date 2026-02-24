@@ -47,7 +47,7 @@ class BidAdmin(admin.ModelAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['wallet', 'transaction_type', 'amount', 'timestamp', 'description']
+    list_display = ['transaction_type', 'amount', 'timestamp']
     list_filter = ['transaction_type', 'timestamp']
     search_fields = ['wallet__user__username', 'description']
     readonly_fields = ['timestamp']
@@ -67,5 +67,5 @@ class TransactionAdmin(admin.ModelAdmin):
     )
 
 @admin.register(AdminWallet)
-class AdminWallet(admin.ModelAdmin):
+class AdminWalletAdmin(admin.ModelAdmin):
     list_display = ['balance']

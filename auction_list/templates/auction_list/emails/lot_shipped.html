@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lot Shipped</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .lot-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .lot-card h2 {
+            color: #0284c7;
+            margin: 0 0 12px 0;
+            font-size: 20px;
+        }
+
+        .lot-card p {
+            margin: 8px 0;
+            color: #475569;
+        }
+
+        .otp-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .otp-box .label {
+            font-size: 14px;
+            color: #92400e;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .otp-box .otp {
+            font-size: 36px;
+            font-weight: black;
+            color: #78350f;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .otp-box .note {
+            font-size: 12px;
+            color: #92400e;
+            margin-top: 12px;
+        }
+
+        .status-box {
+            background: #3b82f6;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .status-box .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .status-box .status {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-left: 4px solid #22c55e;
+            padding: 16px;
+            margin: 24px 0;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 24px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="icon">🚚</div>
+            <h1>Your Lot is On the Way!</h1>
+            <p style="margin: 8px 0 0 0; opacity: 0.9;">Out for delivery</p>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Dear {{ buyer_name }},</p>
+
+            <p>Exciting news! Your lot has been shipped and is now out for delivery.</p>
+
+            <div class="lot-card">
+                <h2>Lot #{{ lot.lot_number }}: {{ lot.title }}</h2>
+                <p><strong>Total Items:</strong> {{ items|length }}</p>
+                <p><strong>Estimated Delivery:</strong> 3-5 business days</p>
+            </div>
+
+            <div class="otp-box">
+                <div class="label">YOUR DELIVERY OTP</div>
+                <div class="otp">{{ delivery.verification_code }}</div>
+                <div class="note">⚠️ Share this OTP with the courier upon delivery</div>
+            </div>
+
+            <div class="status-box">
+                <div class="label">CURRENT STATUS</div>
+                <div class="status">🚚 OUT FOR DELIVERY</div>
+            </div>
+
+            <div class="info-box">
+                <p><strong>📦 Important Instructions</strong></p>
+                <p>1. Keep this OTP ready for when the courier arrives</p>
+                <p>2. Verify the package condition before accepting</p>
+                <p>3. Share the OTP only after confirming the delivery</p>
+                <p>4. Contact support if you have any concerns</p>
+            </div>
+
+            <p>We hope you enjoy your items!</p>
+
+            <p style="margin-top: 32px;">
+                Best regards,<br>
+                <strong>Auction House Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 Auction House. All rights reserved.</p>
+            <p>If you have any questions, please contact us at auctionhouse110@gmail.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

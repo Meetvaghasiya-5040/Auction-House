@@ -24,7 +24,15 @@ class Profile(models.Model):
     bio = models.TextField(max_length=500, blank=True, help_text="Short bio about yourself")
     phone_number = models.CharField(max_length=15, blank=True)
     address = models.TextField(blank=True, help_text="Shipping address")
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    zip_code = models.CharField(max_length=20, blank=True)
     website = models.URLField(blank=True)
+    
+    # Transaction PIN fields
+    transaction_pin = models.CharField(max_length=128, blank=True, help_text="Hashed transaction PIN")
+    pin_set = models.BooleanField(default=False, help_text="Has user set their transaction PIN?")
+    pin_set_at = models.DateTimeField(null=True, blank=True, help_text="When PIN was set")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

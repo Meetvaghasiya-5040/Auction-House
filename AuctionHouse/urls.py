@@ -14,7 +14,7 @@ urlpatterns = [
     path("home/", include("Home.urls")),
     path("auctions/", include("auction_list.urls")),
     path("bids/", include("bids.urls")),
-    ]
+]
 
 
 if settings.DEBUG:

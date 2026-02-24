@@ -30,93 +30,98 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.252.244.253', '*']
 
 
-JAZZMIN_SETTINGS = {
-    # --------------------------------------------------
-    # BRANDING
-    # --------------------------------------------------
-    "site_title": "Auction Admin",
-    "site_header": "Auction House",
-    "site_brand": "Auction House",
-    "site_logo": None,  # add path if you have logo
-    "login_logo": None,
-    "login_logo_dark": None,
-    "site_icon": None,
-    "welcome_sign": "Welcome to Auction Admin Panel",
-    "copyright": "Auction House © 2026",
-    # --------------------------------------------------
-    # UI BEHAVIOR
-    # --------------------------------------------------
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "hide_apps": [],
-    "hide_models": [],
-    "order_with_respect_to": [
-        "auction_list",
-        "auth",
-    ],
-    # --------------------------------------------------
-    # TOP MENU LINKS
-    # --------------------------------------------------
-    "topmenu_links": [
-        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "View Site", "url": "/", "new_window": True},
-    ],
-    # --------------------------------------------------
-    # USER MENU LINKS
-    # --------------------------------------------------
-    "usermenu_links": [
-        {"name": "Profile", "url": "/profile/", "icon": "fas fa-user"},
-        {"model": "auth.user"},
-    ],
-    # --------------------------------------------------
-    # SIDEBAR MENU
-    # --------------------------------------------------
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    # --------------------------------------------------
-    # ICONS (VERY IMPORTANT)
-    # --------------------------------------------------
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.User": "fas fa-users",
-        "auth.Group": "fas fa-shield-alt",
-        "auction_list": "fas fa-gavel",
-        "auction_list.Auction": "fas fa-gavel",
-        "auction_list.Lot": "fas fa-box",
-        "auction_list.Item": "fas fa-tags",
-        "auction_list.Category": "fas fa-layer-group",
+UNFOLD = {
+    "SITE_TITLE": "EasyBid Admin",
+    "SITE_HEADER": "EasyBid",
+    "SITE_URL": "/",
+    "SITE_ICON": None,
+
+    # --- THEME SETTINGS ---
+    "SHOW_THEME_SWITCHER": True,
+
+    # --- COLOR PALETTE ---
+    "COLORS": {
+        "primary": {
+            "50": "#f5f3ff",
+            "100": "#ede9fe",
+            "200": "#ddd6fe",
+            "300": "#c4b5fd",
+            "400": "#a78bfa",
+            "500": "#7c3aed",
+            "600": "#6d28d9",
+            "700": "#4c1d95",
+            "800": "#371a63",
+            "900": "#2e1065",
+            "950": "#1e0b3b",
+        },
     },
-    # --------------------------------------------------
-    # DEFAULT ICONS
-    # --------------------------------------------------
-    "default_icon_parents": "fas fa-chevron-circle-right",
-    "default_icon_children": "fas fa-circle",
-    # --------------------------------------------------
-    # UI TWEAKS
-    # --------------------------------------------------
-    "related_modal_active": True,
-    "custom_css": None,  # add custom css path if needed
-    "custom_js": None,
-    "use_google_fonts_cdn": True,
-    "changeform_format": "horizontal_tabs",
-    "changeform_format_overrides": {
-        "auth.user": "collapsible",
+
+    # --- SIDEBAR NAVIGATION ---
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Auction List",
+                "separator": True,
+                "items": [
+
+                    {"title": "Auctions", "icon": "gavel", "link": "/admin/auction_list/auction/"},
+                    {"title": "Categories", "icon": "grid_view", "link": "/admin/auction_list/catagory/"},
+                    {"title": "Invoices", "icon": "receipt_long", "link": "/admin/auction_list/invoice/"},
+                    {"title": "Items", "icon": "category", "link": "/admin/auction_list/item/"},
+                    {"title": "Lots", "icon": "inventory_2", "link": "/admin/auction_list/lot/"},
+                ],
+            },
+            {
+                "title": "Authentication",
+                "separator": True,
+                "items": [
+                    {"title": "Groups", "icon": "group", "link": "/admin/auth/group/"},
+                    {"title": "Users", "icon": "person", "link": "/admin/auth/user/"},
+                ],
+            },
+            {
+                "title": "Bids & Finances",
+                "separator": True,
+                "items": [
+                    {"title": "Admin wallets", "icon": "account_balance", "link": "/admin/bids/adminwallet/"},
+                    {"title": "Bids", "icon": "monetization_on", "link": "/admin/bids/bid/"},
+                    {"title": "Transactions", "icon": "paid", "link": "/admin/bids/transaction/"},
+                    {"title": "Wallets", "icon": "wallet", "link": "/admin/bids/wallet/"},
+                ],
+            },
+            {
+                "title": "Home",
+                "separator": True,
+                "items": [
+                    {"title": "Profiles", "icon": "account_circle", "link": "/admin/Home/profile/"},
+                ],
+            },
+        ],
     },
-    # --------------------------------------------------
-    # TABLE UI
-    # --------------------------------------------------
-    "language_chooser": False,
-    # --------------------------------------------------
-    # DARK MODE (IMPORTANT)
-    # --------------------------------------------------
-    "theme": "darkly",  # darkly | cyborg | flatly | minty | lumen
+
+    # --- GENERAL SETTINGS ---
+    "TABS": [],
+    "LIST_VIEW": {
+        "compact": False,
+        "sticky_header": True,
+    },
+    "FORM": {
+        "show_collapsible_help": True,
+        "horizontal_fields": True,
+        "show_help_text": True,
+    },
+    "BREADCRUMBS": True,
 }
+
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    "jazzmin",
+    "daphne",
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -253,5 +258,15 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "meetvaghasiya166@gmail.com"
-EMAIL_HOST_PASSWORD = "uycl kjms nuuh bysv"
+EMAIL_HOST_USER = "meetvaghasiya166@gmail.com"  # Replace with your email
+EMAIL_HOST_PASSWORD = (
+    "uycl kjms nuuh bysv"  # Replace with your password or app password
+)
+
+# Auction Settings  
+WINNER_PAYMENT_TIMEOUT_MINUTES = 15
+
+# Warehouse Location for Shipping Calculation
+WAREHOUSE_CITY = 'Ahmedabad'
+WAREHOUSE_STATE = 'Gujarat'
+

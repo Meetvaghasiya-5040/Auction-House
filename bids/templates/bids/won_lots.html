@@ -40,7 +40,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-600">Auction:</span>
-                            <span class="text-slate-900 font-semibold text-xs">{{ lot.auction.title|truncatechars:20}}</span>
+                            <span class="text-slate-900 font-semibold text-xs">{{   lot.auction.title|truncatechars:20}}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-600">Won On:</span>
@@ -48,7 +48,7 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'lot_detail' lot.id %}"
+                    <a href="{% url 'lot_detail' lot.slug %}"
                         class="block bg-purple-600 hover:bg-purple-700 text-white text-center py-3 rounded-lg font-bold transition">
                         View Details
                     </a>

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
+from django.conf import settings
 from decimal import Decimal
 from django.db import transaction
 from django.core.mail import EmailMultiAlternatives
@@ -59,6 +60,17 @@ class Item(models.Model):
         ('Sold', 'Sold'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Available')
+
+    # Delivery & Pickup Info
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Cost to ship from User to Warehouse")
+    pickup_otp = models.CharField(max_length=6, blank=True, null=True, help_text="OTP for admin pickup")
+    PICKUP_STATUS_CHOICES = [
+        ('pending', 'Pending Pickup'),
+        ('picked_up', 'Picked Up'),
+        ('at_warehouse', 'At Warehouse'),
+        ('delivered', 'Delivered to Buyer'),
+    ]
+    pickup_status = models.CharField(max_length=20, choices=PICKUP_STATUS_CHOICES, default='pending')
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -76,6 +88,12 @@ class Item(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self.generate_unique_slug()
+        
+        # Generate Pickup OTP if not present
+        if not self.pickup_otp:
+            import random
+            self.pickup_otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+            
         super().save(*args, **kwargs)
 
     def generate_unique_slug(self):
@@ -108,11 +126,11 @@ class Auction(models.Model):
     AUCTION_TYPE_CHOICES = [
         ('live', 'Live Auction'),
         ('scheduled', 'Scheduled Auction'),
-        ('timed', 'Timed Auction'),
     ]
     
     # Basic Info
     title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=300, unique=True, blank=True, null=True)
     description = models.TextField()
     auction_type = models.CharField(max_length=20, choices=AUCTION_TYPE_CHOICES, default='live')
     
@@ -136,6 +154,9 @@ class Auction(models.Model):
     # Additional Info
     location = models.CharField(max_length=255, blank=True)
     terms_and_conditions = models.TextField(blank=True)
+    reminder_sent = models.BooleanField(default=False, help_text="Has the 5-minute reminder email been sent?")
+    start_email_sent = models.BooleanField(default=False, help_text="Has the auction start email been sent?")
+    is_hot = models.BooleanField(default=False, help_text="Is this exception receiving high bid activity (10+ bids in last 10 minutes)?")
     
     class Meta:
         ordering = ['-created_at']
@@ -158,6 +179,10 @@ class Auction(models.Model):
             raise ValidationError("Scheduled auctions must have start and end dates")
     
     def save(self, *args, **kwargs):
+        # Generate slug if not present
+        if not self.slug:
+            self.slug = self.generate_unique_slug()
+        
         # Auto-update status based on dates
         if self.status == 'approved':
             self.update_auction_status()
@@ -167,6 +192,16 @@ class Auction(models.Model):
             self.approved_at = timezone.now()
         
         super().save(*args, **kwargs)
+    
+    def generate_unique_slug(self):
+        """Generate a unique slug for the auction"""
+        base_slug = slugify(self.title)
+        slug = base_slug
+        counter = 1
+        while Auction.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        return slug
     
     def update_auction_status(self):
         """Update auction status based on current time"""
@@ -217,20 +252,41 @@ class Auction(models.Model):
     
     def _mark_unsold_items(self):
         """Mark unsold lots and items as available when auction completes"""
+        from bids.models import PendingPayment
+        
         # Get all lots in this auction
         lots = self.lots.all()
         
         for lot in lots:
-            # If lot is not sold, mark it as unsold
-            if lot.status not in ['sold']:
+            # Skip lots that are already sold
+            if lot.status == 'sold':
+                continue
+                
+            # Skip lots that have a winning bidder (they might be awaiting payment)
+            if lot.winning_bidder:
+                # Check if there's an active pending payment
+                has_pending_payment = PendingPayment.objects.filter(
+                    lot=lot,
+                    status='pending'
+                ).exists()
+                
+                if has_pending_payment:
+                    # Don't mark as unsold, payment is still pending
+                    continue
+            
+            # If lot is not sold/paid/shipped and has no active payment, mark it as unsold
+            # Expanded status check to prevent 'paid' lots from becoming 'unsold'
+            sold_like_statuses = ['sold', 'paid', 'shipped_to_warehouse', 'at_warehouse', 'shipped']
+            if lot.status not in sold_like_statuses:
                 lot.status = 'unsold'
                 lot.save(update_fields=['status'])
                 
                 # Mark all items in this lot as available
                 for item in lot.items.all():
-                    if item.status != 'sold':
+                    if item.status != 'Sold':
                         item.status = 'Available'
                         item.save(update_fields=['status'])
+
     
     def submit_for_approval(self):
         """Submit auction for admin approval"""
@@ -298,7 +354,11 @@ class Lot(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('active', 'Active'),
-        ('sold', 'Sold'),
+        ('paid', 'Paid - Awaiting Shipment'),
+        ('shipped_to_warehouse', 'Shipped to Warehouse'),
+        ('at_warehouse', 'At Warehouse'),
+        ('shipped', 'Shipped to Buyer'),
+        ('sold', 'Sold & Delivered'),
         ('unsold', 'Unsold'),
     ]
     
@@ -306,6 +366,7 @@ class Lot(models.Model):
     auction = models.ForeignKey('Auction', on_delete=models.CASCADE, related_name='lots')
     lot_number = models.IntegerField()  # Sequential number within auction
     title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=300, unique=True, blank=True, null=True)
     description = models.TextField()
     
     # Items in this lot
@@ -331,6 +392,8 @@ class Lot(models.Model):
     idle_timer_start_time = models.DateTimeField(null=True, blank=True, help_text="When idle timer started")
     min_bid_increment = models.DecimalField(max_digits=10, decimal_places=2, default=100.00, 
                                            help_text="Minimum bid increment")
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00,
+                                      help_text="Shipping charges for this lot")
 
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -338,6 +401,8 @@ class Lot(models.Model):
     
     # Additional Information
     notes = models.TextField(blank=True, help_text="Internal notes (not visible to bidders)")
+    reminder_sent = models.BooleanField(default=False, help_text="Has the reminder email been sent?")
+    is_hot = models.BooleanField(default=False, help_text="Is this lot receiving high bid activity (10+ bids in last 10 minutes)?")
     
     class Meta:
         ordering = ['auction', 'lot_number']
@@ -349,6 +414,23 @@ class Lot(models.Model):
     
     def __str__(self):
         return f"Lot {self.lot_number} - {self.title} ({self.auction.title})"
+    
+    def save(self, *args, **kwargs):
+        # Generate slug if not present
+        if not self.slug:
+            self.slug = self.generate_unique_slug()
+        super().save(*args, **kwargs)
+    
+    def generate_unique_slug(self):
+        """Generate a unique slug for the lot"""
+        # Use lot_number and title for slug
+        base_slug = slugify(f"{self.title}-lot-{self.lot_number}")
+        slug = base_slug
+        counter = 1
+        while Lot.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        return slug
     
     def item_count(self):
         return self.items.count()
@@ -429,86 +511,46 @@ class Lot(models.Model):
         return None
     
     def close_lot(self):
-        """Close the lot, determine winner, and distribute funds"""
-
-
+        """Close the lot and create pending payment for winner"""
         if self.status != 'active':
             return False
 
-        from bids.models import Bid, Wallet, AdminWallet  # Import locally to avoid circular import
+        from bids.models import Bid, PendingPayment
+        from datetime import timedelta
 
         with transaction.atomic():
-            # Find high bidder from Bids
+            # Find highest bidder
             highest_bid = Bid.objects.filter(lot=self).order_by('-amount').first()
             
             if highest_bid:
-                self.status = 'sold'
+                # Set winning bidder but don't mark as sold yet
                 self.winning_bidder = highest_bid.user
-                highest_bid.is_winning = True 
+                highest_bid.is_winning = True
                 highest_bid.save()
                 
-                # Update items status to Sold
-                items = self.items.all()
-                total_estimated_value = sum(item.estimated_value for item in items)
-                winning_amount = Decimal(str(self.current_bid))
+                # Create pending payment with centralized timeout
+                expires_at = timezone.now() + timedelta(minutes=settings.WINNER_PAYMENT_TIMEOUT_MINUTES)
                 
-                # 1. Admin Commission (10%)
-                admin_commission = winning_amount * Decimal("0.10")
-                
-                # Credit Admin Wallet
-                admin_wallet = AdminWallet.load()
-                admin_wallet.add_funds(
-                    amount=admin_commission,
-                    description=f"Commission for Lot #{self.id}"
+                PendingPayment.objects.create(
+                    lot=self,
+                    user=highest_bid.user,
+                    amount=self.current_bid,
+                    expires_at=expires_at,
+                    attempt_number=1,
+                    status='pending'
                 )
                 
-                # 2. Distributable Amount
-                distributable_amount = winning_amount - admin_commission
+                # Keep lot as active until payment is verified
+                # Status will be updated to 'sold' when PIN is verified
+                print(f"Pending payment created for Lot #{self.lot_number}. Winner: {highest_bid.user.username}, Expires at: {expires_at}")
                 
-                for item in items:
-                    item.status = 'Sold'
-                    item.save()
-                    
-                    # 3. Calculate User Share
-                    if total_estimated_value > 0:
-                        share_percentage = item.estimated_value / total_estimated_value
-                        user_share = share_percentage * distributable_amount
-                        
-                        # Credit Owner Wallet
-                        wallet, created = Wallet.objects.get_or_create(user=item.owner)
-                        wallet.add_funds(
-                            amount=user_share, 
-                            description=f"Sale payout for '{item.title}' (Lot #{self.id})"
-                        )
-                
-                # --- GENERATE INVOICE & SEND EMAIL (ASYNC) ---
-                try:
-                    with transaction.atomic():
-                        # Create Invoice (Fast)
-                        invoice = Invoice.objects.create(
-                            user=self.winning_bidder,
-                            lot=self,
-                            amount=winning_amount,
-                            invoice_number=f"INV-{self.id}-{uuid.uuid4().hex[:8].upper()}",
-                            status='paid' 
-                        )
-                        
-                        # Spawn background thread for PDF & Email
-                        threading.Thread(target=send_invoice_email_task, args=(invoice.id,)).start()
-                        print(f"Started async invoice email task for Invoice #{invoice.id}")
-
-                except Exception as e:
-                    print(f"Error creating invoice object: {e}")
-                    # Log error but don't fail the transaction if invoice creation fails? 
-                    # Actually invoice creation IS critical, so we catch generally but it's part of transaction.
-                    # If this block fails, transaction rolls back.
-                    # but should log it.
-                    
             else:
+                # No bids, mark as unsold
                 self.status = 'unsold'
                 
             self.save()
             return True
+
 
 
 class AuctionRegister(models.Model):
@@ -545,6 +587,7 @@ class Invoice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invoices')
     lot = models.OneToOneField('Lot', on_delete=models.CASCADE, related_name='invoice')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     invoice_number = models.CharField(max_length=50, unique=True)
     issued_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default='paid', choices=[
@@ -568,7 +611,9 @@ def send_invoice_email_task(invoice_id):
         lot = invoice.lot
         items = lot.items.all()
         winning_amount = invoice.amount
+        shipping_fee = invoice.shipping_fee
         admin_commission = winning_amount * Decimal("0.10")
+        total_amount = winning_amount + shipping_fee
         
         # Prepare Email Context
         context = {
@@ -577,10 +622,12 @@ def send_invoice_email_task(invoice_id):
             'auction': lot.auction,
             'items': items,
             'winning_bid': winning_amount,
+            'shipping_fee': shipping_fee,
             'admin_commission': admin_commission,
-            'total_amount': winning_amount, 
+            'total_amount': total_amount, 
             'invoice_number': invoice.invoice_number,
-            'invoice_date': invoice.issued_at.strftime("%B %d, %Y")
+            'invoice_date': invoice.issued_at.strftime("%B %d, %Y"),
+            'delivery': getattr(lot, 'delivery', None)
         }
         
         # Render Email HTML (Rich Design)
@@ -623,3 +670,36 @@ def send_invoice_email_task(invoice_id):
         
     except Exception as e:
         print(f"[Async Error] Failed to send invoice email: {e}")
+
+
+class Delivery(models.Model):
+    """Delivery tracking and verification for won lots"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Shipment to Warehouse'),
+        ('shipped_to_warehouse', 'Shipped to Warehouse'),
+        ('at_warehouse', 'At Warehouse'),
+        ('shipped', 'Shipped to Buyer'),
+        ('delivered', 'Delivered'),
+        ('disputed', 'Disputed'),
+    ]
+    
+    lot = models.OneToOneField('Lot', on_delete=models.CASCADE, related_name='delivery')
+    verification_code = models.CharField(max_length=6, help_text="6-digit OTP for delivery confirmation")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = "Deliveries"
+        
+    def __str__(self):
+        return f"Delivery for Lot #{self.lot.lot_number} - {self.status}"
+
+    def generate_otp(self):
+        """Generate a random 6-digit OTP"""
+        import random
+        self.verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        return self.verification_code

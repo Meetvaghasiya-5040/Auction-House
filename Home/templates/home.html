@@ -172,7 +172,7 @@
                             <p class="text-xs text-slate-500 font-bold uppercase mb-1">Current Bid</p>
                             <p class="text-xl font-black text-slate-900">₹{{ lot.current_bid|floatformat:2 }}</p>
                         </div>
-                        <a href="{% url 'lot_detail' lot.id %}"
+                        <a href="{% url 'lot_detail' lot.slug %}"
                             class="px-4 py-2 bg-slate-900 text-white text-xs font-bold uppercase rounded hover:bg-purple-600 transition-colors">
                             Bid Now
                         </a>
@@ -227,7 +227,7 @@
                                     <span class="text-slate-500">Current</span>
                                     <span class="font-black text-indigo-600">₹{{ lot.current_bid|floatformat:0 }}</span>
                                 </div>
-                                <a href="{% url 'lot_detail' lot.id %}"
+                                <a href="{% url 'lot_detail' lot.slug %}"
                                     class="block mt-3 w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold uppercase tracking-wider text-center rounded transition-colors">
                                     View
                                 </a>
@@ -258,7 +258,8 @@
                 </div>
                 <div>
                     <div class="text-xs font-bold text-slate-900 line-clamp-1">{{ sold.title }}</div>
-                    <div class="text-[10px] text-slate-400">Sold for <span class="text-green-600 font-bold">₹{{sold.current_bid }}</span></div>
+                    <div class="text-[10px] text-slate-400">Sold for <span
+                            class="text-green-600 font-bold">₹{{sold.current_bid }}</span></div>
                 </div>
             </div>
             {% endfor %}
@@ -266,12 +267,16 @@
     </section>
     {% endif %}
 
+
 </div>
+
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
+
+
     // Simple countdown timer script
     document.querySelectorAll('.countdown-timer').forEach(el => {
         const endTime = new Date(el.dataset.end).getTime();
@@ -310,5 +315,7 @@
         }
     `;
     document.head.appendChild(style);
+
+
 </script>
 {% endblock %}

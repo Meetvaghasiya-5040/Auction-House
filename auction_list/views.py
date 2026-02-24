@@ -1,6 +1,6 @@
 
 from decimal import Decimal
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from django.contrib import messages
@@ -97,8 +97,10 @@ def auctions_list(request):
         auctions = auctions.filter(status=status_filter)
     
     if type_filter:
-        if type_filter == 'timed':
-            auctions = auctions.filter(is_timed=True)
+        if type_filter == 'live':
+            auctions = auctions.filter(auction_type='live')
+        elif type_filter == 'scheduled':
+             auctions = auctions.filter(auction_type='scheduled')
 
     if category_filter:
         auctions = auctions.filter(lots__lot_catagory__id=category_filter).distinct()
@@ -117,6 +119,10 @@ def auctions_list(request):
         "pending_count": pending_count,
         "completed_count": completed_count,
     }
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "auctions/partials/auction_cards.html", context)
+        
     return render(request, "auctions/auction_list.html", context)
 
 
@@ -130,9 +136,9 @@ def get_items_by_category(request):
 
 
 @login_required
-def auction_detail(request, auction_id):
+def auction_detail(request, slug):
     auction = Auction.objects.select_related("created_by", "approved_by").get(
-        id=auction_id
+        slug=slug
     )
     register = AuctionRegister.objects.filter(
         user=request.user, auction=auction
@@ -143,10 +149,10 @@ def auction_detail(request, auction_id):
     active_lots = lots.filter(status="active").count()
     sold_lots = lots.filter(status="sold").count()
 
-
-    if auction.start_date == timezone.now():
-        Lot.status = "active"
-        Lot.save()
+    # Activate lots when auction starts
+    if auction.start_date and timezone.now() >= auction.start_date:
+        # Update all draft lots to active when auction starts
+        lots.filter(status='draft').update(status='active')
 
 
     if auction.status in ["approved", "scheduled", "live"]:
@@ -157,26 +163,9 @@ def auction_detail(request, auction_id):
         auction.status == "live"
         and auction.start_date
         and timezone.now() >= auction.start_date
-        and not getattr(auction, "email_sent", False)
     ):
-        # Notify ALL registered users of this auction
-        registrations = AuctionRegister.objects.filter(auction=auction,user=request.user)
-        recipient_list = [reg.user.email for reg in registrations if reg.user.email]
+        pass # Email logic moved to management command
 
-        if recipient_list:
-            send_mail(
-                subject=f"Auction Started: {auction.title}",
-                message=(
-                    f"The auction '{auction.title}' has started!\n\n"
-                    "Login now and start bidding on the lots."
-                ),
-                from_email='meetvaghasiya166@gmail.com',
-                recipient_list=recipient_list,
-                fail_silently=False,
-            )
-
-            auction.email_sent = True
-            auction.save()
 
     context = {
         "auction": auction,
@@ -190,27 +179,27 @@ def auction_detail(request, auction_id):
 
 
 @login_required
-def auction_register(request, auction_id):
-    user = request.user
-    register = AuctionRegister.objects.create(user=user, auction_id=auction_id)
+def auction_register(request, slug):
+    auction = get_object_or_404(Auction, slug=slug)
+    AuctionRegister.objects.get_or_create(user=request.user, auction=auction)
     messages.success(request, "You have successfully registered for the auction.")
-    return redirect("auction_detail", auction_id)
+    return redirect("auction_detail", slug=slug)
 
 
 @login_required
-def auction_unregister(request, auction_id):
-    user = request.user
-    AuctionRegister.objects.filter(user=user, auction=auction_id).delete()
+def auction_unregister(request, slug):
+    auction = get_object_or_404(Auction, slug=slug)
+    AuctionRegister.objects.filter(user=request.user, auction=auction).delete()
     messages.success(request, "You have successfully unregistered from the auction.")
-    return redirect("auction_detail", auction_id)
+    return redirect("auction_detail", slug=slug)
 
 
 @login_required
-def view_lots(request, auction_id=None):
+def view_lots(request, slug=None):
 
     
-    if auction_id:
-        auction = Auction.objects.get(id=auction_id)
+    if slug:
+        auction = Auction.objects.get(slug=slug)
         lots = auction.lots.all().select_related("lot_catagory")
     else:
         auction = None
@@ -252,19 +241,36 @@ def view_lots(request, auction_id=None):
 
 
 @login_required
-def lot_detail(request, lot_id):
-    lot = Lot.objects.select_related("lot_catagory", "auction").get(id=lot_id)
-    return render(request, "lots/lot_detail.html", {"lot": lot})
+def lot_detail(request, slug):
+    from bids.models import PendingPayment
+    
+    lot = Lot.objects.select_related("lot_catagory", "auction").get(slug=slug)
+    
+    # Check if current user has a pending payment for this lot
+    pending_payment = None
+    if request.user.is_authenticated:
+        pending_payment = PendingPayment.objects.filter(
+            lot=lot,
+            user=request.user,
+            status='pending'
+        ).first()
+    
+    import os
+    return render(request, "lots/lot_detail.html", {
+        "lot": lot,
+        "pending_payment": pending_payment,
+        "server_pid": os.getpid()
+    })
 
 
 
 @login_required
 @require_POST
-def place_bid(request, lot_id):
+def place_bid(request, slug):
     try:
         data = json.loads(request.body)
         amount = Decimal(str(data.get('amount')))
-        lot = Lot.objects.select_related('auction').get(id=lot_id)
+        lot = Lot.objects.select_related('auction').get(slug=slug)
         
         # Validation
         if lot.items.filter(owner=request.user).exists():
@@ -273,9 +279,9 @@ def place_bid(request, lot_id):
         if lot.status != 'active':
              return JsonResponse({'success': False, 'message': 'Lot is not active'})
              
-        # Prevent double bidding (consecutive bids by same user)
-        if lot.winning_bidder == request.user:
-             return JsonResponse({'success': False, 'message': 'You are already the highest bidder'})
+        # Allow Top-Up (User can outbid themselves)
+        # if lot.winning_bidder == request.user:
+        #      return JsonResponse({'success': False, 'message': 'You are already the highest bidder'})
              
         if lot.auction.status not in ['live', 'scheduled']:
              return JsonResponse({'success': False, 'message': 'Auction is not live'})
@@ -318,7 +324,7 @@ def place_bid(request, lot_id):
 
 @login_required
 @require_POST
-def send_chat_message(request, lot_id):
+def send_chat_message(request, slug):
     try:
         data = json.loads(request.body)
         message = data.get('message', '').strip()
@@ -326,7 +332,7 @@ def send_chat_message(request, lot_id):
         if not message:
             return JsonResponse({'success': False, 'message': 'Message cannot be empty'})
             
-        lot = Lot.objects.get(id=lot_id)
+        lot = Lot.objects.get(slug=slug)
         
         chat = LotChatMessage.objects.create(
             lot=lot,
@@ -341,8 +347,8 @@ def send_chat_message(request, lot_id):
 
 
 @login_required
-def get_lot_updates(request, lot_id):
-    lot = Lot.objects.get(id=lot_id)
+def get_lot_updates(request, slug):
+    lot = Lot.objects.get(slug=slug)
     
     # Get latest bids (last 10)
     latest_bids = Bid.objects.filter(lot=lot).select_related('user').order_by('-timestamp')[:10]

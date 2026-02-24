@@ -147,6 +147,10 @@
             <td>Commission (10%)</td>
             <td style="text-align: right;">{{ admin_commission|floatformat:2 }}</td>
         </tr>
+        <tr>
+            <td>Delivery (Warehouse to Buyer)</td>
+            <td style="text-align: right;">{{ shipping_fee|floatformat:2 }}</td>
+        </tr>
         <tr class="total-row">
             <td>TOTAL PAID</td>
             <td style="text-align: right;">{{ total_amount|floatformat:2 }}</td>

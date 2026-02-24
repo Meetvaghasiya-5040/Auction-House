@@ -7,12 +7,36 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl md:text-4xl font-black text-slate-900">
-                <i class="fas fa-wallet text-green-600 mr-3"></i>My Wallet
-            </h1>
-            <p class="text-slate-600 mt-2">Manage your bidding funds and transaction history</p>
-        </div>
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    
+    <!-- Left: Title -->
+    <div>
+        <h1 class="text-3xl md:text-4xl font-black text-slate-900 flex items-center">
+            <i class="fas fa-wallet text-green-600 mr-3"></i>
+            My Wallet
+        </h1>
+        <p class="text-slate-600 mt-2">
+            Manage your bidding funds and transaction history
+        </p>
+    </div>
+
+    <!-- Right: Download Button -->
+    <a href="{% url 'transaction_invoice' %}"
+       class="inline-flex items-center justify-center 
+       px-4 sm:px-6 py-2.5 sm:py-3 
+       text-xs sm:text-sm font-bold text-white 
+       bg-gradient-to-r from-green-600 to-emerald-600 
+       hover:from-green-700 hover:to-emerald-700 
+       rounded-xl shadow-lg hover:shadow-xl 
+       transform hover:-translate-y-0.5 transition-all 
+       uppercase tracking-wide whitespace-nowrap">
+       
+        <i class="fas fa-download mr-2"></i>
+        <span class="hidden sm:inline">Download Transaction History</span>
+        <span class="sm:hidden">Download</span>
+    </a>
+
+</div>
 
         <!-- Balance Card -->
         <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-2xl p-8 mb-8 text-white">

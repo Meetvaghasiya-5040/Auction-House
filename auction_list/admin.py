@@ -163,7 +163,7 @@ class ItemAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        if obj and obj.lots.exists():
+        if obj and obj.lots.exists() and "status" in form.base_fields:
             form.base_fields["status"].help_text = (
                 "Status is controlled by Lot. Remove from lot to change."
             )

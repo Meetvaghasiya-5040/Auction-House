@@ -57,11 +57,13 @@
             </div>
             <div class="hero-stats flex flex-wrap justify-center gap-8 mb-8">
                 <div class="stat-item text-center">
-                    <div class="text-4xl md:text-5xl font-black text-yellow-400 mb-1">{{ total_auctions }}</div>
+                    <div class="text-4xl md:text-5xl font-black text-yellow-400 mb-1">{{ auction.count | default:"0" }}
+                    </div>
                     <div class="text-xs uppercase tracking-widest text-slate-400 font-bold">Total Auctions</div>
                 </div>
                 <div class="stat-item text-center">
-                    <div class="text-4xl md:text-5xl font-black text-green-400 mb-1">{{ live_auctions }}</div>
+                    <div class="text-4xl md:text-5xl font-black text-green-400 mb-1">{{ live_auctions | default:"0" }}
+                    </div>
                     <div class="text-xs uppercase tracking-widest text-slate-400 font-bold">Live Now</div>
                 </div>
                 <div class="stat-item text-center">
@@ -69,20 +71,7 @@
                     <div class="text-xs uppercase tracking-widest text-slate-400 font-bold">Support</div>
                 </div>
             </div>
-            <div class="overflow-hidden">
-                <div class="flex flex-wrap justify-center gap-3 hero-buttons">
-                    <a href="#auctions"
-                        class="inline-block px-8 py-3 bg-yellow-400 text-slate-900 font-black text-sm uppercase tracking-widest hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 border-4 border-yellow-400">
-                        <i class="fas fa-gavel mr-2"></i>
-                        Browse Auctions
-                    </a>
-                    <a href="{% url 'register' %}"
-                        class="inline-block px-8 py-3 border-4 border-white text-white font-black text-sm uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all duration-300">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Register Now
-                    </a>
-                </div>
-            </div>
+
         </div>
     </div>
 </div>
@@ -107,8 +96,6 @@
                     class="filter-select-type px-4 py-2 border-2 border-slate-900 text-xs font-bold text-slate-900 bg-white hover:bg-slate-900 hover:text-white transition-all focus:outline-none cursor-pointer">
                     <option value="">All Types</option>
                     <option value="live" {% if request.GET.auction_type == 'live' %}selected{% endif %}>Live Auction
-                    </option>
-                    <option value="timed" {% if request.GET.auction_type == 'timed' %}selected{% endif %}>Timed Auction
                     </option>
                     <option value="scheduled" {% if request.GET.auction_type == 'scheduled' %}selected{% endif %}>
                         Scheduled Auction</option>
@@ -159,215 +146,7 @@
 
     <!-- Auctions Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="auction-container">
-        {% for auction in auctions %}
-        <article
-            class="auction-card bg-white border-3 border-slate-200 overflow-hidden hover:border-slate-900 hover:shadow-xl transition-all duration-500 group h-full flex flex-col">
-
-            <!-- Card Header -->
-            <div
-                class="card-header bg-gradient-to-r from-slate-50 via-blue-50 to-slate-50 border-b-2 border-slate-200 p-5">
-                <div class="flex items-start justify-between gap-4 mb-3">
-                    <div class="flex-1">
-                        <div class="flex flex-wrap items-center gap-2 mb-3">
-                            <!-- Status Badge -->
-                            {% if auction.status == 'live' %}
-                            <span
-                                class="status-badge px-3 py-1 text-xs font-black uppercase tracking-wider border-2 border-green-500 bg-green-500 text-white shadow-lg shadow-green-500/50 animate-pulse">
-                                🔴 Live
-                            </span>
-                            {% elif auction.status == 'not_started' or auction.status == 'scheduled' %}
-                            <span
-                                class="status-badge px-3 py-1 text-xs font-black uppercase tracking-wider border-2 border-orange-500 bg-orange-500 text-white shadow-lg shadow-orange-500/50">
-                                ⏳ Soon
-                            </span>
-                            {% elif auction.status == 'completed' %}
-                            <span
-                                class="status-badge px-3 py-1 text-xs font-black uppercase tracking-wider border-2 border-gray-500 bg-gray-500 text-white">
-                                ✓ Ended
-                            </span>
-                            {% endif %}
-
-                            <!-- Type Badge -->
-                            <span
-                                class="type-badge px-3 py-1 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider">
-                                {{ auction.get_auction_type_display }}
-                            </span>
-
-                            <span class="auction-id text-xs font-mono text-slate-400 font-bold">ID:
-                                #{{auction.id|stringformat:"03d" }}</span>
-                        </div>
-
-                        <h3
-                            class="card-title text-xl md:text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight leading-tight mb-2">
-                            {{ auction.title }}
-                        </h3>
-
-                        <p class="card-desc text-sm text-slate-700 leading-relaxed mb-3">
-                            {{ auction.description|truncatewords:20 }}
-                        </p>
-                    </div>
-
-                    <div class="flex-shrink-0">
-                        <div class="bg-white border-2 border-slate-900 p-3 min-w-[120px]">
-                            <div class="text-center">
-                                <div class="text-xs uppercase tracking-wider font-black text-slate-400 mb-1">Lots</div>
-                                <div class="text-3xl font-black text-slate-900">{{ auction.total_lots }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-slate-900 flex items-center justify-center">
-                            <i class="fas fa-user text-white text-xs"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs uppercase tracking-wider font-bold text-slate-400">Host</div>
-                            <div class="text-xs font-black text-slate-900">
-                                {{auction.created_by.get_full_name|default:auction.created_by.username|truncatewords:2}}
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if auction.approved_by %}
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-green-500 flex items-center justify-center">
-                            <i class="fas fa-check-circle text-white text-xs"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs uppercase tracking-wider font-bold text-slate-400">Verified</div>
-                            <div class="text-xs font-black text-green-600">
-                                {{auction.approved_by.get_full_name|default:auction.approved_by.username|truncatewords:2}}
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Card Body -->
-            <div class="card-body p-5 bg-white flex-1">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    <!-- Schedule Info -->
-                    {% if auction.start_date and auction.end_date %}
-                    <div class="bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 p-4">
-                        <h4
-                            class="text-sm font-black uppercase tracking-tight text-slate-900 mb-3 flex items-center gap-2">
-                            <i class="far fa-calendar-alt text-blue-600 text-xs"></i>
-                            Schedule
-                        </h4>
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 bg-blue-500 flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-play text-white text-xs"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="text-xs uppercase tracking-wider font-bold text-slate-400">Starts</div>
-                                    <div class="text-sm font-black text-slate-900">{{ auction.start_date|date:"M d, Y"}}
-                                    </div>
-                                    <div class="text-xs font-bold text-slate-600">{{ auction.start_date|time:"h:i A" }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 bg-red-500 flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-stop text-white text-xs"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="text-xs uppercase tracking-wider font-bold text-slate-400">Ends</div>
-                                    <div class="text-sm font-black text-red-600">{{ auction.end_date|date:"M d, Y" }}
-                                    </div>
-                                    <div class="text-xs font-bold text-slate-600">{{ auction.end_date|time:"h:i A" }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Features -->
-                    <div class="bg-gradient-to-br from-yellow-50 to-white border-2 border-yellow-200 p-4">
-                        <h4
-                            class="text-sm font-black uppercase tracking-tight text-slate-900 mb-3 flex items-center gap-2">
-                            <i class="fas fa-star text-yellow-600 text-xs"></i>
-                            Features
-                        </h4>
-                        <ul class="space-y-2">
-                            {% if auction.allow_proxy_bidding %}
-                            <li class="flex items-start gap-2">
-                                <div class="w-6 h-6 bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <i class="fas fa-check text-white text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-slate-900 text-xs">Proxy Bidding</div>
-                                    <div class="text-xs text-slate-600">Auto-bid enabled</div>
-                                </div>
-                            </li>
-                            {% endif %}
-
-                            <li class="flex items-start gap-2">
-                                <div class="w-6 h-6 bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <i class="fas fa-shield-alt text-white text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-slate-900 text-xs">Secure</div>
-                                    <div class="text-xs text-slate-600">256-bit encryption</div>
-                                </div>
-                            </li>
-
-                            {% if auction.location %}
-                            <li class="flex items-start gap-2">
-                                <div class="w-6 h-6 bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <i class="fas fa-map-marker-alt text-white text-xs"></i>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-slate-900 text-xs">Location</div>
-                                    <div class="text-xs text-slate-600">{{ auction.location|truncatewords:4 }}</div>
-                                </div>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card Footer -->
-            <div class="card-footer bg-slate-50 border-t-2 border-slate-200 p-4">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex flex-wrap items-center gap-4">
-                        <div class="text-center">
-                            <div class="text-xs uppercase tracking-wider font-bold text-slate-400">Min Bid</div>
-                            <div class="text-base font-black text-slate-900">
-                                ₹{{auction.min_bid_increment|floatformat:0}}
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xs uppercase tracking-wider font-bold text-slate-400">Premium</div>
-                            <div class="text-base font-black text-green-600">{{ auction.buyer_premium_percentage }}%
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap gap-2">
-                        <a href="{% url 'auction_detail' auction.id %}"
-                            class="cta-button inline-block px-6 py-2 bg-slate-900 border-2 border-slate-900 text-white font-black text-xs uppercase tracking-wider hover:bg-white hover:text-slate-900 transition-all duration-300 transform hover:scale-105">
-                            <i class="fas fa-eye mr-1"></i>
-                            Details
-                        </a>
-                        {% if auction.status == 'live' %}
-                        <a href="{% url 'view_lots' auction.id %}"
-                            class="cta-button inline-block px-6 py-2 bg-yellow-400 border-2 border-yellow-400 text-slate-900 font-black text-xs uppercase tracking-wider hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105">
-                            <i class="fas fa-gavel mr-1"></i>
-                            Lots
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </article>
-        {% endfor %}
+        {% include 'auctions/partials/auction_cards.html' %}
     </div>
 
     <!-- Pagination -->
@@ -405,13 +184,7 @@
     {% endif %}
 </div>
 
-<!-- Footer -->
-<footer class="bg-slate-900 text-white py-8 mt-16">
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 text-center">
-        <p class="text-sm font-bold">&copy; 2026 Exclusive Auction House. All Rights Reserved.</p>
-        <p class="text-slate-400 mt-1 text-xs">Premium auctions with trust and transparency</p>
-    </div>
-</footer>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -590,61 +363,43 @@
         });
     });
 
-    // Real-Time Auction Status Polling
-    function pollAuctionUpdates() {
-        const auctionCards = document.querySelectorAll('.auction-card');
-        const auctionIds = Array.from(auctionCards).map(card => {
-            const idText = card.querySelector('.auction-id').innerText;
-            return idText.replace('ID:', '').replace('#', '').trim();
-        }).filter(id => !isNaN(id));
+    // Smart Page Refresh (No Polling)
+    function scheduleSmartRefreshes() {
+        const cards = document.querySelectorAll('.auction-card');
+        const now = Date.now();
+        const refreshTimes = new Set();
+        console.log("🚀 Initializing Smart Refresh...");
 
-        if (auctionIds.length === 0) return;
+        cards.forEach(card => {
+            const startStr = card.dataset.start;
+            const endStr = card.dataset.end;
 
-        fetch(`/auctions/updates/?ids=${auctionIds.join(',')}`)
-            .then(response => response.json())
-            .then(data => {
-                // Update specific auctions
-                auctionCards.forEach(card => {
-                    const idText = card.querySelector('.auction-id').innerText;
-                    const id = idText.replace('ID:', '').replace('#', '').trim();
-                    const auctionData = data[id];
+            if (startStr) {
+                const startTime = new Date(startStr).getTime();
+                if (startTime > now) refreshTimes.add(startTime);
+            }
+            if (endStr) {
+                const endTime = new Date(endStr).getTime();
+                if (endTime > now) refreshTimes.add(endTime);
+            }
+        });
 
-                    if (auctionData) {
-                        const badgeObj = card.querySelector('.status-badge');
-                        const linkContainer = card.querySelector('.card-footer .flex-wrap.gap-2');
+        console.log(`📅 Scheduled Refreshes: ${refreshTimes.size} events found.`);
 
-                        // Check if status changed
-                        if (badgeObj && badgeObj.innerText.trim() !== '🔴 Live' && auctionData.status === 'live') {
-                            // Update Badge
-                            badgeObj.className = 'status-badge px-3 py-1 text-xs font-black uppercase tracking-wider border-2 border-green-500 bg-green-500 text-white shadow-lg shadow-green-500/50 animate-pulse';
-                            badgeObj.innerText = '🔴 Live';
-
-                            // Add "Lots" button if missing
-                            if (!linkContainer.querySelector('a[href*="lots"]')) {
-                                const lotsBtn = document.createElement('a');
-                                lotsBtn.href = `/lots/auction/${id}/`; // Assuming standard URL structure, adjust if needed
-                                lotsBtn.className = 'cta-button inline-block px-6 py-2 bg-yellow-400 border-2 border-yellow-400 text-slate-900 font-black text-xs uppercase tracking-wider hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105';
-                                lotsBtn.innerHTML = '<i class="fas fa-gavel mr-1"></i> Lots';
-                                linkContainer.appendChild(lotsBtn);
-                            }
-                        } else if (badgeObj && auctionData.status === 'completed' && !badgeObj.innerText.includes('Ended')) {
-                            badgeObj.className = 'status-badge px-3 py-1 text-xs font-black uppercase tracking-wider border-2 border-gray-500 bg-gray-500 text-white';
-                            badgeObj.innerText = '✓ Ended';
-                        }
-                    }
-                });
-
-                // Update Hero Stats (Optional)
-                if (data.global) {
-                    // Update live count if element exists
-                    const liveCountEl = document.querySelector('.text-green-400'); // Pretty fragile selector, but based on current template
-                    if (liveCountEl) liveCountEl.innerText = data.global.live_count;
-                }
-            })
-            .catch(err => console.error('Error polling updates:', err));
+        refreshTimes.forEach(time => {
+            const delay = time - now;
+            // Max delay for setTimeout is ~24 days. If longer, we ignore
+            if (delay > 0 && delay < 2147483647) {
+                console.log(`⏰ Scheduling refresh in ${Math.round(delay / 1000)}s`);
+                setTimeout(() => {
+                    console.log("🔄 Auto-refreshing for auction event...");
+                    window.location.reload();
+                }, delay + 2000); // 2 second buffer
+            }
+        });
     }
 
-    // Poll every 10 seconds
-    setInterval(pollAuctionUpdates, 10000);
+    // Initialize Smart Refresh
+    scheduleSmartRefreshes();
 </script>
 {% endblock %}

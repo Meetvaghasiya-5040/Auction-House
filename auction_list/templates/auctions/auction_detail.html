@@ -114,18 +114,18 @@
                 </div>
                 <div class="overflow-hidden">
                     <div class="cta-section flex flex-wrap gap-3">
-                        <a href="{% url 'view_lots' auction.id %}" class="cta-primary">
+                        <a href="{% url 'view_lots' auction.slug %}" class="cta-primary">
                             <i class="fas fa-gavel mr-2"></i>
                             View All Lots
                         </a>
                         {% if auction.status == 'live' or auction.status == 'scheduled' %}
                         {% if register %}
-                        <a href="{% url 'auction_unregister' auction.id %}" class="cta-secondary">
+                        <a href="{% url 'auction_unregister' auction.slug %}" class="cta-secondary">
                             <i class="fas fa-bell mr-2"></i>
                             Unregister
                         </a>
                         {% else %}
-                        <a href="{% url 'auction_register' auction.id %}" class="cta-secondary">
+                        <a href="{% url 'auction_register' auction.slug %}" class="cta-secondary">
                             <i class="fas fa-bell mr-2"></i>
                             Register
                         </a>
@@ -139,7 +139,7 @@
                 <div class="timer-card bg-white border-4 border-yellow-400 p-6">
                     <div class="text-center">
                         <div class="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3">
-                            {% if auction.status == 'live' %}Auction Ends In{% elif auction.status == 'scheduled' %}Auction Starts In{% else %}Auction Timeline{% endif %}
+                            {% if auction.status == 'live' %}Auction Ends In{% elif auction.status ==  'scheduled'%}Auction Starts In{% else %}Auction Timeline{% endif %}
                         </div>
                         <div class="countdown-timer grid grid-cols-4 gap-3 mb-5">
                             <div class="timer-unit">
@@ -173,7 +173,8 @@
                             <div class="flex justify-between items-center">
                                 <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Buyer's
                                     Premium</span>
-                                <span class="text-base font-black text-blue-600">{{ auction.buyer_premium_percentage}}%</span>
+                                <span class="text-base font-black text-blue-600">{{
+                                    auction.buyer_premium_percentage}}%</span>
                             </div>
                             {% endif %}
                         </div>
@@ -330,7 +331,8 @@
                     <div class="p-5">
                         <div class="flex justify-between items-start mb-3">
                             <div>
-                                <span class="text-xs font-mono font-semibold text-slate-400 block mb-1">LOT #{{ lot.lot_number }}</span>
+                                <span class="text-xs font-mono font-semibold text-slate-400 block mb-1">LOT #{{
+                                    lot.lot_number }}</span>
                                 <span class="status-badge-sm inline-block px-2 py-1 text-xs font-bold uppercase tracking-wider border-2
                                     {% if lot.status == 'active' %}border-green-500 bg-green-500 text-white
                                     {% elif lot.status == 'sold' %}border-slate-500 bg-slate-500 text-white
@@ -375,7 +377,7 @@
                             </div>
                         </div>
 
-                        <a href="{% url 'lot_detail' lot.id %}"
+                        <a href="{% url 'lot_detail' lot.slug %}"
                             class="block text-center py-2.5 bg-slate-900 border-2 border-slate-900 text-white font-bold text-xs uppercase tracking-wider hover:bg-white hover:text-slate-900 transition-all duration-300">
                             <i class="fas fa-gavel mr-1.5"></i>
                             Place Bid
@@ -412,12 +414,14 @@
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2 mb-0.5">
-                                            <span class="font-mono text-xs text-slate-400">LOT #{{lot.lot_number}}</span>
+                                            <span class="font-mono text-xs text-slate-400">LOT
+                                                #{{lot.lot_number}}</span>
                                             <span class="status-dot w-1.5 h-1.5 rounded-full
                                                 {% if lot.status == 'active' %}bg-green-500
                                                 {% elif lot.status == 'sold' %}bg-slate-500
                                                 {% else %}bg-slate-300{% endif %}"></span>
-                                            <span class="text-xs font-semibold uppercase text-slate-500">{{lot.status}}</span>
+                                            <span
+                                                class="text-xs font-semibold uppercase text-slate-500">{{lot.status}}</span>
                                         </div>
                                         <h3
                                             class="font-bold text-slate-900 uppercase text-sm mb-0.5 group-hover:text-blue-600 transition-colors">
@@ -455,7 +459,7 @@
                             </td>
                             {% if lot.status == 'active' %}
                             <td class="px-5 py-4 text-center">
-                                <a href="{% url 'lot_detail' lot.id %}"
+                                <a href="{% url 'lot_detail' lot.slug %}"
                                     class="inline-block px-5 py-2.5 bg-slate-900 border-2 border-slate-900 font-bold text-xs uppercase tracking-wider text-white hover:bg-white hover:text-slate-900 transition-all duration-300 transform hover:scale-105">
                                     <i class="fas fa-gavel mr-1"></i>
                                     Bid Now
@@ -510,7 +514,7 @@
         <p class="text-slate-300 text-sm mb-6 max-w-2xl mx-auto">Join thousands of satisfied bidders and discover unique
             items in our auctions.</p>
         <div class="flex flex-wrap justify-center gap-3">
-            <a href="{% url 'view_lots' auction.id %}"
+            <a href="{% url 'view_lots' auction.slug %}"
                 class="px-6 py-3 bg-yellow-400 text-slate-900 font-bold text-sm uppercase tracking-wider hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105">
                 Browse All Lots
             </a>
@@ -648,45 +652,26 @@
             ease: "power3.out"
         });
 
-        // Polling Integration for Real-Time Status Updates
-        const auctionId = "{{ auction.id }}";
+        // Smart Page Refresh (No Polling)
+        const startDate = new Date("{{ auction.start_date|date:'Y-m-d H:i:s' }}").getTime();
+        const endDate = new Date("{{ auction.end_date|date:'Y-m-d H:i:s' }}").getTime();
+        const now = Date.now();
+        console.log("🚀 Initializing Smart Refresh for Auction Detail...");
 
-        function pollAuctionStatus() {
-            fetch(`/auctions/updates/?ids=${auctionId}`)
-                .then(response => response.json())
-                .then(data => {
-                    const auctionData = data[auctionId];
-                    if (auctionData) {
-                        const currentStatus = "{{ auction.status }}"; // Initial status from template render
-                        // We need to track client-side status to avoid infinite reloads if we don't reload page
-                        // But since we reload on change, comparing with server-sent status is key.
-
-                        // Logic: If server status is different from what page thinks *and* it's a significant change
-                        // For now, simpler: If the badge text doesn't match the new status display, reload.
-                        const badge = document.querySelector('.status-badge');
-                        const currentBadgeText = badge ? badge.innerText.trim() : '';
-
-                        // Check for Live transition
-                        if (auctionData.status === 'live' && !currentBadgeText.includes('Live')) {
-                            console.log('Auction went live! Reloading...');
-                            window.location.reload();
-                        }
-
-                        // Check for Completed transition
-                        if (auctionData.status === 'completed' && !currentBadgeText.includes('Ended') && !currentBadgeText.includes('Completed')) {
-                            console.log('Auction ended! Reloading...');
-                            window.location.reload();
-                        }
-                    }
-                })
-                .catch(err => console.error('Polling error:', err));
-        }
-
-        // Poll every 5 seconds
-        setInterval(pollAuctionStatus, 5000);
+        [startDate, endDate].forEach(time => {
+            const delay = time - now;
+            // Max delay for setTimeout is ~24 days. If longer, we ignore
+            if (delay > 0 && delay < 2147483647) {
+                console.log(`⏰ Scheduling refresh in ${Math.round(delay / 1000)}s`);
+                setTimeout(() => {
+                    console.log("🔄 Auto-refreshing for auction event...");
+                    window.location.reload();
+                }, delay + 2000);
+            }
+        });
 
         // Countdown Timer
-        const endDate = new Date("{{ auction.end_date|date:'Y-m-d H:i:s' }}").getTime();
+
 
         function updateCountdown() {
             const now = new Date().getTime();
@@ -725,6 +710,7 @@
             },
             ease: "power1.inOut"
         });
+
     });
 </script>
 {% endblock %}

@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Track Delivery - {{ lot.title }}{% endblock %}
+
+{% block content %}
+<!-- Main Container with soft gradient background -->
+<div class="min-h-screen"
+    style="background: linear-gradient(135deg, rgba(240, 242, 245, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(245, 240, 255, 0.3) 100%);">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+
+            <!-- Header Section -->
+            <div class="mb-8">
+                <div class="flex flex-wrap gap-3 mb-4">
+                    <a href="{% url 'profile' %}"
+                        class="font-bold text-sm inline-flex items-center px-4 py-2 transition-all duration-200"
+                        style="background: rgba(255, 255, 255, 0.9); color: rgba(107, 114, 128, 1); border: 2px solid rgba(229, 231, 235, 1); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Profile
+                    </a>
+                    <a href="{% url 'lot_detail' lot.slug %}"
+                        class="font-bold text-sm inline-flex items-center px-4 py-2 transition-all duration-200"
+                        style="background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%); color: rgba(124, 58, 237, 1); border: 2px solid rgba(139, 92, 246, 0.3); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+                        <i class="fas fa-box mr-2"></i>View Lot Details
+                    </a>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: rgba(31, 41, 55, 1);">Delivery Tracking
+                </h1>
+                <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">Lot #{{ lot.lot_number }} - {{lot.title }}</p>
+            </div>
+
+            <!-- Status Card -->
+            <div class="bg-white overflow-hidden mb-8"
+                style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
+                <!-- Current Status Header -->
+                <div class="p-6" style="border-bottom: 1px solid rgba(243, 244, 246, 1);">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div class="flex-1">
+                            <span class="text-xs font-bold uppercase tracking-wider"
+                                style="color: rgba(156, 163, 175, 1);">Current Status</span>
+                            <h2 class="text-xl md:text-2xl font-bold mt-1" style="color: rgba(34, 197, 94, 1);">
+                                {% if delivery %}
+                                {{ delivery.get_status_display }}
+                                {% else %}
+                                {{ lot.get_status_display }}
+                                {% endif %}
+                            </h2>
+                        </div>
+                        {% if delivery and delivery.verification_code and delivery.status != 'delivered' %}
+                        <div class="p-4"
+                            style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%); border: 2px solid rgba(251, 191, 36, 0.3);">
+                            <span class="text-xs font-bold uppercase tracking-wider block mb-1"
+                                style="color: rgba(217, 119, 6, 1);">Your Delivery OTP</span>
+                            <div class="text-2xl md:text-3xl font-black font-mono tracking-widest"
+                                style="color: rgba(180, 83, 9, 1);">
+                                {{ delivery.verification_code }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Progress Timeline -->
+                <div class="p-6 md:p-10" style="background: rgba(248, 250, 252, 0.5);">
+                    {% with status=delivery.status|default:lot.status %}
+
+                    <!-- Calculate progress percentage -->
+                    {% if status == 'delivered' %}
+                    {% with progress=100 %}
+                    {% endwith %}
+                    {% endif %}
+                    {% if status == 'shipped' %}
+                    {% with progress=75 %}
+                    {% endwith %}
+                    {% endif %}
+                    {% if status == 'at_warehouse' or status == 'shipped_to_warehouse' %}
+                    {% with progress=50 %}
+                    {% endwith %}
+                    {% endif %}
+                    {% if status != 'sold' and status != 'draft' and status != 'active' and status != 'delivered' and status != 'shipped' and status != 'at_warehouse' and status != 'shipped_to_warehouse' %}
+                    {% with progress=25 %}
+                    {% endwith %}
+                    {% endif %}
+                    {% if status == 'sold' or status == 'draft' or status == 'active' %}
+                    {% with progress=0 %}
+                    {% endwith %}
+                    {% endif %}
+
+                    {% with progress=progress|default:0 %}
+                    <div class="relative">
+                        <!-- Progress Bar Background -->
+                        <div class="absolute left-0 top-5 w-full h-2"
+                            style="background: rgba(226, 232, 240, 1); z-index: 0;">
+                        </div>
+
+                        <!-- Progress Bar Fill -->
+                        <div class="absolute left-0 top-5 h-2 transition-all duration-500 progress-bar"
+                            style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(16, 185, 129, 0.9) 100%); z-index: 1;"
+                            data-progress="{{ progress }}">
+                        </div>
+
+                        <!-- Steps Container -->
+                        <div class="relative z-10 flex justify-between items-start">
+                            <!-- Step 1: Won -->
+                            <div class="flex flex-col items-center gap-2 flex-1">
+                                <div
+                                    class="w-10 h-10 flex items-center justify-center transition-all duration-300 step-active">
+                                    <i class="fas fa-gavel text-sm"></i>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-xs md:text-sm font-bold block text-active">Won</span>
+                                    <span class="text-xs hidden md:block" style="color: rgba(107, 114, 128, 1);">Auction
+                                        won</span>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Paid -->
+                            <div class="flex flex-col items-center gap-2 flex-1">
+                                <div
+                                    class="w-10 h-10 flex items-center justify-center transition-all duration-300 {% if status != 'sold' and status != 'draft' and status != 'active' %}step-active{% else %}step-inactive{% endif %}">
+                                    <i class="fas fa-credit-card text-sm"></i>
+                                </div>
+                                <div class="text-center">
+                                    <span
+                                        class="text-xs md:text-sm font-bold block {% if status != 'sold' and status != 'draft' and status != 'active' %}text-active{% else %}text-inactive{% endif %}">Paid</span>
+                                    <span class="text-xs hidden md:block" style="color: rgba(107, 114, 128, 1);">Payment
+                                        made</span>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Warehouse -->
+                            <div class="flex flex-col items-center gap-2 flex-1">
+                                <div
+                                    class="w-10 h-10 flex items-center justify-center transition-all duration-300 {% if status == 'shipped_to_warehouse' or status == 'at_warehouse' or status == 'shipped' or status == 'delivered' %}step-active{% else %}step-inactive{% endif %}">
+                                    <i class="fas fa-warehouse text-sm"></i>
+                                </div>
+                                <div class="text-center">
+                                    <span
+                                        class="text-xs md:text-sm font-bold block {% if status == 'shipped_to_warehouse' or status == 'at_warehouse' or status == 'shipped' or status == 'delivered' %}text-active{% else %}text-inactive{% endif %}">Warehouse</span>
+                                    <span class="text-xs hidden md:block" style="color: rgba(107, 114, 128, 1);">At
+                                        warehouse</span>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Shipped -->
+                            <div class="flex flex-col items-center gap-2 flex-1">
+                                <div
+                                    class="w-10 h-10 flex items-center justify-center transition-all duration-300 {% if status == 'shipped' or status == 'delivered' %}step-active{% else %}step-inactive{% endif %}">
+                                    <i class="fas fa-truck text-sm"></i>
+                                </div>
+                                <div class="text-center">
+                                    <span
+                                        class="text-xs md:text-sm font-bold block {% if status == 'shipped' or status == 'delivered' %}text-active{% else %}text-inactive{% endif %}">Shipped</span>
+                                    <span class="text-xs hidden md:block" style="color: rgba(107, 114, 128, 1);">Out for
+                                        delivery</span>
+                                </div>
+                            </div>
+
+                            <!-- Step 5: Delivered -->
+                            <div class="flex flex-col items-center gap-2 flex-1">
+                                <div
+                                    class="w-10 h-10 flex items-center justify-center transition-all duration-300 {% if status == 'delivered' %}step-active{% else %}step-inactive{% endif %}">
+                                    <i class="fas fa-check text-sm"></i>
+                                </div>
+                                <div class="text-center">
+                                    <span
+                                        class="text-xs md:text-sm font-bold block {% if status == 'delivered' %}text-active{% else %}text-inactive{% endif %}">Delivered</span>
+                                    <span class="text-xs hidden md:block"
+                                        style="color: rgba(107, 114, 128, 1);">Received</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% endwith %}
+                    {% endwith %}
+                </div>
+
+                <!-- Item Details Section -->
+                <div class="p-6" style="border-top: 1px solid rgba(243, 244, 246, 1);">
+                    <h3 class="font-bold text-lg mb-4" style="color: rgba(31, 41, 55, 1);">
+                        <i class="fas fa-box-open mr-2" style="color: rgba(59, 130, 246, 1);"></i>Item Details
+                    </h3>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        {% if item.images %}
+                        <div class="flex-shrink-0">
+                            <img src="/media/{{ item.images.0 }}" class="w-full sm:w-32 h-32 object-cover"
+                                style="background: rgba(248, 250, 252, 1);">
+                        </div>
+                        {% else %}
+                        <div class="flex-shrink-0 w-full sm:w-32 h-32 flex items-center justify-center"
+                            style="background: rgba(248, 250, 252, 1);">
+                            <i class="fas fa-image text-4xl" style="color: rgba(203, 213, 225, 1);"></i>
+                        </div>
+                        {% endif %}
+                        <div class="flex-1">
+                            <h4 class="font-bold text-lg md:text-xl mb-2" style="color: rgba(31, 41, 55, 1);">{{item.title }}</h4>
+                            <p class="text-sm mb-4" style="color: rgba(107, 114, 128, 1);">
+                                {{item.description|truncatechars:150 }}</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                                <div class="p-3"
+                                    style="background: rgba(239, 246, 255, 0.5); border: 1px solid rgba(219, 234, 254, 1);">
+                                    <span class="block text-xs mb-1" style="color: rgba(107, 114, 128, 1);">Estimated
+                                        Value</span>
+                                    <span class="font-bold" style="color: rgba(31, 41, 55, 1);">₹{{item.estimated_value}}</span>
+                                </div>
+                                <div class="p-3"
+                                    style="background: rgba(240, 253, 244, 0.5); border: 1px solid rgba(220, 252, 231, 1);">
+                                    <span class="block text-xs mb-1"
+                                        style="color: rgba(107, 114, 128, 1);">Weight</span>
+                                    <span class="font-bold" style="color: rgba(31, 41, 55, 1);">{{item.weight }}
+                                        kg</span>
+                                </div>
+                                <div class="p-3"
+                                    style="background: rgba(254, 243, 199, 0.5); border: 1px solid rgba(253, 230, 138, 1);">
+                                    <span class="block text-xs mb-1" style="color: rgba(107, 114, 128, 1);">Winning
+                                        Bid</span>
+                                    <span class="font-bold" style="color: rgba(31, 41, 55, 1);">₹{{lot.current_bid}}</span>
+                                </div>
+                                <div class="p-3"
+                                    style="background: rgba(243, 232, 255, 0.5); border: 1px solid rgba(233, 213, 255, 1);">
+                                    <span class="block text-xs mb-1" style="color: rgba(107, 114, 128, 1);">Shipping
+                                        Fee</span>
+                                    <span class="font-bold" style="color: rgba(31, 41, 55, 1);">₹{{lot.shipping_fee}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address Section -->
+                <div class="p-6" style="border-top: 1px solid rgba(243, 244, 246, 1);">
+                    <h3 class="font-bold text-lg mb-4" style="color: rgba(31, 41, 55, 1);">
+                        <i class="fas fa-map-marker-alt mr-2" style="color: rgba(239, 68, 68, 1);"></i>Shipping Address
+                    </h3>
+                    <div class="p-4"
+                        style="background: rgba(248, 250, 252, 0.5); border: 1px solid rgba(226, 232, 240, 1);">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="block text-xs font-semibold mb-1"
+                                    style="color: rgba(107, 114, 128, 1);">Name</span>
+                                <p style="color: rgba(31, 41, 55, 1);">{{request.user.profile.user.username }}</p>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-semibold mb-1"
+                                    style="color: rgba(107, 114, 128, 1);">Phone</span>
+                                <p style="color: rgba(31, 41, 55, 1);">{{request.user.profile.phone_number }}</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <span class="block text-xs font-semibold mb-1"
+                                    style="color: rgba(107, 114, 128, 1);">Address</span>
+                                <p style="color: rgba(31, 41, 55, 1);">
+                                    {{ request.user.profile.address }}<br>
+                                    {{ request.user.profile.city }}, {{ request.user.profile.state}} - {{request.user.profile.zip_code }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Information Card -->
+            <div class="bg-white p-6"
+                style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
+                <h3 class="font-bold text-lg mb-4" style="color: rgba(31, 41, 55, 1);">
+                    <i class="fas fa-info-circle mr-2" style="color: rgba(59, 130, 246, 1);"></i>Delivery Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start p-4"
+                        style="background: rgba(239, 246, 255, 0.3); border-left: 4px solid rgba(59, 130, 246, 1);">
+                        <i class="fas fa-clock mr-3 mt-1" style="color: rgba(59, 130, 246, 1);"></i>
+                        <div>
+                            <p class="text-xs font-semibold mb-1" style="color: rgba(107, 114, 128, 1);">Estimated
+                                Delivery</p>
+                            <p class="text-sm font-bold" style="color: rgba(31, 41, 55, 1);">3-5
+                                Business Days</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start p-4"
+                        style="background: rgba(240, 253, 244, 0.3); border-left: 4px solid rgba(34, 197, 94, 1);">
+                        <i class="fas fa-shield-alt mr-3 mt-1" style="color: rgba(34, 197, 94, 1);"></i>
+                        <div>
+                            <p class="text-xs font-semibold mb-1" style="color: rgba(107, 114, 128, 1);">Insurance</p>
+                            <p class="text-sm font-bold" style="color: rgba(31, 41, 55, 1);">Fully
+                                Insured</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start p-4"
+                        style="background: rgba(254, 243, 199, 0.3); border-left: 4px solid rgba(245, 158, 11, 1);">
+                        <i class="fas fa-box-open mr-3 mt-1" style="color: rgba(245, 158, 11, 1);"></i>
+                        <div>
+                            <p class="text-xs font-semibold mb-1" style="color: rgba(107, 114, 128, 1);">Packaging</p>
+                            <p class="text-sm font-bold" style="color: rgba(31, 41, 55, 1);">Secure
+                                & Fragile Safe</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start p-4"
+                        style="background: rgba(243, 232, 255, 0.3); border-left: 4px solid rgba(168, 85, 247, 1);">
+                        <i class="fas fa-headset mr-3 mt-1" style="color: rgba(168, 85, 247, 1);"></i>
+                        <div>
+                            <p class="text-xs font-semibold mb-1" style="color: rgba(107, 114, 128, 1);">Support</p>
+                            <p class="text-sm font-bold" style="color: rgba(31, 41, 55, 1);">24/7
+                                Available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="mt-8 p-6 text-white"
+                style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div class="flex flex-col md:flex-row md:items-start gap-4">
+                    <div class="p-3 flex-shrink-0" style="background: rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-question-circle text-2xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-lg md:text-xl font-bold mb-3">Need Help?</h3>
+                        <p class="text-sm mb-4" style="color: rgba(255, 255, 255, 0.95);">
+                            If you have any questions about your delivery or need to make changes to
+                            your shipping address,
+                            please contact our support team. Keep your OTP ready when the delivery
+                            arrives.
+                        </p>
+                        <div class="flex flex-wrap gap-3">
+                            <a href="" class="inline-flex items-center px-4 py-2 text-sm font-semibold transition-all"
+                                style="background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid rgba(255, 255, 255, 0.3);">
+                                <i class="fas fa-phone mr-2"></i>Contact Support
+                            </a>
+                            <a href="" class="inline-flex items-center px-4 py-2 text-sm font-semibold transition-all"
+                                style="background: rgba(255, 255, 255, 0.2); color: white; border: 2px solid rgba(255, 255, 255, 0.3);">
+                                <i class="fas fa-envelope mr-2"></i>Email Us
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+        .relative .flex-1 {
+            min-width: 60px;
+        }
+    }
+
+    /* Smooth transitions for progress */
+    .transition-all {
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Step status styles */
+    .step-active {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 1) 0%, rgba(16, 185, 129, 1) 100%);
+        color: white;
+        box-shadow: 0 4px 6px rgba(34, 197, 94, 0.4), 0 0 0 4px rgba(255, 255, 255, 1);
+    }
+
+    .step-inactive {
+        background: rgba(226, 232, 240, 1);
+        color: rgba(148, 163, 184, 1);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 1);
+    }
+
+    .text-active {
+        color: rgba(31, 41, 55, 1);
+    }
+
+    .text-inactive {
+        color: rgba(148, 163, 184, 1);
+    }
+</style>
+
+<!-- Animation script -->
+<script>
+    // Animate progress bar on load
+    window.addEventListener('load', function () {
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            const targetWidth = progressBar.getAttribute('data-progress') + '%';
+            progressBar.style.width = '0%';
+            setTimeout(() => {
+                progressBar.style.width = targetWidth;
+            }, 300);
+        }
+
+        // Fade in sections
+        const sections = document.querySelectorAll('.bg-white');
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            setTimeout(() => {
+                section.style.transition = 'opacity 0.5s ease-out';
+                section.style.opacity = '1';
+            }, index * 150);
+        });
+    });
+</script>
+{% endblock %}

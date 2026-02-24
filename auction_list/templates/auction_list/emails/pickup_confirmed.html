@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Picked Up</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .item-card {
+            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+            border: 2px solid #f97316;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .item-card h2 {
+            color: #ea580c;
+            margin: 0 0 12px 0;
+            font-size: 20px;
+        }
+
+        .item-card p {
+            margin: 8px 0;
+            color: #475569;
+        }
+
+        .status-box {
+            background: #22c55e;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .status-box .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .status-box .status {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            margin: 24px 0;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 24px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="icon">✅</div>
+            <h1>Item Picked Up Successfully!</h1>
+            <p style="margin: 8px 0 0 0; opacity: 0.9;">Your item is on its way to our warehouse</p>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Dear {{ seller_name }},</p>
+
+            <p>Great news! Your item has been successfully picked up by our courier.</p>
+
+            <div class="item-card">
+                <h2>{{ item.title }}</h2>
+                <p><strong>Pickup OTP:</strong> {{ item.pickup_otp }}</p>
+                <p><strong>Estimated Value:</strong> ₹{{ item.estimated_value }}</p>
+            </div>
+
+            <div class="status-box">
+                <div class="label">CURRENT STATUS</div>
+                <div class="status">✓ PICKED UP</div>
+            </div>
+
+            <div class="info-box">
+                <p><strong>📦 Next Steps</strong></p>
+                <p>1. Your item is being transported to our warehouse</p>
+                <p>2. We'll notify you once it arrives at the warehouse</p>
+                <p>3. The item will then be prepared for delivery to the buyer</p>
+            </div>
+
+            <p>Thank you for using our auction platform!</p>
+
+            <p style="margin-top: 32px;">
+                Best regards,<br>
+                <strong>Auction House Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 Auction House. All rights reserved.</p>
+            <p>If you have any questions, please contact us at auctionhouse110@gmail.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

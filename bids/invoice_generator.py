@@ -13,7 +13,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from .models import Bid, Wallet,Transaction 
 from reportlab.platypus import PageBreak    
-from auction_list.models import Lot
+from auction_list.models import Lot,Invoice
+from django.http import FileResponse
 
 
 def download_bid_history_pdf(request):
@@ -33,6 +34,7 @@ def download_bid_history_pdf(request):
         leftMargin=0.5*inch,
         topMargin=0.75*inch,
         bottomMargin=0.5*inch,
+        title="Bid History Report"
     )
     
     # Container for the 'Flowable' objects
@@ -288,6 +290,7 @@ def transaction_invoice(request):
         leftMargin=0.5*inch,
         topMargin=0.75*inch,
         bottomMargin=0.5*inch,
+        title="Transaction History Report"
     )
     
     elements = []
@@ -392,6 +395,9 @@ def transaction_invoice(request):
                 ['Date & Time', 'Type', 'Description', 'Amount', 'Balance']
             ]
             
+            # Calculate running balance starting from current
+            current_running_balance = user.wallet.balance
+            
             for trans in transactions:
                 # Add prefix for positive/negative
                 if trans.amount > 0:
@@ -404,6 +410,8 @@ def transaction_invoice(request):
                 # Use Paragraph for description to allow wrapping
                 description = Paragraph(trans.description, styles['Normal'])
                 
+                # The balance shown in THIS row is the balance AFTER this transaction happened.
+                # So for the first row (newest), it's the current wallet balance.
                 trans_table_data.append([
                     trans.timestamp.strftime('%m/%d/%y %I:%M %p'),
                     trans.get_transaction_type_display(),
@@ -412,8 +420,12 @@ def transaction_invoice(request):
                         f'{amount_prefix} Rs. {abs(trans.amount):,.2f}',
                         ParagraphStyle('amount', textColor=amount_color, parent=styles['Normal'], fontName='Helvetica-Bold')
                     ),
-                    f'Rs. {user.wallet.balance:,.2f}'  # Current balance (simplified)
+                    f'Rs. {current_running_balance:,.2f}'
                 ])
+                
+                # Move back to previous balance for the NEXT row (which is actually an OLDER transaction)
+                current_running_balance -= trans.amount
+
             
             trans_table = Table(
                 trans_table_data,
@@ -476,11 +488,9 @@ def transaction_invoice(request):
     
     return response
 
-    
+   
 
 def generate_invoice(lot, winner):
-
-
     """
     Generate a beautiful PDF invoice for a won lot using ReportLab
     
@@ -515,7 +525,8 @@ def generate_invoice(lot, winner):
             rightMargin=0.75*inch,
             leftMargin=0.75*inch,
             topMargin=0.75*inch,
-            bottomMargin=0.75*inch
+            bottomMargin=0.75*inch,
+            title=f"Invoice - {lot.title}"
         )
         
         # Container for the 'Flowable' objects
@@ -623,7 +634,7 @@ def generate_invoice(lot, winner):
         # Add items
         for item in items:
             items_data.append([
-                Paragraph(str(item.name), normal_style),
+                Paragraph(str(item.title), normal_style),
                 Paragraph(str(getattr(item, 'description', 'N/A'))[:100], normal_style),
                 Paragraph(str(getattr(item, 'quantity', 1)), normal_style)
             ])
@@ -650,12 +661,12 @@ def generate_invoice(lot, winner):
         
         summary_data = [
             [Paragraph("<b>Winning Bid:</b>", normal_style),
-             Paragraph(f"${winning_bid:,.2f}", right_align_style)],
+             Paragraph(f" Rs. {winning_bid:,.2f}", right_align_style)],
             [Paragraph("<b>Admin Commission (10%):</b>", normal_style),
-             Paragraph(f"${admin_commission:,.2f}", right_align_style)],
+             Paragraph(f"Rs.{admin_commission:,.2f}", right_align_style)],
             [Paragraph("", normal_style), Paragraph("", normal_style)],  # Spacer row
             [Paragraph("<b>Total Amount Due:</b>", heading_style),
-             Paragraph(f"<b>${total_amount:,.2f}</b>", 
+             Paragraph(f"<b>Rs.{total_amount:,.2f}</b>", 
                       ParagraphStyle('TotalStyle', parent=heading_style, alignment=TA_RIGHT, 
                                    textColor=colors.HexColor('#27ae60'), fontSize=16))]
         ]
@@ -703,3 +714,31 @@ def generate_invoice(lot, winner):
     except Exception as e:
         print(f"Error generating invoice: {e}")
         return None
+
+
+def download_invoice_by_id(request, invoice_id):
+    """
+    Download invoice PDF by invoice ID
+    
+    Args:
+        request: HTTP request
+        invoice_id: ID of the invoice to download
+    
+    Returns:
+        HttpResponse with PDF file
+    """
+    # Get the invoice
+    invoice = get_object_or_404(Invoice, id=invoice_id, user=request.user)
+    
+    # Generate the PDF using the existing function
+   
+    pdf_path = generate_invoice(invoice.lot, invoice.user)
+    
+    if pdf_path and os.path.exists(pdf_path):
+        # Return the PDF file
+        response = FileResponse(open(pdf_path, 'rb'), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+        return response
+    else:
+        # If PDF generation failed, return error
+        return HttpResponse("Error generating invoice PDF", status=500) 

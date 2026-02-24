@@ -1,0 +1,48 @@
+{% load i18n admin_list %}
+
+{% if pagination_required %}
+<nav class="flex items-center justify-between mt-4" aria-label="{% trans 'Pagination' %}">
+    <div class="text-sm text-gray-600">
+        {{ cl.result_count }}
+        {% if cl.result_count == 1 %}
+            {{ cl.opts.verbose_name }}
+        {% else %}
+            {{ cl.opts.verbose_name_plural }}
+        {% endif %}
+
+        {% if show_all_url %}
+            &nbsp;&nbsp;
+            <a href="{{ show_all_url }}" class="inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-gray-100 hover:bg-gray-200">
+                {% trans 'Show all' %}
+            </a>
+        {% endif %}
+
+        {% if cl.formset and cl.result_count %}
+            <input type="submit" name="_save" class="ml-2 inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-emerald-600 text-white hover:bg-emerald-700" value="{% trans 'Save' %}">
+        {% endif %}
+    </div>
+
+    <ul class="inline-flex items-center space-x-1">
+        {% for i in page_range %}
+            {% if i == cl.page_num %}
+                <li>
+                    <span class="px-3 py-1 text-sm font-medium rounded bg-emerald-600 text-white">
+                        {{ i }}
+                    </span>
+                </li>
+            {% elif i == '.' %}
+                <li>
+                    <span class="px-3 py-1 text-sm text-gray-400">…</span>
+                </li>
+            {% else %}
+                <li>
+                    <a href="?{{ cl.get_query_string }}&p={{ i|add:"-1" }}"
+                       class="px-3 py-1 text-sm font-medium rounded bg-gray-100 hover:bg-gray-200">
+                        {{ i }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}

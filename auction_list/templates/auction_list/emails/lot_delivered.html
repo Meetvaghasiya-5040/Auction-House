@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Complete</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .lot-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 2px solid #22c55e;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .lot-card h2 {
+            color: #16a34a;
+            margin: 0 0 12px 0;
+            font-size: 20px;
+        }
+
+        .lot-card p {
+            margin: 8px 0;
+            color: #475569;
+        }
+
+        .items-list {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .items-list li {
+            padding: 6px 0;
+            color: #475569;
+        }
+
+        .status-box {
+            background: #22c55e;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .status-box .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .status-box .status {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border-left: 4px solid #8b5cf6;
+            padding: 16px;
+            margin: 24px 0;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 24px 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="icon">✅</div>
+            <h1>Delivery Complete!</h1>
+            <p style="margin: 8px 0 0 0; opacity: 0.9;">{% if is_buyer %}Your lot has been delivered{% else %}Your itemhas been delivered to the buyer{% endif %}</p>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Dear {{ user_name }},</p>
+
+            <p>{% if is_buyer %}Great news! Your lot has been successfully delivered.{% else %}Your item has been
+                successfully delivered to the buyer.{% endif %}</p>
+
+            <div class="lot-card">
+                <h2>Lot #{{ lot.lot_number }}: {{ lot.title }}</h2>
+                <p><strong>Total Items:</strong> {{ items|length }}</p>
+                <div class="items-list">
+                    <ul style="margin: 0; padding-left: 20px;">
+                        {% for item in items %}
+                        <li>{{ item.title }} - ₹{{ item.estimated_value }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="status-box">
+                <div class="label">FINAL STATUS</div>
+                <div class="status">✓ DELIVERED</div>
+            </div>
+
+            {% if is_buyer %}
+            <div class="info-box">
+                <p><strong>🎉 Thank You for Your Purchase!</strong></p>
+                <p>We hope you enjoy your items. If you have any issues or concerns, please contact our support team
+                    within 48 hours.</p>
+                <p>We'd love to see you at our next auction!</p>
+            </div>
+            {% else %}
+            <div class="info-box">
+                <p><strong>✅ Transaction Complete</strong></p>
+                <p>The delivery has been completed successfully. The funds have been released to your account.</p>
+                <p>Thank you for using our auction platform!</p>
+            </div>
+            {% endif %}
+
+            <p>Thank you for being part of our auction community!</p>
+
+            <p style="margin-top: 32px;">
+                Best regards,<br>
+                <strong>Auction House Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 Auction House. All rights reserved.</p>
+            <p>If you have any questions, please contact us at auctionhouse110@gmail.com</p>
+        </div>
+    </div>
+</body>
+
+</html>

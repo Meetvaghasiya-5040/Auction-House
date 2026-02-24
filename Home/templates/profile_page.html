@@ -41,7 +41,7 @@
                 {% else %}
                 <div
                   class="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white font-bold text-2xl sm:text-3xl">
-                  {{ profile.user.username|first|upper }}
+                  <img src="/media/profile_images/default-image.webp" alt="Hello" class="w-full h-full object-cover" />
                 </div>
                 {% endif %}
               </div>
@@ -189,7 +189,7 @@
                 <div>
                   <p class="text-[10px] sm:text-xs text-slate-600 font-semibold uppercase tracking-wide">Total Deposits
                   </p>
-                  <p class="text-base sm:text-lg font-black text-slate-900">₹0</p>
+                  <p class="text-base sm:text-lg font-black text-slate-900">₹{{ total_deposits|floatformat:0 }}</p>
                 </div>
               </div>
             </div>
@@ -203,7 +203,7 @@
                 </div>
                 <div>
                   <p class="text-[10px] sm:text-xs text-slate-600 font-semibold uppercase tracking-wide">Total Bids</p>
-                  <p class="text-base sm:text-lg font-black text-slate-900">₹0</p>
+                  <p class="text-base sm:text-lg font-black text-slate-900">₹{{ total_bids|floatformat:0 }}</p>
                 </div>
               </div>
             </div>
@@ -217,7 +217,7 @@
                 </div>
                 <div>
                   <p class="text-[10px] sm:text-xs text-slate-600 font-semibold uppercase tracking-wide">Withdrawals</p>
-                  <p class="text-base sm:text-lg font-black text-slate-900">₹0</p>
+                  <p class="text-base sm:text-lg font-black text-slate-900">₹{{ total_withdrawals|floatformat:0 }}</p>
                 </div>
               </div>
             </div>
@@ -237,7 +237,7 @@
             </h3>
           </div>
           <div class="divide-y divide-slate-100">
-            <a href=""
+            <a href="{% url 'wallet_dashboard' %}"
               class="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gradient-to-r hover:from-violet-50 hover:to-transparent transition-all group">
               <div class="flex items-center gap-2 sm:gap-3">
                 <div
@@ -271,32 +271,32 @@
               </svg>
             </a>
 
-            <a href="#"
-              class="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gradient-to-r hover:from-violet-50 hover:to-transparent transition-all group">
+            <button onclick="openChangePinModal()"
+              class="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-transparent transition-all group">
               <div class="flex items-center gap-2 sm:gap-3">
                 <div
-                  class="w-7 h-7 sm:w-8 sm:h-8 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-violet-500 group-hover:to-purple-500 group-hover:text-white transition-all flex-shrink-0 shadow-sm">
-                  <i class="fas fa-shield-alt text-xs sm:text-sm"></i>
+                  class="w-7 h-7 sm:w-8 sm:h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:to-indigo-500 group-hover:text-white transition-all flex-shrink-0 shadow-sm">
+                  <i class="fas fa-lock text-xs sm:text-sm"></i>
                 </div>
-                <span class="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Security
-                  Settings</span>
+                <span class="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Change Transaction
+                  PIN</span>
               </div>
               <svg
-                class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0 group-hover:text-violet-600 group-hover:translate-x-1 transition-all"
+                class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0 group-hover:text-purple-600 group-hover:translate-x-1 transition-all"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
               </svg>
-            </a>
+            </button>
 
-            <a href="#"
+            <a href="{% url 'terms_and_condition'    %}"
               class="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gradient-to-r hover:from-violet-50 hover:to-transparent transition-all group">
               <div class="flex items-center gap-2 sm:gap-3">
                 <div
                   class="w-7 h-7 sm:w-8 sm:h-8 bg-violet-100 text-violet-600 rounded-lg flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-violet-500 group-hover:to-purple-500 group-hover:text-white transition-all flex-shrink-0 shadow-sm">
                   <i class="fas fa-headset text-xs sm:text-sm"></i>
                 </div>
-                <span class="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Support &
-                  Help</span>
+                <span class="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Terms &
+                  Conditions</span>
               </div>
               <svg
                 class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0 group-hover:text-violet-600 group-hover:translate-x-1 transition-all"
@@ -310,7 +310,7 @@
 
       <!-- Main Content Area -->
       <div class="lg:col-span-8 space-y-4 sm:space-y-6">
-        <div class="bg-white rounded-2xl shadow-xl min-h-[400px] sm:min-h-[600px] flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-xl min-h-[400px] sm:min-h-[400px] flex flex-col overflow-hidden">
 
           <!-- Mobile Dropdown Tab Navigation -->
           <div class="block md:hidden bg-gradient-to-r from-violet-50 to-fuchsia-50 p-3">
@@ -335,7 +335,7 @@
 
           <!-- Desktop Tab Navigation -->
           <div class="hidden md:block bg-gradient-to-r from-violet-50 to-fuchsia-50">
-            <nav class="flex px-4 space-x-2" aria-label="Tabs">
+            <nav class="flex px-4 space-x-2 overflow-x-auto" aria-label="Tabs">
               <button
                 class="tab-button active py-4 px-4 text-sm font-bold whitespace-nowrap text-violet-600 border-b-4 border-violet-600 rounded-t-lg uppercase tracking-wide"
                 data-tab="activity">
@@ -497,8 +497,8 @@
                   class="bg-white {% if bid.is_winning %}ring-2 ring-green-500{% endif %} rounded-xl p-4 hover:shadow-lg transition-shadow shadow-md">
                   <div class="flex justify-between items-start mb-3">
                     <div class="flex-1 min-w-0">
-                      <h4 class="text-sm font-bold text-slate-900 mb-1 uppercase tracking-wide truncate">{{
-                        bid.lot.title }}</h4>
+                      <h4 class="text-sm font-bold text-slate-900 mb-1 uppercase tracking-wide truncate">{{bid.lot.title
+                        }}</h4>
                       <p class="text-xs text-slate-500 truncate">{{ bid.lot.auction.title }}</p>
                     </div>
                     {% if bid.is_winning %}
@@ -682,10 +682,10 @@
                   class="bg-white rounded-xl p-4 hover:shadow-lg transition-shadow shadow-md {% if transaction.amount > 0 %}ring-1 ring-green-500{% else %}ring-1 ring-red-500{% endif %}">
                   <div class="flex justify-between items-start mb-3">
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-semibold text-slate-900 mb-1 uppercase tracking-wide truncate">{{
-                        transaction.description }}</p>
-                      <p class="text-xs text-slate-500">{{ transaction.timestamp|date:"M d, Y" }} at {{
-                        transaction.timestamp|time:"H:i" }}</p>
+                      <p class="text-sm font-semibold text-slate-900 mb-1 uppercase tracking-wide truncate">
+                        {{transaction.description }}</p>
+                      <p class="text-xs text-slate-500">{{ transaction.timestamp|date:"M d, Y" }} at
+                        {{transaction.timestamp|time:"H:i" }}</p>
                     </div>
                     <span class="px-2 py-1 inline-flex text-[10px] leading-5 font-bold ml-2 flex-shrink-0 rounded-full uppercase tracking-wide whitespace-nowrap
                       {% if transaction.transaction_type == 'deposit' %}bg-green-100 text-green-800
@@ -770,8 +770,8 @@
                   <div>
                     <p class="text-sm text-slate-700">
                       Showing <span class="font-bold">{{ transactions.start_index }}</span> to <span
-                        class="font-bold">{{ transactions.end_index }}</span> of <span class="font-bold">{{
-                        transactions.paginator.count }}</span> results
+                        class="font-bold">{{ transactions.end_index }}</span> of <span
+                        class="font-bold">{{transactions.paginator.count }}</span> results
                     </p>
                   </div>
                   <div>
@@ -814,11 +814,19 @@
 
             <!-- Won Items Tab -->
             <div id="won" class="tab-content hidden">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4">
+                <div>
+                  <h3 class="font-bold text-slate-900 text-base sm:text-lg uppercase tracking-wide">Won Items</h3>
+                  <p class="text-xs sm:text-sm text-slate-500">Items you have won in auctions.</p>
+                </div>
+              </div>
+
               {% if won_items %}
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {% for lot in won_items %}
                 {% for item in lot.items.all %}
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all group">
+                <div
+                  class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all group border border-slate-100">
                   <div class="relative h-40 sm:h-48 bg-slate-200 overflow-hidden">
                     {% if item.images %}
                     <img src="/media/{{ item.images.0 }}" alt="{{ item.title }}"
@@ -829,24 +837,66 @@
                       <i class="fas fa-image text-2xl sm:text-3xl"></i>
                     </div>
                     {% endif %}
-                    <div
-                      class="absolute top-2 sm:top-3 right-2 sm:right-3 bg-green-600 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-1 shadow-lg uppercase tracking-wider rounded-full flex items-center gap-1">
-                      <i class="fas fa-check-circle"></i>
-                      <span>WON (LOT #{{ lot.lot_number }})</span>
+
+                    <!-- Status Badge -->
+                    <div class="absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col items-end gap-1">
+                      <div
+                        class="bg-green-600 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-1 shadow-lg uppercase tracking-wider rounded-full flex items-center gap-1">
+                        <i class="fas fa-check-circle"></i>
+                        <span>WON (LOT #{{ lot.lot_number }})</span>
+                      </div>
+
+                      <!-- Delivery Status Badge -->
+                      {% if lot.delivery %}
+                      <div
+                        class="
+                                {% if lot.delivery.status == 'delivered' %}bg-emerald-500
+                                {% elif lot.delivery.status == 'shipped' %}bg-blue-500
+                                {% else %}bg-amber-500{% endif %}
+                                text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-1 shadow-lg uppercase tracking-wider rounded-full flex items-center gap-1">
+                        <i class="fas fa-truck"></i>
+                        <span>{{ lot.delivery.get_status_display }}</span>
+                      </div>
+                      {% endif %}
                     </div>
                   </div>
+
                   <div class="p-3 sm:p-4">
                     <h4 class="font-bold text-slate-900 text-sm mb-1 truncate uppercase tracking-wide">{{ item.title }}
                     </h4>
-                    <div class="flex justify-between items-center border-t border-slate-200 pt-2 sm:pt-3 mt-2 sm:mt-3">
+
+                    <!-- OTP Display for Buyer -->
+                    {% if lot.delivery and lot.delivery.status != 'delivered' and lot.delivery.status != 'pending' %}
+                    <div class="mb-3 p-2 bg-amber-50 border border-amber-100 rounded-lg">
+                      <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider mb-1">Delivery OTP</p>
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm font-black text-amber-900 tracking-widest font-mono">{{
+                          lot.delivery.verification_code }}</span>
+                        <span class="text-[9px] text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">Share with
+                          courier</span>
+                      </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex justify-between items-center border-t border-slate-200 pt-2 sm:pt-3 mt-2">
                       <div>
                         <p class="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">VALUE</p>
                         <p class="text-xs sm:text-sm font-black text-slate-700">₹{{ item.estimated_value }}</p>
                       </div>
-                      <a href="{% url 'item_detail' item.id item.slug %}"
-                        class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-[10px] sm:text-xs font-bold uppercase tracking-wide hover:from-violet-700 hover:to-fuchsia-700 transition-colors rounded-lg shadow-md">
-                        VIEW
-                      </a>
+                      <div class="flex gap-2">
+                        <a href="{% url 'item_detail' item.slug %}"
+                          class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-slate-100 text-slate-600 border border-slate-200
+                            text-[10px] sm:text-xs font-bold uppercase tracking-wide hover:bg-slate-200 transition-colors rounded-lg">
+                          VIEW
+                        </a>
+                        {% if lot.delivery or lot.status == 'paid' %}
+                        <a href="{% url 'user_delivery_tracking' lot.id %}" class="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600
+                            text-white text-[10px] sm:text-xs font-bold uppercase tracking-wide hover:from-violet-700
+                            hover:to-fuchsia-700 transition-colors rounded-lg shadow-md flex items-center gap-1">
+                          <i class="fas fa-truck"></i> TRACK
+                        </a>
+                        {% endif %}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -893,33 +943,70 @@
                   class="bg-white rounded-xl p-4 hover:shadow-lg transition-shadow shadow-md {% if item.status %}ring-1 ring-emerald-500{% endif %}">
                   <div class="flex justify-between items-start mb-3">
                     <div class="flex-1 min-w-0">
-                      <a href="{% url 'item_detail' item.id item.slug %}"
-                        class="text-sm font-bold text-violet-600 hover:text-violet-800 uppercase tracking-wide block truncate">
+                      <a href="{% url 'item_detail' item.slug %}" class="text-sm font-bold text-violet-600 hover:text-violet-800 uppercase tracking-wide block
+                        truncate">
                         {{ item.title }}
                       </a>
                       <p class="text-xs text-slate-500 mt-1">
                         <i class="fa-solid fa-indian-rupee-sign"></i> {{ item.estimated_value }}
                       </p>
                     </div>
-                    {% if item.status %}
-                    <span
-                      class="inline-flex items-center gap-1 px-2 py-1 text-[10px] leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap">
-                      <i class="fas fa-check-circle"></i>
-                      <span>{{ item.status }}</span>
-                    </span>
-                    {% else %}
-                    <span
-                      class="inline-flex items-center px-2 py-1 text-[10px] leading-5 font-bold bg-slate-100 text-slate-800 rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap">
-                      INACTIVE
-                    </span>
-                    {% endif %}
+                    <div class="flex flex-col items-end gap-1">
+                      {% if item.status %}
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-1 text-[10px] leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ item.status }}</span>
+                      </span>
+                      {% endif %}
+
+                      <!-- Pickup Status Badge -->
+                      {% if item.pickup_status %}
+                      <span class="inline-flex items-center gap-1 px-2 py-1 text-[10px] leading-5 font-bold 
+                            {% if item.pickup_status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif item.pickup_status == 'picked_up' %}bg-blue-100 text-blue-800
+                            {% elif item.pickup_status == 'at_warehouse' %}bg-green-100 text-green-800
+                            {% elif item.pickup_status == 'delivered' %}bg-emerald-100 text-emerald-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}
+                            rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap">
+                        <i class="fas fa-truck-loading"></i>
+                        <span>{{ item.get_pickup_status_display }}</span>
+                      </span>
+                      {% endif %}
+                    </div>
                   </div>
+
+                  <!-- OTP for Seller -->
+                  {% if item.pickup_status == 'pending' and item.pickup_otp %}
+                  <div class="mb-3 p-2 bg-yellow-50 border border-yellow-100 rounded-lg">
+                    <p class="text-[9px] text-yellow-700 font-bold uppercase tracking-wider mb-1">Pickup OTP</p>
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm font-black text-yellow-900 tracking-widest font-mono">{{
+                        item.pickup_otp}}</span>
+                      <span class="text-[9px] text-yellow-600 bg-yellow-100 px-1.5 py-0.5 rounded">Share with pickup
+                        agent</span>
+                    </div>
+                  </div>
+                  {% endif %}
+
                   <div class="flex gap-2 pt-3 border-t border-slate-200">
-                    <a href="{% url 'edit_item' item.id %}"
+                    {% if item.status == 'Lotted' or item.status == 'Sold' %}
+                    <div
+                      class="flex-1 text-center text-slate-400 font-bold text-xs py-2 rounded-lg bg-slate-50 uppercase tracking-wide cursor-not-allowed opacity-50"
+                      title="Cannot edit items that are lotted or sold">
+                      <i class="fas fa-edit mr-1"></i>EDIT
+                    </div>
+                    <div
+                      class="flex-1 text-center text-slate-400 font-bold text-xs py-2 rounded-lg bg-slate-50 uppercase tracking-wide cursor-not-allowed opacity-50"
+                      title="Cannot delete items that are lotted or sold">
+                      <i class="fas fa-trash mr-1"></i>DELETE
+                    </div>
+                    {% else %}
+                    <a href="{% url 'edit_item' item.slug %}"
                       class="flex-1 text-center text-violet-600 hover:text-violet-900 font-bold transition-colors text-xs py-2 rounded-lg hover:bg-violet-50 uppercase tracking-wide">
                       <i class="fas fa-edit mr-1"></i>EDIT
                     </a>
-                    <form action="{% url 'delete_item' item.id %}" method="POST" class="flex-1"
+                    <form action="{% url 'delete_item' item.slug %}" method="POST" class="flex-1"
                       onsubmit="return confirm('Are you sure you want to delete this item?');">
                       {% csrf_token %}
                       <button type="submit"
@@ -927,6 +1014,7 @@
                         <i class="fas fa-trash mr-1"></i>DELETE
                       </button>
                     </form>
+                    {% endif %}
                   </div>
                 </div>
                 {% endfor %}
@@ -943,6 +1031,9 @@
                         ESTIMATED VALUE</th>
                       <th class="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">STATUS
                       </th>
+                      <th class="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">PICKUP
+                        INFO
+                      </th>
                       <th class="px-6 py-3 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">ACTIONS
                       </th>
                     </tr>
@@ -951,7 +1042,7 @@
                     {% for item in item_list %}
                     <tr class="hover:bg-violet-50 transition-colors">
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <a href="{% url 'item_detail' item.id item.slug %}"
+                        <a href="{% url 'item_detail' item.slug %}"
                           class="text-sm font-bold text-violet-600 hover:text-violet-800 uppercase tracking-wide">
                           {{ item.title }}
                         </a>
@@ -962,26 +1053,70 @@
                         </div>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                        {% if item.status %}
+                        <div class="flex flex-col gap-1">
+                          {% if item.status %}
+                          <span
+                            class="inline-flex items-center gap-1 px-3 py-1 text-xs leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full w-fit uppercase tracking-wide">
+                            <i class="fas fa-check-circle"></i>
+                            <span>{{ item.status }}</span>
+                          </span>
+                          {% else %}
+                          <span
+                            class="inline-flex items-center px-3 py-1 text-xs leading-5 font-bold bg-slate-100 text-slate-800 rounded-full w-fit uppercase tracking-wide">
+                            INACTIVE
+                          </span>
+                          {% endif %}
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        {% if item.pickup_status == 'pending' %}
+                        <div class="flex flex-col gap-1">
+                          <span
+                            class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-yellow-100 text-yellow-800 rounded-full w-fit uppercase tracking-wide">
+                            PENDING PICKUP
+                          </span>
+                          {% if item.pickup_otp %}
+                          <div class="text-xs font-mono font-bold text-slate-700">
+                            OTP: <span class="bg-yellow-50 px-1 rounded">{{ item.pickup_otp }}</span>
+                          </div>
+                          {% endif %}
+                        </div>
+                        {% elif item.pickup_status == 'picked_up' %}
                         <span
-                          class="inline-flex items-center gap-1 px-3 py-1 text-xs leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full uppercase tracking-wide">
-                          <i class="fas fa-check-circle"></i>
-                          <span>{{ item.status }}</span>
+                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded-full w-fit uppercase tracking-wide">
+                          PICKED UP
+                        </span>
+                        {% elif item.pickup_status == 'at_warehouse' %}
+                        <span
+                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-800 rounded-full w-fit uppercase tracking-wide">
+                          AT WAREHOUSE
+                        </span>
+                        {% elif item.pickup_status == 'delivered' %}
+                        <span
+                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full w-fit uppercase tracking-wide">
+                          DELIVERED
                         </span>
                         {% else %}
-                        <span
-                          class="inline-flex items-center px-3 py-1 text-xs leading-5 font-bold bg-slate-100 text-slate-800 rounded-full uppercase tracking-wide">
-                          INACTIVE
-                        </span>
+                        <span class="text-xs text-slate-400">-</span>
                         {% endif %}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex items-center justify-end gap-3">
-                          <a href="{% url 'edit_item' item.id %}"
+                          {% if item.status == 'Lotted' or item.status == 'Sold' %}
+                          <span class="text-slate-400 font-bold uppercase tracking-wide cursor-not-allowed opacity-50"
+                            title="Cannot edit items that are lotted or sold">
+                            <i class="fas fa-edit mr-1"></i>EDIT
+                          </span>
+                          <span class="text-slate-400 font-bold uppercase tracking-wide cursor-not-allowed opacity-50"
+                            title="Cannot delete items that are lotted or sold">
+                            <i class="fas fa-trash mr-1"></i>DELETE
+                          </span>
+                          {% else %}
+                          <a href="{% url 'edit_item' item.slug %}"
                             class="text-violet-600 hover:text-violet-900 font-bold transition-colors uppercase tracking-wide">
                             <i class="fas fa-edit mr-1"></i>EDIT
                           </a>
-                          <form action="{% url 'delete_item' item.id %}" method="POST"
+                          <form action="{% url 'delete_item' item.slug %}" method="POST"
                             onsubmit="return confirm('Are you sure you want to delete this item?');">
                             {% csrf_token %}
                             <button type="submit"
@@ -989,6 +1124,7 @@
                               <i class="fas fa-trash mr-1"></i>DELETE
                             </button>
                           </form>
+                          {% endif %}
                         </div>
                       </td>
                     </tr>
@@ -1011,6 +1147,92 @@
                 </a>
               </div>
               {% endif %}
+            </div>
+
+            <!-- Change PIN Tab -->
+            <div id="change_pin" class="tab-content hidden">
+              <div class="max-w-2xl mx-auto">
+                <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-6 mb-6">
+                  <h3 class="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+                    <div
+                      class="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                      <i class="fas fa-lock text-white text-xl"></i>
+                    </div>
+                    CHANGE TRANSACTION PIN
+                  </h3>
+                  <p class="text-sm text-slate-600">Update your 4-6 digit transaction PIN for secure payments</p>
+                </div>
+
+                <form id="changePinForm" class="bg-white rounded-2xl shadow-lg p-6">
+                  {% csrf_token %}
+
+                  <div class="mb-6">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                      <div class="flex">
+                        <i class="fas fa-shield-alt text-yellow-400 mt-1 mr-3"></i>
+                        <div class="text-sm text-yellow-800">
+                          <p class="font-bold mb-1">Security Verification Required</p>
+                          <p>Enter your account password to verify your identity before changing your PIN</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mb-6">
+                      <label class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="fas fa-key text-slate-600 mr-2"></i>Current Password
+                      </label>
+                      <input type="password" name="current_password" id="current-password"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none"
+                        placeholder="Enter your account password" required autocomplete="current-password">
+                    </div>
+
+                    <div class="mb-6">
+                      <label class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="fas fa-lock text-purple-600 mr-2"></i>New Transaction PIN (4-6 digits)
+                      </label>
+                      <input type="password" name="new_pin" id="new-pin" maxlength="6"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none text-center text-2xl tracking-widest font-bold"
+                        placeholder="••••" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                    </div>
+
+                    <div class="mb-6">
+                      <label class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="fas fa-check-circle text-purple-600 mr-2"></i>Confirm New PIN
+                      </label>
+                      <input type="password" name="confirm_new_pin" id="confirm-new-pin" maxlength="6"
+                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none text-center text-2xl tracking-widest font-bold"
+                        placeholder="••••" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                    </div>
+
+                    <div id="changePinError"
+                      class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+                    <div id="changePinSuccess"
+                      class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                    </div>
+                  </div>
+
+                  <button type="submit" id="changePinBtn"
+                    class="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-sync-alt mr-2"></i>Update PIN
+                  </button>
+
+                  <p class="text-xs text-slate-500 text-center mt-4">
+                    <i class="fas fa-info-circle mr-1"></i>Your PIN is encrypted and secure
+                  </p>
+                </form>
+
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 class="text-sm font-bold text-blue-900 mb-2">
+                    <i class="fas fa-lightbulb text-blue-600 mr-2"></i>PIN Security Tips
+                  </h4>
+                  <ul class="text-xs text-blue-800 space-y-1">
+                    <li>• Use a unique PIN that you don't use elsewhere</li>
+                    <li>• Never share your PIN with anyone</li>
+                    <li>• Change your PIN regularly for better security</li>
+                    <li>• Don't use obvious numbers like 1234 or your birth year</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1072,6 +1294,18 @@
         </div>
       </div>
 
+      <div class="mb-4 sm:mb-6">
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+          <i class="fas fa-lock text-purple-600 mr-2"></i>Transaction PIN (4-6 digits)
+        </label>
+        <input type="password" name="pin" id="add-funds-pin" maxlength="6"
+          class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none text-center text-xl sm:text-2xl tracking-widest font-bold"
+          placeholder="Enter PIN" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+        <p class="text-[10px] sm:text-xs text-slate-500 mt-2">
+          <i class="fas fa-info-circle mr-1"></i>Enter your 4-6 digit transaction PIN to confirm
+        </p>
+      </div>
+
       <div class="bg-blue-50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
         <p class="text-[10px] sm:text-xs text-blue-700 font-bold">
           <i class="fas fa-shield-alt mr-1"></i>
@@ -1114,25 +1348,40 @@
           <i class="fas fa-info-circle mr-1"></i>Withdrawal Information
         </p>
         <ul class="text-[10px] sm:text-xs text-amber-700 space-y-1">
-          <li>• Available Balance: ₹<span id="withdrawableBalance">{{ user.wallet.balance|floatformat:0|default:"0"
-              }}</span></li>
+          <li>• Available Balance: ₹<span id="withdrawableBalance">{{ user.wallet.balance|floatformat:0|default:"0" }}</span></li>
           <li>• Processing time: 2-3 business days</li>
           <li>• Minimum withdrawal: ₹500</li>
         </ul>
       </div>
 
-      <div class="mb-4 sm:mb-6">
+      <div class="mb-4">
         <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Amount to
           Withdraw</label>
         <div class="relative">
           <span
             class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-500 font-bold text-lg sm:text-xl">₹</span>
-          <input type="number" id="withdrawAmount" placeholder="Enter amount"
+          <input type="number" id="withdrawAmount" min="500" step="100" placeholder="Enter amount"
             class="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 text-base sm:text-lg font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all">
         </div>
+        <p class="text-[10px] sm:text-xs text-slate-500 mt-1">Minimum withdrawal: ₹500</p>
       </div>
 
-      <button onclick="processWithdrawal()"
+      <div class="mb-4 sm:mb-6">
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+          <i class="fas fa-lock text-amber-600 mr-2"></i>Transaction PIN
+        </label>
+        <input type="password" id="withdrawPin" maxlength="6" inputmode="numeric" pattern="[0-9]*"
+          class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-lg focus:border-amber-500 focus:outline-none text-center text-xl sm:text-2xl tracking-widest font-bold"
+          placeholder="••••" autocomplete="off">
+        <p class="text-[10px] sm:text-xs text-slate-500 mt-1">Enter your 4-6 digit transaction PIN to confirm</p>
+      </div>
+
+      <div id="withdrawError"
+        class="hidden mb-3 p-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs sm:text-sm"></div>
+      <div id="withdrawSuccess"
+        class="hidden mb-3 p-2.5 bg-green-50 border border-green-200 rounded-lg text-green-700 text-xs sm:text-sm"></div>
+
+      <button onclick="processWithdrawal()" id="withdrawBtn"
         class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-sm sm:text-base uppercase tracking-wide">
         <i class="fas fa-paper-plane mr-2"></i>
         REQUEST WITHDRAWAL
@@ -1141,7 +1390,286 @@
   </div>
 </div>
 
+<!-- Step 1: Verify Account Password Modal -->
+<div id="verifyPasswordModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all">
+    <div class="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+          <div
+            class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
+            <i class="fas fa-shield-alt text-white"></i>
+          </div>
+          VERIFY PASSWORD
+        </h3>
+        <button onclick="closeVerifyPasswordModal()"
+          class="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-white rounded-lg">
+          <i class="fas fa-times text-lg sm:text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <form id="verifyPasswordForm" class="p-4 sm:p-6">
+      {% csrf_token %}
+
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div class="flex">
+          <i class="fas fa-info-circle text-yellow-400 mt-1 mr-2 sm:mr-3"></i>
+          <div class="text-xs sm:text-sm text-yellow-800">
+            <p class="font-bold mb-1">Security Check Required</p>
+            <p>Please enter your account password to verify your identity</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4 sm:mb-6">
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+          <i class="fas fa-key text-slate-600 mr-2"></i>Account Password
+        </label>
+        <input type="password" name="password" id="account-password-verify"
+          class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm sm:text-base"
+          placeholder="Enter your account password" required autocomplete="current-password">
+      </div>
+
+      <div id="verifyPasswordError"
+        class="hidden mb-3 sm:mb-4 p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs sm:text-sm">
+      </div>
+
+      <button type="submit" id="verifyPasswordBtn"
+        class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-sm sm:text-base uppercase tracking-wide">
+        <i class="fas fa-check mr-2"></i>
+        VERIFY PASSWORD
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Step 2: Change PIN Modal -->
+<div id="changePinModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all">
+    <div class="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+          <div
+            class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
+            <i class="fas fa-lock text-white"></i>
+          </div>
+          CHANGE PIN
+        </h3>
+        <button onclick="closeChangePinModal()"
+          class="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-white rounded-lg">
+          <i class="fas fa-times text-lg sm:text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <form id="changePinFormModal" class="p-4 sm:p-6">
+      {% csrf_token %}
+
+      <div class="bg-green-50 border-l-4 border-green-400 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div class="flex">
+          <i class="fas fa-check-circle text-green-400 mt-1 mr-2 sm:mr-3"></i>
+          <div class="text-xs sm:text-sm text-green-800">
+            <p class="font-bold">Password Verified ✓</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4 sm:mb-6">
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+          <i class="fas fa-lock text-purple-600 mr-2"></i>New Transaction PIN (4-6 digits)
+        </label>
+        <input type="password" name="new_pin" id="new-pin-modal" maxlength="6"
+          class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none text-center text-xl sm:text-2xl tracking-widest font-bold"
+          placeholder="Enter 4-6 digits" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+      </div>
+
+      <div class="mb-4 sm:mb-6">
+        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+          <i class="fas fa-check-circle text-purple-600 mr-2"></i>Confirm New PIN
+        </label>
+        <input type="password" name="confirm_new_pin" id="confirm-new-pin-modal" maxlength="6"
+          class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none text-center text-xl sm:text-2xl tracking-widest font-bold"
+          placeholder="Confirm PIN" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+      </div>
+
+      <div id="changePinErrorModal"
+        class="hidden mb-3 sm:mb-4 p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs sm:text-sm">
+      </div>
+      <div id="changePinSuccessModal"
+        class="hidden mb-3 sm:mb-4 p-2.5 sm:p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-xs sm:text-sm">
+      </div>
+
+      <button type="submit" id="changePinBtnModal"
+        class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-sm sm:text-base uppercase tracking-wide">
+        <i class="fas fa-sync-alt mr-2"></i>
+        UPDATE PIN
+      </button>
+
+      <p class="text-[10px] sm:text-xs text-slate-500 text-center mt-3 sm:mt-4">
+        <i class="fas fa-info-circle mr-1"></i>Your PIN must be exactly 4 digits
+      </p>
+    </form>
+  </div>
+</div>
+
 <script>
+  // PIN Change Modal Functions
+  function openChangePinModal() {
+    // Step 1: Show password verification modal first
+    const modal = document.getElementById('verifyPasswordModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeVerifyPasswordModal() {
+    document.getElementById('verifyPasswordModal').classList.add('hidden');
+    document.getElementById('verifyPasswordForm').reset();
+    document.getElementById('verifyPasswordError').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+  }
+
+  function closeChangePinModal() {
+    document.getElementById('changePinModal').classList.add('hidden');
+    document.getElementById('changePinForm').reset();
+    document.getElementById('changePinErrorModal').classList.add('hidden');
+    document.getElementById('changePinSuccessModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+  }
+
+  // Step 1: Verify Password Form Handler
+  document.addEventListener('DOMContentLoaded', function () {
+    const verifyPasswordForm = document.getElementById('verifyPasswordForm');
+    if (verifyPasswordForm) {
+      verifyPasswordForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const password = document.getElementById('account-password-verify').value;
+        const errorDiv = document.getElementById('verifyPasswordError');
+        const submitBtn = document.getElementById('verifyPasswordBtn');
+
+        errorDiv.classList.add('hidden');
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
+
+        try {
+          const formData = new FormData();
+          formData.append('password', password);
+          formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+          const response = await fetch('{% url "verify_account_password" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Password verified - close this modal and open change PIN modal
+            closeVerifyPasswordModal();
+            document.getElementById('changePinModal').classList.remove('hidden');
+          } else {
+            errorDiv.textContent = data.errors ? data.errors.join(', ') : 'Incorrect password';
+            errorDiv.classList.remove('hidden');
+          }
+        } catch (error) {
+          errorDiv.textContent = 'An error occurred. Please try again.';
+          errorDiv.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-check mr-2"></i>VERIFY PASSWORD';
+        }
+      });
+    }
+
+    // Step 2: Change PIN Form Handler
+    const changePinForm = document.getElementById('changePinFormModal');
+    if (changePinForm) {
+      changePinForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const newPin = document.getElementById('new-pin-modal').value;
+        const confirmPin = document.getElementById('confirm-new-pin-modal').value;
+        const errorDiv = document.getElementById('changePinErrorModal');
+        const successDiv = document.getElementById('changePinSuccessModal');
+        const submitBtn = document.getElementById('changePinBtnModal');
+
+        errorDiv.classList.add('hidden');
+        successDiv.classList.add('hidden');
+
+        // Validate PIN is exactly 4 digits
+        if (!/^\d{4}$/.test(newPin)) {
+          errorDiv.textContent = 'PIN must be exactly 4 digits';
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+
+        // Validate PINs match
+        if (newPin !== confirmPin) {
+          errorDiv.textContent = 'PINs do not match';
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
+
+        try {
+          const formData = new FormData(this);
+          const response = await fetch('{% url "change_transaction_pin" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            successDiv.textContent = data.message;
+            successDiv.classList.remove('hidden');
+
+            // Reset form
+            this.reset();
+
+            setTimeout(() => {
+              closeChangePinModal();
+              location.reload(); // Reload to reflect changes
+            }, 2000);
+          } else {
+            errorDiv.textContent = data.errors ? data.errors.join(', ') : 'Failed to change PIN';
+            errorDiv.classList.remove('hidden');
+          }
+        } catch (error) {
+          errorDiv.textContent = 'An error occurred. Please try again.';
+          errorDiv.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>UPDATE PIN';
+        }
+      });
+
+      // Only allow numeric input for PIN fields (4 digits max)
+      ['new-pin-modal', 'confirm-new-pin-modal'].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+          field.addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+          });
+        }
+      });
+    }
+  });
+
   document.addEventListener("DOMContentLoaded", function () {
     // Tab Switching for Desktop
     const tabButtons = document.querySelectorAll(".tab-button");
@@ -1290,14 +1818,76 @@
     document.querySelector('input[name="amount"]').value = amount;
   }
 
-  function processWithdrawal() {
+  async function processWithdrawal() {
     const amount = document.getElementById('withdrawAmount').value;
-    if (!amount || amount < 500) {
-      alert('Minimum withdrawal amount is ₹500');
+    const pin = document.getElementById('withdrawPin').value;
+    const errorDiv = document.getElementById('withdrawError');
+    const successDiv = document.getElementById('withdrawSuccess');
+    const btn = document.getElementById('withdrawBtn');
+
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+
+    if (!amount || parseFloat(amount) < 500) {
+      errorDiv.textContent = 'Minimum withdrawal amount is ₹500.';
+      errorDiv.classList.remove('hidden');
       return;
     }
-    alert('Withdrawal request submitted successfully!');
-    closeWithdrawModal();
+    if (!pin || pin.length < 4) {
+      errorDiv.textContent = 'Please enter your transaction PIN.';
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+    try {
+      const formData = new FormData();
+      formData.append('amount', amount);
+      formData.append('pin', pin);
+      formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+      const response = await fetch('{% url "withdraw_funds" %}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        successDiv.textContent = data.message;
+        successDiv.classList.remove('hidden');
+        // Update displayed balance
+        if (data.new_balance !== undefined) {
+          const bal = Math.round(data.new_balance);
+          document.getElementById('walletBalance').textContent = bal;
+          document.getElementById('withdrawableBalance').textContent = bal;
+        }
+        // Reset form fields
+        document.getElementById('withdrawAmount').value = '';
+        document.getElementById('withdrawPin').value = '';
+        setTimeout(() => { closeWithdrawModal(); location.reload(); }, 2000);
+      } else {
+        errorDiv.textContent = data.error || 'Withdrawal failed. Please try again.';
+        errorDiv.classList.remove('hidden');
+      }
+    } catch (err) {
+      errorDiv.textContent = 'An error occurred. Please try again.';
+      errorDiv.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>REQUEST WITHDRAWAL';
+    }
+  }
+
+  // Numeric-only input for add funds PIN
+  const addFundsPin = document.getElementById('add-funds-pin');
+  if (addFundsPin) {
+    addFundsPin.addEventListener('input', function (e) {
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+    });
   }
 
   // Close modals on escape key
@@ -1363,6 +1953,28 @@
   /* Dropdown icon animation */
   #dropdownIcon {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Modals */
+  .modal {
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  .modal:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-content {
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: scale(0.95);
+  }
+
+  .modal:not(.hidden) .modal-content {
+    transform: scale(1);
   }
 
   /* Mobile dropdown animations */
@@ -1443,5 +2055,8 @@
     box-shadow: 0 0 0 2px rgb(139, 92, 246);
   }
 </style>
+
+<script>
+</script>
 
 {% endblock %}

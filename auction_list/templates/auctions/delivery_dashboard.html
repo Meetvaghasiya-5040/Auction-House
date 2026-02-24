@@ -1,0 +1,636 @@
+{% extends 'base.html' %}
+
+{% block title %}Delivery Dashboard - Auction House{% endblock %}
+
+{% block content %}
+<!-- Main Container with soft gradient background -->
+<div class="min-h-screen"
+    style="background: linear-gradient(135deg, rgba(240, 242, 245, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(245, 240, 255, 0.3) 100%);">
+    <div class="container mx-auto px-4 py-8">
+
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: rgba(55, 65, 81, 1);">
+                        Delivery Dashboard
+                    </h1>
+                    <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">Manage pickups and deliveries
+                        efficiently</p>
+                </div>
+                <a href="{% url 'delivery_history' %}"
+                    class="inline-flex items-center justify-center font-semibold py-3 px-6 transition-all duration-200 text-sm md:text-base"
+                    style="background: rgba(255, 255, 255, 0.9); color: rgba(55, 65, 81, 1); border: 2px solid rgba(229, 231, 235, 1); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+                    <i class="fas fa-history mr-2"></i>
+                    <span>View History</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <!-- Pending Pickups Card -->
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.85) 0%, rgba(249, 115, 22, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Pending Pickups</p>
+                        <h3 class="text-3xl font-bold">{{ items_to_pickup|length }}</h3>
+                    </div>
+                    <div class="p-4" style="background: rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-box text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Deliveries Card -->
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Pending Deliveries
+                        </p>
+                        <h3 class="text-3xl font-bold">{{ lots_to_deliver|length }}</h3>
+                    </div>
+                    <div class="p-4" style="background: rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-truck text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In Transit Card -->
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.85) 0%, rgba(147, 51, 234, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">In Transit</p>
+                        <h3 class="text-3xl font-bold">
+                            {% with picked_up=0 %}
+                            {% for item in items_to_pickup %}
+                            {% if item.pickup_status == 'picked_up' %}
+                            {% with picked_up=picked_up|add:1 %}{% endwith %}
+                            {% endif %}
+                            {% endfor %}
+                            {{ picked_up }}
+                            {% endwith %}
+                        </h3>
+                    </div>
+                    <div class="p-4" style="background: rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-shipping-fast text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- At Warehouse Card -->
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.85) 0%, rgba(22, 163, 74, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">At Warehouse</p>
+                        <h3 class="text-3xl font-bold">
+                            {% with at_warehouse=0 %}
+                            {% for item in items_to_pickup %}
+                            {% if item.pickup_status == 'at_warehouse' %}
+                            {% with at_warehouse=at_warehouse|add:1 %}{% endwith %}
+                            {% endif %}
+                            {% endfor %}
+                            {{ at_warehouse }}
+                            {% endwith %}
+                        </h3>
+                    </div>
+                    <div class="p-4" style="background: rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-warehouse text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Pickups Section -->
+        <div class="bg-white overflow-hidden mb-8"
+            style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
+            <!-- Section Header -->
+            <div class="px-4 md:px-6 py-4"
+                style="background: linear-gradient(90deg, rgba(251, 146, 60, 0.15) 0%, rgba(249, 115, 22, 0.15) 100%); border-bottom: 2px solid rgba(251, 146, 60, 0.3);">
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div class="p-3" style="background: rgba(251, 146, 60, 0.2);">
+                            <i class="fas fa-box-open text-xl" style="color: rgba(234, 88, 12, 1);"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-lg md:text-xl font-bold" style="color: rgba(55, 65, 81, 1);">Pending Item
+                                Pickups</h2>
+                            <p class="text-xs md:text-sm" style="color: rgba(107, 114, 128, 1);">Seller → Warehouse</p>
+                        </div>
+                    </div>
+                    <!-- Pickup Search Bar -->
+                    <form method="get" action="{% url 'delivery_dashboard' %}" class="w-full">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-search text-sm" style="color: rgba(156, 163, 175, 1);"></i>
+                            </div>
+                            <input type="text" name="search_pickup" value="{{ request.GET.search_pickup }}"
+                                placeholder="Search by item name or owner username..."
+                                class="w-full pl-10 pr-10 py-2.5 text-sm transition-all duration-200"
+                                style="background: rgba(255, 255, 255, 1); border: 2px solid rgba(229, 231, 235, 1);"
+                                onfocus="this.style.borderColor='rgba(251, 146, 60, 1)'; this.style.boxShadow='0 0 0 3px rgba(251, 146, 60, 0.1)';"
+                                onblur="this.style.borderColor='rgba(229, 231, 235, 1)'; this.style.boxShadow='none';">
+                            {% if request.GET.search_pickup %}
+                            <a href="?{% if request.GET.search_delivery %}search_delivery={{ request.GET.search_delivery }}{% endif %}"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 transition-colors"
+                                style="color: rgba(107, 114, 128, 1);"
+                                onmouseover="this.style.color='rgba(239, 68, 68, 1)';"
+                                onmouseout="this.style.color='rgba(107, 114, 128, 1)';">
+                                <i class="fas fa-times-circle text-sm"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% if request.GET.search_pickup %}
+                        <p class="text-xs mt-1.5" style="color: rgba(107, 114, 128, 1);">
+                            Filtering: <span class="font-bold" style="color: rgba(234, 88, 12, 1);">"{{request.GET.search_pickup }}"</span>
+                        </p>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <div class="p-4 md:p-6">
+                {% if items_to_pickup %}
+                <!-- Scrollable Table Container -->
+                <div class="overflow-x-auto custom-scrollbar" style="max-width: 100%;">
+                    <table class="min-w-full" style="min-width: 800px;">
+                        <thead>
+                            <tr
+                                style="border-bottom: 2px solid rgba(229, 231, 235, 1); background: rgba(249, 250, 251, 0.5);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-tag mr-2"></i>Item Details
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-user mr-2"></i>Owner
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-rupee-sign mr-2"></i>Fee
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-info-circle mr-2"></i>Status
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-tasks mr-2"></i>Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items_to_pickup %}
+                            <tr class="transition-colors duration-150"
+                                style="border-bottom: 1px solid rgba(243, 244, 246, 1);">
+                                <td class="px-4 md:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="p-3 mr-3" style="background: rgba(251, 146, 60, 0.1);">
+                                            <i class="fas fa-cube" style="color: rgba(234, 88, 12, 1);"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-sm md:text-base"
+                                                style="color: rgba(31, 41, 55, 1);">{{ item.title }}</p>
+                                            <p class="text-xs" style="color: rgba(107, 114, 128, 1);">Item #{{ item.id}}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="p-2 mr-2" style="background: rgba(59, 130, 246, 0.1);">
+                                            <i class="fas fa-user text-xs" style="color: rgba(37, 99, 235, 1);"></i>
+                                        </div>
+                                        <span class="text-sm font-medium"
+                                            style="color: rgba(55, 65, 81, 1);">{{item.owner.username }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 text-sm font-semibold"
+                                        style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
+                                        <i class="fas fa-rupee-sign mr-1 text-xs"></i>{{ item.shipping_fee }}
+                                    </span>
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-2 text-xs font-bold whitespace-nowrap"
+                                        {% if item.pickup_status == 'pending' %}style="background: linear-gradient(90deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%); color: white;"
+                                        {% elif item.pickup_status == 'picked_up' %}style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;"
+                                        {% elif item.pickup_status == 'at_warehouse' %}style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;"
+                                        {% endif %}>
+                                        {% if item.pickup_status == 'pending' %}
+                                        <i class="fas fa-clock mr-1"></i>
+                                        {% elif item.pickup_status == 'picked_up' %}
+                                        <i class="fas fa-truck mr-1"></i>
+                                        {% elif item.pickup_status == 'at_warehouse' %}
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        {% endif %}
+                                        {{ item.get_pickup_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    {% if item.pickup_status == 'pending' %}
+                                    <form method="post" action="{% url 'verify_pickup_otp' item.id %}"
+                                        class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                        {% csrf_token %}
+                                        <div class="relative w-full sm:w-auto">
+                                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                                                style="color: rgba(156, 163, 175, 1);">
+                                                <i class="fas fa-rupee-sign text-xs"></i>
+                                            </span>
+                                            <input type="number" step="0.01" name="courier_cost" placeholder="Cost"
+                                                class="w-full sm:w-28 pl-8 pr-3 py-2 text-sm transition-all"
+                                                style="border: 2px solid rgba(229, 231, 235, 1);"
+                                                onfocus="this.style.borderColor='rgba(59, 130, 246, 1)'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                                                onblur="this.style.borderColor='rgba(229, 231, 235, 1)'; this.style.boxShadow='none';"
+                                                required>
+                                        </div>
+                                        <div class="relative w-full sm:w-auto">
+                                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                                                style="color: rgba(156, 163, 175, 1);">
+                                                <i class="fas fa-key text-xs"></i>
+                                            </span>
+                                            <input type="text" name="otp" placeholder="OTP"
+                                                class="w-full sm:w-28 pl-8 pr-3 py-2 text-sm transition-all"
+                                                style="border: 2px solid rgba(229, 231, 235, 1);"
+                                                onfocus="this.style.borderColor='rgba(59, 130, 246, 1)'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                                                onblur="this.style.borderColor='rgba(229, 231, 235, 1)'; this.style.boxShadow='none';"
+                                                required>
+                                        </div>
+                                        <button type="submit"
+                                            class="w-full sm:w-auto px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center justify-center"
+                                            style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+                                            onmouseover="this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.15)';"
+                                            onmouseout="this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';">
+                                            <i class="fas fa-hand-holding-box mr-2"></i>Pickup
+                                        </button>
+                                    </form>
+                                    {% elif item.pickup_status == 'picked_up' %}
+                                    <form method="post" action="{% url 'admin_mark_at_warehouse' item.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                            class="w-full sm:w-auto px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center justify-center"
+                                            style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+                                            onmouseover="this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.15)';"
+                                            onmouseout="this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';">
+                                            <i class="fas fa-warehouse mr-2"></i>Mark Arrived
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="inline-flex items-center font-semibold text-sm"
+                                        style="color: rgba(22, 163, 74, 1);">
+                                        <i class="fas fa-check-double mr-2"></i>Completed
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-12 md:py-16">
+                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-4"
+                        style="background: rgba(251, 146, 60, 0.1);">
+                        <i class="fas fa-box-open text-4xl md:text-5xl" style="color: rgba(234, 88, 12, 0.6);"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-semibold mb-2" style="color: rgba(55, 65, 81, 1);">No Pending
+                        Pickups</h3>
+                    <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">All items have been picked up
+                        or there are no items awaiting pickup.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pending Deliveries Section -->
+        <div class="bg-white overflow-hidden"
+            style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
+            <!-- Section Header -->
+            <div class="px-4 md:px-6 py-4"
+                style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%); border-bottom: 2px solid rgba(59, 130, 246, 0.3);">
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div class="p-3" style="background: rgba(59, 130, 246, 0.2);">
+                            <i class="fas fa-truck-loading text-xl" style="color: rgba(37, 99, 235, 1);"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-lg md:text-xl font-bold" style="color: rgba(55, 65, 81, 1);">Pending Lot
+                                Deliveries</h2>
+                            <p class="text-xs md:text-sm" style="color: rgba(107, 114, 128, 1);">Warehouse → Buyer</p>
+                        </div>
+                    </div>
+                    <!-- Delivery Search Bar -->
+                    <form method="get" action="{% url 'delivery_dashboard' %}" class="w-full">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-search text-sm" style="color: rgba(156, 163, 175, 1);"></i>
+                            </div>
+                            <input type="text" name="search_delivery" value="{{ request.GET.search_delivery }}"
+                                placeholder="Search by lot name or winner username..."
+                                class="w-full pl-10 pr-10 py-2.5 text-sm transition-all duration-200"
+                                style="background: rgba(255, 255, 255, 1); border: 2px solid rgba(229, 231, 235, 1);"
+                                onfocus="this.style.borderColor='rgba(59, 130, 246, 1)'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                                onblur="this.style.borderColor='rgba(229, 231, 235, 1)'; this.style.boxShadow='none';">
+                            {% if request.GET.search_delivery %}
+                            <a href="?{% if request.GET.search_pickup %}search_pickup={{ request.GET.search_pickup }}{% endif %}"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 transition-colors"
+                                style="color: rgba(107, 114, 128, 1);"
+                                onmouseover="this.style.color='rgba(239, 68, 68, 1)';"
+                                onmouseout="this.style.color='rgba(107, 114, 128, 1)';">
+                                <i class="fas fa-times-circle text-sm"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% if request.GET.search_delivery %}
+                        <p class="text-xs mt-1.5" style="color: rgba(107, 114, 128, 1);">
+                            Filtering: <span class="font-bold" style="color: rgba(37, 99, 235, 1);">"{{request.GET.search_delivery }}"</span>
+                        </p>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <div class="p-4 md:p-6">
+                {% if lots_to_deliver %}
+                <!-- Scrollable Table Container -->
+                <div class="overflow-x-auto custom-scrollbar" style="max-width: 100%;">
+                    <table class="min-w-full" style="min-width: 800px;">
+                        <thead>
+                            <tr
+                                style="border-bottom: 2px solid rgba(229, 231, 235, 1); background: rgba(249, 250, 251, 0.5);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-gavel mr-2"></i>Lot Details
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-trophy mr-2"></i>Winner
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-rupee-sign mr-2"></i>Fee
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-info-circle mr-2"></i>Status
+                                </th>
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
+                                    <i class="fas fa-tasks mr-2"></i>Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lot in lots_to_deliver %}
+                            <tr class="transition-colors duration-150"
+                                style="border-bottom: 1px solid rgba(243, 244, 246, 1);">
+                                <td class="px-4 md:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="p-3 mr-3" style="background: rgba(59, 130, 246, 0.1);">
+                                            <i class="fas fa-box-full" style="color: rgba(37, 99, 235, 1);"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-sm md:text-base"
+                                                style="color: rgba(31, 41, 55, 1);">Lot #{{ lot.lot_number }}</p>
+                                            <p class="text-xs md:text-sm" style="color: rgba(107, 114, 128, 1);">
+                                                {{lot.title }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="p-2 mr-2" style="background: rgba(168, 85, 247, 0.1);">
+                                            <i class="fas fa-crown text-xs" style="color: rgba(147, 51, 234, 1);"></i>
+                                        </div>
+                                        <span class="text-sm font-medium"
+                                            style="color: rgba(55, 65, 81, 1);">{{lot.winning_bidder.username }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 text-sm font-semibold"
+                                        style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
+                                        <i class="fas fa-rupee-sign mr-1 text-xs"></i>{{ lot.shipping_fee }}
+                                    </span>
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    {% if lot.delivery %}
+                                    <span class="inline-flex items-center px-3 py-2 text-xs font-bold whitespace-nowrap"
+                                        {% if lot.delivery.status == 'pending' %}style="background: linear-gradient(90deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%); color: white;"
+                                        {% elif lot.delivery.status == 'shipped' %}style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;"
+                                        {% elif lot.delivery.status == 'delivered' %}style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;"
+                                        {% endif %}>
+                                        {% if lot.delivery.status == 'pending' %}
+                                        <i class="fas fa-hourglass-half mr-1"></i>
+                                        {% elif lot.delivery.status == 'shipped' %}
+                                        <i class="fas fa-truck mr-1"></i>
+                                        {% elif lot.delivery.status == 'delivered' %}
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        {% endif %}
+                                        {{ lot.delivery.get_status_display }}
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-3 py-2 text-xs font-bold whitespace-nowrap"
+                                        style="background: rgba(156, 163, 175, 0.9); color: white;">
+                                        <i class="fas fa-question-circle mr-1"></i>{{ lot.status }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-4 md:px-6 py-4">
+                                    {% if lot.delivery %}
+                                    {% if lot.delivery.status != 'delivered' %}
+                                    <form method="post" action="{% url 'verify_delivery_otp' lot.id %}"
+                                        class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                        {% csrf_token %}
+                                        <div class="relative w-full sm:w-auto">
+                                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                                                style="color: rgba(156, 163, 175, 1);">
+                                                <i class="fas fa-rupee-sign text-xs"></i>
+                                            </span>
+                                            <input type="number" step="0.01" name="delivery_cost"
+                                                placeholder="Delivery Cost"
+                                                class="w-full sm:w-28 pl-8 pr-3 py-2 text-sm transition-all"
+                                                style="border: 2px solid rgba(229, 231, 235, 1);"
+                                                onfocus="this.style.borderColor='rgba(59, 130, 246, 1)'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                                                onblur="this.style.borderColor='rgba(229, 231, 235, 1)'; this.style.boxShadow='none';"
+                                                required>
+                                        </div>
+                                        <div class="relative w-full sm:w-auto">
+                                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2"
+                                                style="color: rgba(156, 163, 175, 1);">
+                                                <i class="fas fa-key text-xs"></i>
+                                            </span>
+                                            <input type="text" name="otp" placeholder="Enter OTP"
+                                                class="w-full sm:w-32 pl-8 pr-3 py-2 text-sm transition-all"
+                                                style="border: 2px solid rgba(229, 231, 235, 1);"
+                                                onfocus="this.style.borderColor='rgba(34, 197, 94, 1)'; this.style.boxShadow='0 0 0 3px rgba(34, 197, 94, 0.1)';"
+                                                onblur="this.style.borderColor='rgba(229, 231, 235, 1)'; this.style.boxShadow='none';"
+                                                required>
+                                        </div>
+                                        <button type="submit"
+                                            class="w-full sm:w-auto px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center justify-center"
+                                            style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+                                            onmouseover="this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.15)';"
+                                            onmouseout="this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.1)';">
+                                            <i class="fas fa-truck-loading mr-2"></i>Deliver
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <div class="inline-flex items-center font-semibold px-4 py-2 text-sm"
+                                        style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
+                                        <i class="fas fa-check-double mr-2"></i>Delivered
+                                    </div>
+                                    {% endif %}
+                                    {% else %}
+                                    <div class="inline-flex items-center font-medium px-3 py-2 text-sm"
+                                        style="background: rgba(239, 68, 68, 0.1); color: rgba(220, 38, 38, 1);">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>No Record
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-12 md:py-16">
+                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-4"
+                        style="background: rgba(59, 130, 246, 0.1);">
+                        <i class="fas fa-truck text-4xl md:text-5xl" style="color: rgba(37, 99, 235, 0.6);"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-semibold mb-2" style="color: rgba(55, 65, 81, 1);">No Pending
+                        Deliveries</h3>
+                    <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">All lots have been delivered
+                        or there are no lots awaiting delivery.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Tips Section -->
+        <div class="mt-8 p-6 text-white"
+            style="background: linear-gradient(90deg, rgba(139, 92, 246, 0.85) 0%, rgba(124, 58, 237, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="flex flex-col md:flex-row md:items-start gap-4">
+                <div class="p-3 flex-shrink-0" style="background: rgba(255, 255, 255, 0.2);">
+                    <i class="fas fa-lightbulb text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg md:text-xl font-bold mb-3">Quick Tips</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">Always verify the
+                                OTP with the seller/buyer before marking items as picked up or delivered.</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">Enter the actual
+                                courier cost accurately to maintain proper financial records.</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">Mark items as
+                                "Arrived at Warehouse" only after physical verification.</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">Check delivery
+                                history regularly to track completed transactions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Custom Scrollbar */
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(156, 163, 175, 0.5) rgba(243, 244, 246, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(243, 244, 246, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(156, 163, 175, 0.5);
+        border: 2px solid rgba(243, 244, 246, 1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(107, 114, 128, 0.7);
+    }
+
+    /* Hover effects for table rows */
+    tbody tr:hover {
+        background-color: rgba(249, 250, 251, 0.8) !important;
+    }
+
+    /* Fade in animation */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive table text */
+    @media (max-width: 640px) {
+        table {
+            font-size: 0.875rem;
+        }
+    }
+</style>
+
+<!-- Optional: Loading state script -->
+<script>
+    // Add loading state to forms
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            const button = this.querySelector('button[type="submit"]');
+            if (button && !button.disabled) {
+                button.disabled = true;
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+                // Re-enable after 3 seconds in case of error
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                }, 3000);
+            }
+        });
+    });
+
+    // Smooth fade-in on page load
+    window.addEventListener('load', function () {
+        const elements = document.querySelectorAll('.bg-white, [class*="bg-gradient"]');
+        elements.forEach((el, index) => {
+            el.style.opacity = '0';
+            setTimeout(() => {
+                el.style.transition = 'opacity 0.4s ease-out';
+                el.style.opacity = '1';
+            }, index * 50);
+        });
+    });
+</script>
+{% endblock %}

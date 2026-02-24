@@ -39,7 +39,8 @@
                                         <div
                                             style="font-size: 26px; font-weight: 700; color: #ffffff; margin-bottom: 10px;">
                                             {{ invoice_number }}</div>
-                                        <div style="font-size: 12px; color: #ffffff; opacity: 0.9;">Generated: {{ invoice_date }}</div>
+                                        <div style="font-size: 12px; color: #ffffff; opacity: 0.9;">Generated:
+                                            {{invoice_date }}</div>
                                     </td>
                                 </tr>
                             </table>
@@ -113,7 +114,8 @@
                                             <tr>
                                                 <td style="color: #6c757d; font-size: 13px;">Registration Date:</td>
                                                 <td align="right"
-                                                    style="color: #2c3e50; font-weight: 600; font-size: 13px;">{{ winner.date_joined|date:"d M Y" }}</td>
+                                                    style="color: #2c3e50; font-weight: 600; font-size: 13px;">
+                                                    {{winner.date_joined|date:"d M Y" }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -203,13 +205,14 @@
                                                     <div
                                                         style="font-size: 11px; text-transform: uppercase; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
                                                         🏷️ CATEGORY</div>
-                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">{{lot.lot_catagory.name|default:"General" }}</div>
+                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">
+                                                        {{lot.lot_catagory.name|default:"General" }}</div>
                                                 </td>
                                                 <td width="50%" style="padding-bottom: 12px;">
                                                     <div
                                                         style="font-size: 11px; text-transform: uppercase; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
                                                         🏆 WINNING BID</div>
-                                                    <div style="color: #28a745; font-size: 18px; font-weight: 700;">₹{{ winning_bid|floatformat:2 }}</div>
+                                                    <div style="color: #28a745; font-size: 18px; font-weight: 700;">₹{{winning_bid|floatformat:2 }}</div>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -217,13 +220,13 @@
                                                     <div
                                                         style="font-size: 11px; text-transform: uppercase; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
                                                         ⏰ AUCTION START</div>
-                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">{{ auction.start_date|date:"d M Y, h:i A" }}</div>
+                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">{{auction.start_date|date:"d M Y, h:i A" }}</div>
                                                 </td>
                                                 <td width="50%">
                                                     <div
                                                         style="font-size: 11px; text-transform: uppercase; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
                                                         🏁 AUCTION END</div>
-                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">{{ auction.end_date|date:"d M Y, h:i A" }}</div>
+                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">{{auction.end_date|date:"d M Y, h:i A" }}</div>
                                                 </td>
                                             </tr>
                                         </table>
@@ -232,6 +235,36 @@
                             </table>
                         </td>
                     </tr>
+
+                    <!-- Secure Delivery Code (OTP) -->
+                    {% if delivery %}
+                    <tr>
+                        <td style="padding: 0 30px 25px 30px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="20"
+                                style="background-color: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 6px;">
+                                <tr>
+                                    <td>
+                                        <div
+                                            style="font-size: 16px; color: #0d47a1; margin-bottom: 12px; font-weight: 700;">
+                                            🔐 Secure Delivery Code
+                                        </div>
+                                        <div style="font-size: 13px; color: #1565c0; margin-bottom: 15px;">
+                                            Please provide this code to the courier or seller upon delivery to verify
+                                            receipt.
+                                        </div>
+                                        <div
+                                            style="background-color: #ffffff; padding: 15px; border-radius: 4px; text-align: center; border: 2px dashed #90caf9;">
+                                            <span
+                                                style="font-size: 24px; font-weight: 700; letter-spacing: 5px; color: #1976d2; font-family: monospace;">
+                                                {{ delivery.verification_code }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
 
                     <!-- Bidding History Summary -->
                     <tr>
@@ -264,8 +297,8 @@
                                                 <td style="color: #856404; font-size: 13px;">Your Final Bid:</td>
                                             </tr>
                                             <tr>
-                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">₹{{ lot.reserve_price|default:"Not Set"|floatformat:2 }}</td>
-                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">₹{{ winning_bid|floatformat:2 }}</td>
+                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">₹{{lot.reserve_price|default:"Not Set"|floatformat:2 }}</td>
+                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">₹{{winning_bid|floatformat:2 }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -312,15 +345,15 @@
                                         {{ forloop.counter }}</td>
                                     <td
                                         style="padding: 16px 12px; font-size: 13px; color: #2c3e50; vertical-align: top; word-break: break-word; border-right: 1px solid #dee2e6;">
-                                        <div style="font-weight: 600; margin-bottom: 5px; color: #2c3e50;">{{ item.title }}</div>
+                                        <div style="font-weight: 600; margin-bottom: 5px; color: #2c3e50;">{{ item.title}}</div>
                                         {% if item.description %}
-                                        <div style="color: #6c757d; font-size: 12px; line-height: 1.5;">{{ item.description|truncatewords:15 }}</div>
+                                        <div style="color: #6c757d; font-size: 12px; line-height: 1.5;">{{item.description|truncatewords:15 }}</div>
                                         {% endif %}
                                     </td>
                                     <td
                                         style="padding: 16px 12px; font-size: 13px; color: #2c3e50; vertical-align: top; border-right: 1px solid #dee2e6;">
                                         <span
-                                            style="background-color: #e7f3ff; color: #004085; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{ item.condition|default:"N/A" }}</span>
+                                            style="background-color: #e7f3ff; color: #004085; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{item.condition|default:"N/A" }}</span>
                                     </td>
                                     <td
                                         style="padding: 16px 12px; font-size: 13px; color: #2c3e50; vertical-align: top; text-align: center; border-right: 1px solid #dee2e6; font-weight: 600;">
@@ -406,11 +439,12 @@
                                                 <td style="padding: 14px 18px; border-bottom: 2px solid #667eea;">
                                                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                         <tr>
-                                                            <td style="color: #6c757d; font-size: 14px;">🚚 Shipping &
-                                                                Handling</td>
+                                                            <td style="color: #6c757d; font-size: 14px;">🚚 Delivery
+                                                                (Warehouse to
+                                                                Buyer)</td>
                                                             <td align="right"
                                                                 style="color: #2c3e50; font-weight: 600; font-size: 15px;">
-                                                                ₹{{ shipping_fee|default:"0.00"|floatformat:2 }}</td>
+                                                                ₹{{ shipping_fee|floatformat:2 }}</td>
                                                         </tr>
                                                     </table>
                                                 </td>
@@ -450,7 +484,7 @@
                         </td>
                     </tr>
 
-                   
+
 
                     <!-- Terms and Conditions -->
                     <tr>
@@ -507,7 +541,8 @@
                                     <td width="33%" align="center"
                                         style="color: #667eea; font-size: 13px; font-weight: 600;">
                                         📞 Phone<br>
-                                        <span style="color: #2c3e50; font-weight: 400; font-size: 12px;">+91 9173739080</span>
+                                        <span style="color: #2c3e50; font-weight: 400; font-size: 12px;">+91
+                                            9173739080</span>
                                     </td>
                                     <td width="33%" align="center"
                                         style="color: #667eea; font-size: 13px; font-weight: 600;">
@@ -526,7 +561,7 @@
                                 </tr>
                             </table>
 
-                           
+
 
                             <!-- Legal Footer -->
                             <div

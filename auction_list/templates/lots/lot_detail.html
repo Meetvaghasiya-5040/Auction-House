@@ -13,7 +13,7 @@
 
             <div class="grid grid-cols-2 gap-4">
                 {% for item in lot.items.all %}
-                <a href="{% url 'item_detail' item.id item.slug %}"
+                <a href="{% url 'item_detail' item.slug %}"
                     class="group bg-white border-2 border-slate-200 hover:border-purple-600 transition-colors p-2 pt-0">
                     <div class="aspect-square bg-slate-100 overflow-hidden mb-2 relative">
                         {% if item.images %}
@@ -60,36 +60,158 @@
                         <span class="text-slate-600 font-semibold">Status:</span>
                         <span class="px-2 py-1 rounded text-xs font-bold
                             {% if lot.status == 'active' %}bg-green-100 text-green-800
-                            {% elif lot.status == 'sold' %}bg-blue-100 text-blue-800
+                            {% elif lot.status == 'paid' %}bg-blue-100 text-blue-800
+                            {% elif lot.status == 'shipped_to_warehouse' %}bg-amber-100 text-amber-800
+                            {% elif lot.status == 'at_warehouse' %}bg-indigo-100 text-indigo-800
+                            {% elif lot.status == 'shipped' %}bg-purple-100 text-purple-800
+                            {% elif lot.status == 'sold' %}bg-emerald-100 text-emerald-800
                             {% else %}bg-slate-100 text-slate-800{% endif %}">
                             {{ lot.get_status_display }}
                         </span>
                     </div>
                 </div>
             </div>
+
+            <!-- Delivery Info Section -->
+            {% if lot.status in 'paid,shipped_to_warehouse,at_warehouse,shipped,sold' and lot.delivery %}
+            <div class="bg-white border-2 border-slate-900 p-6 mt-6 reveal-fade">
+                <h3 class="text-xl font-black uppercase text-slate-900 border-l-4 border-blue-600 pl-3 mb-4">Delivery
+                    Details</h3>
+
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full flex items-center justify-center 
+                            {% if lot.status == 'sold' %}bg-green-100 text-green-600{% else %}bg-blue-100 text-blue-600{% endif %}">
+                            <i
+                                class="fas {% if lot.status == 'sold' %}fa-check-double{% else %}fa-shipping-fast{% endif %}"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-500 uppercase">Current Status</p>
+                            <p class="text-sm font-black text-slate-900">{{ lot.get_status_display }}</p>
+                        </div>
+                    </div>
+
+                    {% if lot.winning_bidder == request.user %}
+                    <!-- Buyer View -->
+                    <div class="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                        <p class="text-xs font-bold text-blue-700 uppercase mb-2">Your Verification Code</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-3xl font-black text-blue-900 tracking-widest">{{lot.delivery.verification_code}}</span>
+                            <i class="fas fa-shield-alt text-blue-400 text-2xl"></i>
+                        </div>
+                        <p class="text-[10px] text-blue-600 mt-2">Give this code to the seller or warehouse ONLY after
+                            you receive
+                            the item.</p>
+                    </div>
+
+                    {% if lot.status == 'shipped' %}
+                    <a href="{% url 'confirm_delivery' lot.id %}"
+                        class="block w-full text-center py-3 bg-green-600 text-white font-bold uppercase rounded-lg hover:bg-green-700 transition-colors mt-4">
+                        Confirm Receipt
+                    </a>
+                    {% endif %}
+
+                    {% elif request.user.is_staff %}
+                    <!-- Admin View (Warehouse Management) -->
+
+                    <!-- ADMIN AS SELLER FALLBACK: If Admin is also the Owner and status is 'paid', show shipping form -->
+                    {% if lot.status == 'paid' and lot.items.first.owner == request.user %}
+                    <form action="{% url 'mark_shipped_to_warehouse' lot.id %}" method="POST" class="space-y-3 mb-4">
+                        {% csrf_token %}
+                        <input type="text" name="tracking_number" placeholder="Enter tracking number to warehouse"
+                            class="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-slate-900 text-sm">
+                        <button type="submit"
+                            class="w-full py-3 bg-amber-600 text-white font-bold uppercase rounded-lg hover:bg-amber-700 transition-colors">
+                            Mark Shipped to Warehouse (As Seller)
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if lot.status == 'shipped_to_warehouse' %}
+                    <a href="{% url 'mark_at_warehouse' lot.id %}"
+                        class="block w-full text-center py-3 bg-indigo-600 text-white font-bold uppercase rounded-lg hover:bg-indigo-700 transition-colors mt-4">
+                        Mark as Received at Warehouse
+                    </a>
+                    {% elif lot.status == 'at_warehouse' %}
+                    <a href="{% url 'mark_shipped_to_buyer' lot.id %}"
+                        class="block w-full text-center py-3 bg-purple-600 text-white font-bold uppercase rounded-lg hover:bg-purple-700 transition-colors mt-4">
+                        Ship to Buyer
+                    </a>
+                    {% endif %}
+
+                    {% if lot.status == 'shipped' %}
+                    <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                        <p class="text-xs font-bold text-slate-700 uppercase mb-2">Verify Buyer Code</p>
+                        <div class="flex gap-2">
+                            <input type="text" id="delivery-otp" placeholder="6-digit code"
+                                class="flex-1 px-3 py-2 border border-slate-300 rounded text-sm focus:border-slate-900">
+                            <button onclick="verifyOtp({{ lot.id }})"
+                                class="px-4 py-2 bg-green-600 text-white text-xs font-bold uppercase rounded hover:bg-green-700">
+                                Verify
+                            </button>
+                        </div>
+                        <div id="otp-message" class="text-[10px] mt-1 hidden"></div>
+                    </div>
+                    {% endif %}
+
+                    {% elif lot.items.first.owner == request.user %}
+                    <!-- Seller View -->
+                    {% if lot.status == 'paid' %}
+                    <form action="{% url 'mark_shipped_to_warehouse' lot.id %}" method="POST" class="space-y-3">
+                        {% csrf_token %}
+                        <input type="text" name="tracking_number" placeholder="Enter tracking number to warehouse"
+                            class="w-full px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-slate-900 text-sm">
+                        <button type="submit"
+                            class="w-full py-3 bg-amber-600 text-white font-bold uppercase rounded-lg hover:bg-amber-700 transition-colors">
+                            Mark Shipped to Warehouse
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <!-- OTP Verification removed for Seller. Only Admin can verify. -->
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Middle: Bidding Section -->
         <div class="lg:col-span-1 bg-white border-2 border-slate-900 p-6">
             <h2 class="text-xl font-black uppercase mb-6 border-b-2 border-slate-900 pb-3">Place Your Bid</h2>
 
-            <!-- Timer (for timed lots) -->
-            {% if lot.is_timed %}
-            <div id="timer-section" class="mb-6 p-4 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg">
-                <p class="text-xs font-bold uppercase mb-2">Time Remaining</p>
-                <div id="timer-display" class="text-3xl font-black font-mono"></div>
+            <!-- Hot Lot Banner -->
+            {% if lot.is_hot %}
+            <div id="hot-lot-banner"
+                class="mb-6 p-4 bg-gradient-to-r from-red-500 via-orange-500 to-red-500 text-white rounded-lg shadow-lg shadow-red-500/50 animate-pulse">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="text-4xl">🔥</div>
+                        <div>
+                            <p class="text-lg font-black uppercase tracking-wider">HOT AUCTION!</p>
+                            <p id="hot-bid-count" class="text-xs font-semibold">High bidding activity</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold opacity-75">TRENDING NOW</p>
+                    </div>
+                </div>
             </div>
             {% endif %}
 
-            <!-- Countdown Timer (10 seconds before end) -->
-            <div id="countdown-section"
-                class="hidden mb-6 p-6 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg border-4 border-yellow-400 shadow-2xl animate-pulse">
-                <div class="text-center">
-                    <p class="text-sm font-black uppercase mb-2 tracking-widest">⚠️ Auction Ending Soon! ⚠️</p>
-                    <div id="countdown-display" class="text-6xl font-black font-mono drop-shadow-lg">00:10</div>
-                    <p class="text-xs font-bold uppercase mt-2 tracking-wider">Seconds Remaining</p>
+            <!-- Timer (for timed lots or auctions with end dates) -->
+            {% if lot.is_timed or lot.auction.end_date %}
+            <div id="timer-section" class="mb-6 p-4 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg">
+                <p class="text-xs font-bold uppercase mb-2">Time Remaining</p>
+                <div id="timer-display" class="text-3xl font-black font-mono">
+                    {% if lot.get_time_remaining %}
+                    {{ lot.get_time_remaining|stringformat:".2f" }} <!-- Temporary placeholder, JS will override -->
+                    {% else %}
+                    00:00:00
+                    {% endif %}
                 </div>
             </div>
+            {% endif %}
 
             <!-- Wallet Balance -->
             <div class="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
@@ -134,11 +256,29 @@
                     <p id="next-bid-display" class="text-3xl font-black text-purple-900 text-center">
                         ₹{{lot.get_minimum_bid|floatformat:2 }}</p>
                 </div>
-
+                {% if lot.status == 'active' %}
                 <button id="place-bid-btn"
                     class="w-full px-8 py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black text-2xl uppercase tracking-widest hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:transform-none shadow-lg">
                     <i class="fas fa-plus-circle mr-3"></i>Place Bid
                 </button>
+                {% else %}
+                <button id="place-bid-btn" disabled class="w-full px-8 py-6 
+                    bg-gradient-to-r from-purple-600 to-blue-600 
+                    text-white font-black text-2xl uppercase tracking-widest 
+                    transition-all transform 
+                    shadow-lg cursor-not-allowed relative overflow-hidden">
+
+                    <!-- Text above overlay -->
+                    <span class="relative z-10">
+                        <i class="fas fa-lock mr-3"></i>Auction Ended
+                    </span>
+
+                    <!-- Gray RGBA Shade -->
+                    <span class="absolute inset-0 bg-[rgba(120,120,120,0.75)]"></span>
+                </button>
+
+
+                {% endif %}
 
                 <p id="bid-error" class="text-red-600 text-xs font-bold hidden"></p>
                 <p id="bid-success" class="text-green-600 text-xs font-bold hidden"></p>
@@ -153,10 +293,13 @@
 
         <!-- Right: Bid History Chat -->
         <div class="lg:col-span-1 bg-white border-2 border-slate-900 flex flex-col" style="max-height: 800px;">
-            <div class="bg-slate-900 px-6 py-4">
+            <div class="bg-slate-900 px-6 py-4 flex justify-between items-center">
                 <h3 class="text-lg font-black uppercase text-white tracking-widest">
                     <i class="fas fa-comments mr-2"></i>Live Bid Feed
                 </h3>
+                <div id="connection-status" class="text-xs text-green-400 font-mono">
+                    <span class="opacity-50">PID: {{ server_pid }}</span>
+                </div>
             </div>
 
             <!-- Bid History Container -->
@@ -171,7 +314,7 @@
                         </span>
                         {% if bid.is_winning %}
                         <span
-                            class="bg-green-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">WINNING</span>
+                            class="winning-label bg-green-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">WINNING</span>
                         {% endif %}
                     </div>
                     <div class="flex justify-between items-center">
@@ -186,7 +329,7 @@
                         <span class="font-bold text-slate-900 text-sm">{{ bid.user.username }}</span>
                         {% if bid.is_winning %}
                         <span
-                            class="bg-green-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">WINNING</span>
+                            class="winning-label bg-green-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">WINNING</span>
                         {% endif %}
                     </div>
                     <div class="flex justify-between items-center">
@@ -226,7 +369,221 @@
             </div>
         </div>
     </div>
+
+    <!-- Payment PIN Verification Modal (for winners) -->
+    {% if pending_payment %}
+    <div id="paymentPinModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+        style="backdrop-filter: blur(8px);">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-trophy text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold">Congratulations!</h2>
+                        <p class="text-green-100 text-sm">You won this lot!</p>
+                    </div>
+                </div>
+            </div>
+
+            <form id="paymentPinForm" class="p-6">
+                {% csrf_token %}
+                <input type="hidden" name="lot_id" value="{{ lot.id }}">
+
+                <div class="mb-6">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                        <div class="flex">
+                            <i class="fas fa-clock text-yellow-400 mt-1 mr-3"></i>
+                            <div class="text-sm text-yellow-800">
+                                <p class="font-bold mb-1">Payment Required</p>
+                                <p>Enter your transaction PIN to complete payment within <span id="payment-timer"
+                                        class="font-bold">15:00</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-lg p-4 mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-slate-600">Lot:</span>
+                            <span class="text-sm font-bold text-slate-900">{{ lot.title }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-600">Amount:</span>
+                            <span class="text-2xl font-black text-green-600">
+                                ₹{{ pending_payment.amount|floatformat:2}}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                            <i class="fas fa-lock text-green-600 mr-2"></i>Enter Transaction PIN
+                        </label>
+                        <input type="password" name="pin" id="payment-pin" maxlength="6"
+                            class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-green-500 focus:outline-none text-center text-2xl tracking-widest font-bold"
+                            placeholder="••••" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+                    </div>
+
+                    <div id="paymentPinError"
+                        class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+                    <div id="paymentPinSuccess"
+                        class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                    </div>
+                </div>
+
+                <button type="submit" id="verifyPaymentBtn"
+                    class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                    <i class="fas fa-check-circle mr-2"></i>Confirm Payment
+                </button>
+
+                <p class="text-xs text-slate-500 text-center mt-4">
+                    <i class="fas fa-info-circle mr-1"></i>Your payment will be processed securely
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Payment Timer Countdown
+        const expiresAt = new Date("{{ pending_payment.expires_at|date:'c' }}");
+        const timerDisplay = document.getElementById('payment-timer');
+
+        function updatePaymentTimer() {
+            const now = new Date();
+            const distance = expiresAt - now;
+
+            if (distance < 0) {
+                timerDisplay.textContent = "EXPIRED";
+                timerDisplay.classList.add('text-red-600');
+                document.getElementById('verifyPaymentBtn').disabled = true;
+                document.getElementById('paymentPinError').textContent = 'Payment window has expired. The lot will be offered to the next bidder.';
+                document.getElementById('paymentPinError').classList.remove('hidden');
+                return;
+            }
+
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            // Warning when less than 2 minutes
+            if (distance < 120000) {
+                timerDisplay.classList.add('text-red-600', 'font-bold');
+            }
+        }
+
+        updatePaymentTimer();
+        updatePaymentTimer();
+        const paymentTimerInterval = setInterval(updatePaymentTimer, 1000);
+
+        // Payment PIN Form Handler
+        document.getElementById('paymentPinForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const pin = document.getElementById('payment-pin').value;
+            const errorDiv = document.getElementById('paymentPinError');
+            const successDiv = document.getElementById('paymentPinSuccess');
+            const submitBtn = document.getElementById('verifyPaymentBtn');
+
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            if (!/^\d{4,6}$/.test(pin)) {
+                errorDiv.textContent = 'PIN must be 4-6 digits';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('{% url "verify_payment_pin" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    successDiv.textContent = data.message;
+                    successDiv.classList.remove('hidden');
+
+                    // Hide modal immediately
+                    const paymentModal = document.getElementById('paymentPinModal');
+                    paymentModal.classList.add('hidden');
+                    paymentModal.classList.remove('flex');
+                    paymentModal.style.display = 'none'; // Force hide
+
+                    // STOP THE TIMER
+                    if (typeof paymentTimerInterval !== 'undefined') {
+                        clearInterval(paymentTimerInterval);
+                    }
+                    if (timerDisplay) {
+                        timerDisplay.textContent = "PAID";
+                        timerDisplay.classList.remove('text-red-600');
+                        timerDisplay.classList.add('text-green-600');
+                    }
+
+                    // Show Winner Overlay
+                    const winnerOverlay = document.getElementById('winner-overlay');
+                    const winnerNameEl = document.getElementById('winner-name');
+                    const winnerPriceEl = document.getElementById('winner-price');
+
+                    if (winnerOverlay) {
+                        // Populate with current user info since they just paid
+                        winnerNameEl.textContent = "{{ request.user.username }}";
+                        winnerPriceEl.textContent = "₹{{ pending_payment.amount|floatformat:2 }}";
+
+                        winnerOverlay.classList.remove('hidden');
+
+                        // GSAP Animation if available, otherwise just show
+                        if (typeof gsap !== 'undefined') {
+                            gsap.to('#winner-card', {
+                                scale: 1,
+                                duration: 0.6,
+                                ease: 'back.out(1.7)'
+                            });
+                        } else {
+                            document.getElementById('winner-card').style.transform = "scale(1)";
+                        }
+                    } else {
+                        // Fallback if overlay logic fails for some reason
+                        window.location.reload();
+                    }
+                } else {
+                    errorDiv.textContent = data.error || 'Payment verification failed';
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Payment';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Payment';
+            }
+        });
+
+        // Only allow numeric input
+        document.getElementById('payment-pin').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+    {% endif %}
+
+    <!-- Container for dynamically loaded modals (e.g. Winner Payment) -->
+    <div id="dynamic-modal-container"></div>
 </div>
+
+
+
+
+
 {% endblock %}
 
 {% block extra_js %}
@@ -236,7 +593,9 @@
 <div id="winner-overlay"
     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
     <div class="text-center transform scale-0" id="winner-card">
-        <i class="fas fa-trophy text-yellow-400 text-8xl mb-6 drop-shadow-[0_0_30px_rgba(250,204,21,0.6)]"></i>
+        <div class="mb-6">
+            <i class="fas fa-trophy text-yellow-400 text-8xl drop-shadow-[0_0_30px_rgba(250,204,21,0.6)]"></i>
+        </div>
         <h2 class="text-6xl font-black text-white uppercase tracking-tighter mb-2">SOLD!</h2>
         <p class="text-xl text-slate-300 mb-8">Auction Completed</p>
 
@@ -248,53 +607,153 @@
             <div id="winner-price" class="text-5xl font-black text-green-400">₹0.00</div>
         </div>
 
-        <button onclick="document.getElementById('winner-overlay').classList.add('hidden')"
-            class="mt-8 px-8 py-3 bg-white text-slate-900 font-bold uppercase hover:bg-slate-200 transition-colors">
+        <button onclick="dismissWinnerOverlay()"
+            class="mt-8 px-12 py-4 bg-white text-slate-900 font-bold uppercase hover:bg-slate-200 transition-all rounded-lg shadow-xl hover:scale-105 active:scale-95">
             Close
         </button>
     </div>
 </div>
 
+
+
+<!-- Dynamic modals are loaded into dynamic-modal-container above -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script>
+    console.log("🚀 Script loading...");
+
+    // Global variables
+    let lotSlug = "{{ lot.slug }}";
+    let currentUsername = "{{ request.user.username }}";
+    let isSubmitting = false;
+    let socket = null;
+    let knownBids = new Set();
+    let hasShownWinner = false; // Prevent popup loop
+    let auctionEnded = false; // Track if auction is finished
+    let isTimedLot = {% if lot.is_timed %}true{% else %} false{% endif %};
+    logMobile(`Lot Initialized. isTimed: ${isTimedLot}`);
+
+    // Define elements globally but initialize them later
+    let bidHistoryEl, bidButton, bidErrorEl, bidSuccessEl, currentBidEl, incrementEl, nextBidDisplayEl, bidCountEl, mainTimerDisplay, connectionStatusEl, winnerOverlay, winnerNameEl, winnerPriceEl;
+
+    // --- MOBILE DEBUGGING UTILS ---
+    function logMobile(msg) {
+        // Log removed for production
+        console.log(msg);
+    }
+
+    // --- PLACE BID FUNCTION (GLOBAL) ---
+    async function placeBid() {
+        if (auctionEnded) {
+            console.log("🚫 Auction ended, blocking bid.");
+            return;
+        }
+        console.log("👉 placeBid called");
+        logMobile("👉 placeBid button clicked");
+
+
+        // Re-grab elements just in case (or ensure they are initialized globally)
+        bidButton = document.getElementById('place-bid-btn');
+        nextBidDisplayEl = document.getElementById('next-bid-display');
+
+        if (isSubmitting) {
+            console.log("⏳ Already submitting...");
+            return;
+        }
+
+        // Get amount from NEXT BID display
+        if (!nextBidDisplayEl) {
+            alert("Error: Next bid display not found. Please refresh.");
+            console.error("❌ Next bid display not found");
+            return;
+        }
+
+        // ROBUST PARSING: Remove all non-numeric/decimal characters
+        const nextBidText = nextBidDisplayEl.textContent;
+        const cleanText = nextBidText.replace(/[^0-9.]/g, '');
+        const amount = parseFloat(cleanText);
+
+        console.log(`💰 Bidding amount parsed: "${nextBidText}" -> ${amount}`);
+
+        if (!amount || isNaN(amount)) {
+            showError('Invalid bid amount');
+            return;
+        }
+
+        isSubmitting = true;
+        if (bidButton) {
+            bidButton.disabled = true;
+            bidButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i>PLACING...';
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('amount', amount);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            const response = await fetch(`/bids/place-bid/${lotSlug}/`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            console.log("📨 Bid response:", result);
+
+            if (result.success) {
+                showSuccess('Bid placed successfully!');
+
+                if (result.wallet_balance !== undefined) {
+                    const walletBal = document.getElementById('wallet-balance');
+                    if (walletBal) walletBal.textContent = '₹' + result.wallet_balance.toFixed(2);
+                }
+
+                // Fetch updates immediately
+                fetchUpdates();
+            } else {
+                showError(result.error || 'Failed to place bid');
+            }
+
+        } catch (error) {
+            showError('Network error. Please try again.');
+            console.error(error);
+            // Fallback alert for network errors since UI might be broken
+            // alert("Network error: " + error.message);
+        } finally {
+            isSubmitting = false;
+
+            // Restore button
+            const isEnded = mainTimerDisplay && mainTimerDisplay.textContent.trim() === "ENDED";
+            if (!isEnded && bidButton) {
+                bidButton.disabled = false;
+                bidButton.innerHTML = '<i class="fas fa-plus-circle mr-3"></i>PLACE BID';
+            }
+        }
+    }
+
+    // Make it explicitly global
+    window.placeBid = placeBid;
+
+    // Add event listener to DOMContentLoaded to initialize everything else
     document.addEventListener('DOMContentLoaded', () => {
-        // Animate page load
-        gsap.from(".reveal-fade", {
-            duration: 0.8,
-            y: 40,
-            opacity: 0,
-            ease: "power2.out"
-        });
+        console.log("🚀 DOM Ready");
 
-        // Config
-        const lotId = "{{ lot.id }}";
-        const currentUsername = "{{ request.user.username }}";
-        const endpoints = {
-            placeBid: `/auctions/lot/${lotId}/place-bid/`,
-            getUpdates: `/bids/lot/${lotId}/updates/` // Changed to new polling endpoint
-        };
-
-        // DOM Elements
-        const bidHistoryEl = document.getElementById('bid-history');
-        const bidButton = document.getElementById('place-bid-btn');
-        const bidErrorEl = document.getElementById('bid-error');
-        const bidSuccessEl = document.getElementById('bid-success');
-        const currentBidEl = document.getElementById('current-bid');
-        const incrementEl = document.getElementById('increment-display');
-        const nextBidDisplayEl = document.getElementById('next-bid-display');
-        const bidCountEl = document.getElementById('bid-count');
-        const countdownSection = document.getElementById('countdown-section');
-        const countdownDisplay = document.getElementById('countdown-display');
-        const mainTimerDisplay = document.getElementById('timer-display');
-        const connectionStatusEl = document.getElementById('connection-status');
-
-        const winnerOverlay = document.getElementById('winner-overlay');
-        const winnerNameEl = document.getElementById('winner-name');
-        const winnerPriceEl = document.getElementById('winner-price');
-
-        let isSubmitting = false;
-        let knownBids = new Set(); // To track seen bids (by timestamp + user + amount)
-        let hasShownWinner = false; // Prevent popup loop
+        // Initialize elements
+        bidHistoryEl = document.getElementById('bid-history');
+        bidButton = document.getElementById('place-bid-btn');
+        bidErrorEl = document.getElementById('bid-error');
+        bidSuccessEl = document.getElementById('bid-success');
+        currentBidEl = document.getElementById('current-bid');
+        incrementEl = document.getElementById('increment-display');
+        nextBidDisplayEl = document.getElementById('next-bid-display');
+        bidCountEl = document.getElementById('bid-count');
+        bidCountEl = document.getElementById('bid-count');
+        // countdownSection = document.getElementById('countdown-section'); // REMOVED
+        // countdownDisplay = document.getElementById('countdown-display'); // REMOVED
+        mainTimerDisplay = document.getElementById('timer-display');
+        connectionStatusEl = document.getElementById('connection-status');
+        winnerOverlay = document.getElementById('winner-overlay');
+        winnerNameEl = document.getElementById('winner-name');
+        winnerPriceEl = document.getElementById('winner-price');
 
         // Initialize known bids from server-rendered template
         {% for bid in lot.recent_bids %}
@@ -302,318 +761,865 @@
         knownBids.add("{{ bid.user.username|escapejs }}_" + Math.floor(Number("{{ bid.amount|stringformat:'f' }}")));
         {% endfor %}
 
-
-        let pollInterval;
-
-        // --- POLLING LOGIC ---
-        function startPolling() {
-            // Update connection status UI to show "Live" via Polling
-            if (connectionStatusEl) {
-                connectionStatusEl.innerHTML = `
-                <span class="flex items-center">
-                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-                    <span class="text-green-700 font-bold">LIVE (SYNC)</span>
-                </span>
-                <span class="text-slate-400">Real-time</span>
-                `;
+        // Animations
+        try {
+            if (typeof gsap !== 'undefined') {
+                gsap.from(".reveal-fade", { duration: 0.8, y: 40, opacity: 0, ease: "power2.out" });
+            } else {
+                console.warn("⚠️ GSAP not loaded - skipping animations");
             }
+        } catch (e) { console.warn("GSAP error", e); }
 
-            // Poll every 1 second
-            if (pollInterval) clearInterval(pollInterval);
-            pollInterval = setInterval(fetchUpdates, 1000);
+        // Attach event listener for placeBid
+        if (bidButton) {
+            console.log("✅ Adding click listener to Place Bid button");
+            // Remove any existing listeners by cloning (optional but safer against duplicates)
+            // const newBtn = bidButton.cloneNode(true);
+            // bidButton.parentNode.replaceChild(newBtn, bidButton);
+            // bidButton = newBtn;
+
+            bidButton.addEventListener('click', placeBid);
+
+            // Add visual confirmation it's hooked
+            // bidButton.style.border = "2px solid lime"; 
+        } else {
+            console.error("❌ Place Bid button not found in DOM");
         }
 
-        async function fetchUpdates() {
-            try {
-                // Add timestamp to prevent caching on mobile devices
-                const response = await fetch(`${endpoints.getUpdates}?t=${Date.now()}`);
+        // Start WebSocket
+        connectWebSocket();
 
-                if (response.status === 404) {
-                    console.error("Lot not found (404). Stopping polling.");
-                    if (pollInterval) clearInterval(pollInterval);
-                    return;
-                }
+        // --- RESTORE STATE ON REFRESH ---
+        // If the auction is already closed/sold when the page loads, 
+        // we need to manually trigger the "End Flow" UI.
+        const initialStatus = "{{ lot.status }}";
+        const hasPendingPayment = {% if pending_payment %}true{% else %}false{% endif %};
 
-                if (!response.ok) return; // Skip other errors
+    if (initialStatus === 'sold' || initialStatus === 'unsold' || hasPendingPayment) {
+        console.log("🔄 Restoring End State for status:", initialStatus, "Pending:", hasPendingPayment);
+        // Construct data object to mimic WebSocket message
+        const initialData = {
+            status: initialStatus,
+            winner: "{{ lot.winning_bidder.username|default:'' }}",
+            winning_bid: parseFloat("{{ lot.current_bid }}")
+        };
+        // Small delay to ensure elements are ready/GSAP loaded
+        setTimeout(() => handleAuctionEnded(initialData), 500);
+    }
 
-                const data = await response.json();
-                updateUI(data);
+    // Smart Page Refresh (No Polling)
+    const auctionStart = "{{ lot.auction.start_date|date:'Y-m-d H:i:s' }}";
+    const auctionEnd = "{{ lot.auction.end_date|date:'Y-m-d H:i:s' }}";
+    const refreshTimes = [];
 
-                // Stop polling if ended
-                if (data.status === 'sold' || data.status === 'unsold') {
-                    if (pollInterval) {
-                        clearInterval(pollInterval);
-                        console.log("Auction ended. Polling stopped.");
-                    }
-                }
+    if (auctionStart) refreshTimes.push(new Date(auctionStart).getTime());
+    if (auctionEnd) refreshTimes.push(new Date(auctionEnd).getTime());
 
-            } catch (error) {
-                console.error("Polling error:", error);
+    const now = Date.now();
+    console.log("🚀 Initializing Smart Refresh for Lot Detail...");
+
+    refreshTimes.forEach(time => {
+        const delay = time - now;
+        // Max delay for setTimeout is ~24 days. If longer, we ignore
+        if (delay > 0 && delay < 2147483647) {
+            console.log(`⏰ Scheduling refresh in ${Math.round(delay / 1000)}s`);
+            setTimeout(() => {
+                console.log("🔄 Auto-refreshing for auction event...");
+                window.location.reload();
+            }, delay + 2000); // 2s buffer (ensure backend has updated)
+        }
+    });
+
+    });
+
+    // --- HELPER FUNCTIONS ---
+    function showError(msg) {
+        bidErrorEl = document.getElementById('bid-error'); // Ensure element is grabbed if not global
+        if (bidErrorEl) {
+            bidErrorEl.textContent = msg;
+            bidErrorEl.classList.remove('hidden');
+            bidSuccessEl.classList.add('hidden'); // Hide success if error
+            setTimeout(() => bidErrorEl.classList.add('hidden'), 3000);
+        } else {
+            console.error("Error element not found:", msg);
+        }
+    }
+
+    function showSuccess(msg) {
+        bidSuccessEl = document.getElementById('bid-success'); // Ensure element is grabbed if not global
+        if (bidSuccessEl) {
+            bidSuccessEl.textContent = msg;
+            bidSuccessEl.classList.remove('hidden');
+            bidErrorEl.classList.add('hidden'); // Hide error if success
+            setTimeout(() => bidSuccessEl.classList.add('hidden'), 3000);
+        } else {
+            console.log("Success element not found:", msg);
+        }
+    }
+
+    async function verifyOtp(lotId) {
+        const otpInput = document.getElementById('delivery-otp');
+        const otp = otpInput ? otpInput.value : '';
+        const messageEl = document.getElementById('otp-message');
+
+        if (!otp || otp.length !== 6) {
+            if (messageEl) {
+                messageEl.textContent = 'Please enter a 6-digit code';
+                messageEl.className = 'text-[10px] mt-1 text-red-600';
+                messageEl.classList.remove('hidden');
             }
+            return;
         }
 
-        function updateUI(data) {
-            // 1. Update Prices
+        try {
+            const formData = new FormData();
+            formData.append('lot_id', lotId);
+            formData.append('otp', otp);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            const response = await fetch('{% url "verify_delivery_otp" %}', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                if (messageEl) {
+                    messageEl.textContent = data.message;
+                    messageEl.className = 'text-[10px] mt-1 text-green-600';
+                    messageEl.classList.remove('hidden');
+                }
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                if (messageEl) {
+                    messageEl.textContent = data.error;
+                    messageEl.className = 'text-[10px] mt-1 text-red-600';
+                    messageEl.classList.remove('hidden');
+                }
+            }
+        } catch (e) {
+            console.error("OTP verification error:", e);
+        }
+    }
+    window.verifyOtp = verifyOtp;
+
+    async function fetchUpdates() {
+        try {
+            const response = await fetch(`/bids/lot/${lotSlug}/updates/`);
+            if (!response.ok) return;
+            const data = await response.json();
+
+            // Update UI with latest data
             if (currentBidEl) currentBidEl.textContent = `₹${data.current_bid.toFixed(2)}`;
             if (nextBidDisplayEl) nextBidDisplayEl.textContent = `₹${data.minimum_bid.toFixed(2)}`;
-
-            const increment = data.minimum_bid - data.current_bid;
-            if (incrementEl) incrementEl.textContent = `₹${increment.toFixed(2)}`;
-
-            // 2. Update Counts
+            if (incrementEl) {
+                const inc = data.minimum_bid - data.current_bid;
+                incrementEl.textContent = `₹${inc.toFixed(2)}`;
+            }
             if (bidCountEl) {
                 bidCountEl.textContent = data.bid_count;
                 document.querySelectorAll('.bid-count-display').forEach(el => el.textContent = data.bid_count);
             }
 
-            // 3. Update Timer
-            if (data.time_remaining !== null) {
-                // If negative or 0, it means expired
-                if (data.time_remaining <= 0 && data.status === 'active') {
-                    // Slight buffer/waiting for server to process close
-                    if (mainTimerDisplay) mainTimerDisplay.textContent = "CLOSING...";
-                } else if (data.status === 'sold' || data.status === 'unsold') {
-                    if (mainTimerDisplay) mainTimerDisplay.textContent = "ENDED";
+            // Update timer if available
+            if (data.time_remaining !== null && mainTimerDisplay) {
+                if (data.time_remaining <= 0) {
+                    mainTimerDisplay.textContent = "CLOSING...";
                 } else {
-                    if (mainTimerDisplay) mainTimerDisplay.textContent = formatTime(data.time_remaining);
-                }
+                    mainTimerDisplay.textContent = formatTime(data.time_remaining);
 
-                // Countdown logic (last 10s)
-                if (data.status === 'active' && data.time_remaining <= 10 && data.time_remaining > 0) {
-                    showCountdown(data.time_remaining);
-                } else if (countdownSection && !countdownSection.classList.contains('hidden')) {
-                    countdownSection.classList.add('hidden');
+                    // Show countdown if within 10 seconds (REMOVED)
+                    // if (data.time_remaining <= 10) {
+                    //    showCountdown(data.time_remaining);
+                    // }
                 }
             }
 
-            // 4. Update Bid Feed
+            // Process new bids
             if (data.bids && data.bids.length > 0) {
-                // Determine new bids by checking if we have seen them
-                const newBids = data.bids.filter(bid => {
-                    // Create a unique key for the bid
-                    // Note: Timestamp format from JSON might differ slightly from template, check consistency
-                    // Simplify key to avoid timezone string mismatches: User + Amount
+                data.bids.forEach(bid => {
                     const key = `${bid.user}_${Math.floor(bid.amount)}`;
                     if (!knownBids.has(key)) {
                         knownBids.add(key);
-                        return true;
+                        prependBidToFeed(bid);
                     }
-                    return false;
                 });
-
-                // Prepend ONLY new bids
-                // Reverse to add oldest of the new ones first (bottom up) or just iterate
-                newBids.reverse().forEach(bid => prependBidToFeed(bid));
             }
 
-            // 5. Check Winner / End State
-            if (data.status === 'sold' || data.status === 'unsold') {
-                handleAuctionEnded(data);
+            // Handle auction ended
+            if (['sold', 'unsold', 'paid', 'shipped'].includes(data.status)) {
+                handleAuctionEnded({
+                    status: data.status,
+                    winner: data.winner,
+                    winning_bid: data.winning_bid || data.current_bid
+                });
             }
+        } catch (e) { console.error("Update fetch error", e); }
+    }
+
+    function formatTime(seconds) {
+        if (seconds < 0) return "00:00:00";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+
+
+    function handleAuctionEnded(data) {
+        auctionEnded = true; // Mark as ended globally
+
+        // Force Timer to ENDED immediately
+        if (!mainTimerDisplay) mainTimerDisplay = document.getElementById('timer-display');
+        if (mainTimerDisplay) {
+            mainTimerDisplay.textContent = "ENDED";
+            mainTimerDisplay.classList.remove('text-red-600', 'text-green-600');
+            mainTimerDisplay.classList.add('text-slate-500');
         }
 
-        // --- PLACE BID ---
-        // We use the existing Place Bid API (AJAX)
-        // NOT WebSocket
-        async function placeBid() {
-            if (isSubmitting) return;
-
-            // Get amount from NEXT BID display (which is updated by polling)
-            const nextBidText = nextBidDisplayEl.textContent.replace('₹', '').replace(',', '').trim();
-            const amount = parseFloat(nextBidText);
-
-            if (!amount || isNaN(amount)) {
-                showError('Invalid bid amount');
-                return;
-            }
-
-            isSubmitting = true;
+        // Disable button
+        if (bidButton) {
             bidButton.disabled = true;
-            bidButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i>PLACING...';
-
-            try {
-                // Use the API view from bids/views.py: place_bid_api
-                // We need to construct form data or JSON
-                const formData = new FormData();
-                formData.append('amount', amount);
-                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
-                const response = await fetch(`/bids/place-bid/${lotId}/`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showSuccess('Bid placed successfully!');
-
-                    // Update wallet balance immediately
-                    if (result.wallet_balance !== undefined) {
-                        const walletBalanceEl = document.getElementById('wallet-balance');
-                        if (walletBalanceEl) {
-                            walletBalanceEl.textContent = '₹' + result.wallet_balance.toFixed(2);
-                        }
-                    }
-
-                    // Immediate manual fetch to update UI quickly
-                    fetchUpdates();
-                } else {
-                    showError(result.error || 'Failed to place bid');
-                }
-
-            } catch (error) {
-                showError('Network error. Please try again.');
-                console.error(error);
-            } finally {
-                isSubmitting = false;
-
-                // Check if auction is ended (only if timer exists and says ENDED)
-                const isEnded = mainTimerDisplay && mainTimerDisplay.textContent.trim() === "ENDED";
-
-                // Re-enable if NOT ended
-                if (!isEnded) {
-                    bidButton.disabled = false;
-                    bidButton.innerHTML = '<i class="fas fa-plus-circle mr-3"></i>PLACE BID';
-                }
-            }
+            bidButton.innerHTML = '<i class="fas fa-check-circle mr-3"></i>AUCTION ENDED';
+            bidButton.classList.add('opacity-50', 'cursor-not-allowed');
+            bidButton.classList.remove('hover:scale-105', 'transform');
         }
 
-        bidButton.addEventListener('click', placeBid);
+        // Hide countdown
+        if (countdownSection) countdownSection.classList.add('hidden');
 
-        // --- HELPER FUNCTIONS ---
+        // Update Main UI with Winner Info
+        if (data.status === 'sold' && data.winner) {
+            // Update Current Bid Label
+            const currentBidLabel = document.querySelector('#current-bid').previousElementSibling;
+            if (currentBidLabel) currentBidLabel.textContent = "Winning Bid";
 
-        function formatTime(seconds) {
-            if (seconds < 0) return "00:00:00";
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = Math.floor(seconds % 60);
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function showCountdown(seconds) {
-            if (!countdownSection || !countdownDisplay) return;
-            countdownSection.classList.remove('hidden');
-            const secs = Math.ceil(seconds);
-            countdownDisplay.textContent = secs.toString().padStart(2, '0');
-
-            if (secs <= 3) {
-                countdownSection.classList.add('animate-bounce');
-                countdownDisplay.classList.add('text-red-200');
-            } else {
-                countdownSection.classList.remove('animate-bounce');
-                countdownDisplay.classList.remove('text-red-200');
-            }
-        }
-
-        function handleAuctionEnded(data) {
-            // Disable button
-            if (bidButton) {
-                bidButton.disabled = true;
-                bidButton.innerHTML = '<i class="fas fa-check-circle mr-3"></i>AUCTION ENDED';
-                bidButton.classList.add('opacity-50', 'cursor-not-allowed');
-                bidButton.classList.remove('hover:scale-105', 'transform');
-            }
-
-            // Hide countdown
-            if (countdownSection) countdownSection.classList.add('hidden');
-
-            // Update Main UI with Winner Info
-            if (data.status === 'sold' && data.winner) {
-                // Update Current Bid Label
-                const currentBidLabel = document.querySelector('#current-bid').previousElementSibling;
-                if (currentBidLabel) currentBidLabel.textContent = "Winning Bid";
-
-                // Show winner name nearby if not already shown
-                // Find standard location or append
-                const currentBidContainer = document.querySelector('#current-bid').parentElement;
-                if (currentBidContainer && !currentBidContainer.querySelector('.winner-badge')) {
-                    currentBidContainer.insertAdjacentHTML('beforeend', `
-                        <div class="winner-badge mt-1 pt-1 border-t border-slate-700">
-                            <p class="text-[9px] uppercase tracking-widest font-black text-green-400 mb-0">Winner</p>
-                            <p class="text-sm font-bold text-white">${data.winner}</p>
-                        </div>
-                     `);
-                }
-            }
-
-            // Show Winner Overlay ONLY if it hasn't been shown yet
-            if (!hasShownWinner) {
-                if (data.status === 'sold' && data.winner) {
-                    winnerNameEl.textContent = data.winner;
-                    winnerPriceEl.textContent = `₹${data.winning_bid.toFixed(2)}`;
-                    winnerOverlay.classList.remove('hidden');
-
-                    gsap.to('#winner-card', {
-                        scale: 1,
-                        duration: 0.6,
-                        ease: 'back.out(1.7)'
-                    });
-
-                    hasShownWinner = true; // Mark as shown
-                }
-            }
-        }
-
-
-        function prependBidToFeed(bid) {
-            // Remove previous winning styling from all
-            // Note: In a real-time feed, we might want to keep history styles, 
-            // but usually only the top one is "winning"
-            const items = bidHistoryEl.querySelectorAll('.bid-item');
-            items.forEach(el => {
-                el.classList.remove('border-l-4', 'border-l-green-500');
-                const label = el.querySelector('.winning-label');
-                if (label) label.remove();
-            });
-
-            const isCurrentUser = bid.user === currentUsername;
-
-            // Format timestamp (basic logic, better to use library or consistent server format)
-            const timeStr = new Date(bid.timestamp).toLocaleTimeString();
-
-            const html = `
-                <div class="bid-item p-3 ${isCurrentUser ? 'bg-indigo-50 border-indigo-200 ml-8' : 'bg-white border-slate-200 mr-8'} border rounded reveal-bid border-l-4 border-l-green-500">
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="font-bold ${isCurrentUser ? 'text-indigo-900' : 'text-slate-900'} text-sm">
-                            <i class="fas fa-gavel ${isCurrentUser ? 'text-indigo-600' : 'text-slate-400'} mr-1"></i> ${bid.user} ${isCurrentUser ? '(You)' : ''}
-                        </span>
-                        <span class="winning-label bg-green-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">WINNING</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-lg font-black ${isCurrentUser ? 'text-indigo-900' : 'text-purple-600'}">₹${bid.amount.toFixed(2)}</span>
-                        <span class="text-[9px] text-slate-400 font-mono">${timeStr}</span>
-                    </div>
+            // Find standard location or append
+            const currentBidContainer = document.querySelector('#current-bid').parentElement;
+            if (currentBidContainer && !currentBidContainer.querySelector('.winner-badge')) {
+                currentBidContainer.insertAdjacentHTML('beforeend', `
+                <div class="winner-badge mt-1 pt-1 border-t border-slate-700">
+                    <p class="text-[9px] uppercase tracking-widest font-black text-green-400 mb-0">Winner</p>
+                    <p class="text-sm font-bold text-white">${data.winner}</p>
                 </div>
-            `;
+             `);
+            }
+        }
 
-            bidHistoryEl.insertAdjacentHTML('afterbegin', html);
+        // Show Winner Overlay ONLY if it hasn't been shown/dismissed yet
+        if (!hasShownWinner) {
+            if (data.status === 'sold' && data.winner) {
+                window.showWinnerOverlay(data.winner, data.winning_bid);
+                hasShownWinner = true; // Mark as shown for this cycle
+            } else if (data.status === 'unsold') {
+                // Update UI for UNSOLD -> ENDED
+                if (bidButton) {
+                    bidButton.innerHTML = '<i class="fas fa-flag-checkered mr-3"></i>ENDED';
+                    bidButton.classList.add('bg-slate-500');
+                    bidButton.classList.remove('bg-gradient-to-r', 'from-violet-600', 'to-fuchsia-600', 'bg-gray-500');
+                }
+            }
+        }
 
-            // Animate
-            gsap.from(".reveal-bid", {
+
+        // Dynamic Modal Logic (No reload needed)
+        const modalContainer = document.getElementById('dynamic-modal-container');
+
+        // Show payment modal if user is the winner
+        if (data.winner === currentUsername) {
+            if (!document.getElementById('paymentPinModal')) {
+                console.log("You won! Fetching payment modal...");
+                fetch(`/bids/lot/${lotSlug}/payment-modal/`)
+                    .then(response => response.text())
+                    .then(html => {
+                        if (html.trim()) {
+                            if (modalContainer) {
+                                modalContainer.innerHTML = html;
+                                // Initialize Modal Logic (Timer & Form)
+                                initPaymentModal();
+                            } else {
+                                // Fallback if container missing
+                                const div = document.createElement('div');
+                                div.id = 'dynamic-modal-container';
+                                div.innerHTML = html;
+                                document.body.appendChild(div);
+                                initPaymentModal();
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Error fetching modal:", err));
+            }
+        }
+    }
+
+    // --- Winner Overlay Logic ---
+    function dismissWinnerOverlay() {
+        if (!winnerOverlay) return;
+
+        // Mark as dismissed for this session/lot to prevent reappearance
+        sessionStorage.setItem(`winner_dismissed_${lotSlug}`, 'true');
+
+        // Smooth out with GSAP
+        if (typeof gsap !== 'undefined') {
+            gsap.to('#winner-card', {
+                scale: 0.8,
+                opacity: 0,
+                duration: 0.4,
+                ease: 'power2.in',
+                onComplete: () => {
+                    winnerOverlay.classList.add('hidden');
+                }
+            });
+        } else {
+            winnerOverlay.classList.add('hidden');
+        }
+    }
+
+    window.showWinnerOverlay = function (name, price) {
+        if (!winnerOverlay) return;
+
+        // Check if dismissed
+        if (sessionStorage.getItem(`winner_dismissed_${lotSlug}`) === 'true') {
+            console.log("🏆 Winner overlay skipped: User already dismissed it.");
+            return;
+        }
+
+        winnerNameEl.textContent = name;
+        winnerPriceEl.textContent = (typeof price === 'number') ? `₹${price.toFixed(2)}` : price;
+
+        winnerOverlay.classList.remove('hidden');
+        if (typeof gsap !== 'undefined') {
+            gsap.to('#winner-card', {
+                scale: 1,
+                opacity: 1,
+                duration: 0.6,
+                ease: 'back.out(1.7)'
+            });
+        }
+    };
+
+
+    function prependBidToFeed(bid) {
+        // Remove previous winning styling from all
+        // Note: In a real-time feed, we might want to keep history styles, 
+        // but usually only the top one is "winning"
+        const items = bidHistoryEl.querySelectorAll('.bid-item');
+        items.forEach(el => {
+            el.classList.remove('border-l-4', 'border-l-green-500');
+            const label = el.querySelector('.winning-label');
+            if (label) label.remove();
+        });
+
+        const isCurrentUser = bid.user === currentUsername;
+
+        // Format timestamp (basic logic, better to use library or consistent server format)
+        const timeStr = new Date(bid.timestamp).toLocaleTimeString();
+
+        const html = `
+        <div class="bid-item p-3 ${isCurrentUser ? 'bg-indigo-50 border-indigo-200 ml-8' : 'bg-white border-slate-200 mr-8'} border rounded reveal-bid border-l-4 border-l-green-500">
+            <div class="flex justify-between items-start mb-1">
+                <span class="font-bold ${isCurrentUser ? 'text-indigo-900' : 'text-slate-900'} text-sm">
+                    <i class="fas fa-gavel ${isCurrentUser ? 'text-indigo-600' : 'text-slate-400'} mr-1"></i> ${bid.user} ${isCurrentUser ? '(You)' : ''}
+                </span>
+                <span class="winning-label bg-green-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">WINNING</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-lg font-black ${isCurrentUser ? 'text-indigo-900' : 'text-purple-600'}">₹${bid.amount.toFixed(2)}</span>
+                <span class="text-[9px] text-slate-400 font-mono">${timeStr}</span>
+            </div>
+        </div>
+    `;
+
+        bidHistoryEl.insertAdjacentHTML('afterbegin', html);
+
+        // Animate
+        gsap.from(".reveal-bid", {
+            x: -20,
+            opacity: 0,
+            duration: 0.3,
+            ease: "power2.out"
+        });
+    }
+
+    // ===== BID FEED FUNCTIONS =====
+
+    function prependBidToFeed(bidData) {
+        console.log('📝 prependBidToFeed called with:', bidData);
+        bidHistoryEl = document.getElementById('bid-history'); // Ensure element is grabbed if not global
+        if (!bidHistoryEl) {
+            console.error('❌ bid-history element not found!');
+            return;
+        }
+
+        // Create bid element
+        const bidElement = document.createElement('div');
+        bidElement.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors';
+
+        const timestamp = bidData.timestamp ? new Date(bidData.timestamp).toLocaleTimeString() : 'Just now';
+
+        bidElement.innerHTML = `
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                <i class="fas fa-user text-white text-xs"></i>
+            </div>
+            <div>
+                <p class="font-bold text-slate-900 text-sm">${bidData.user || 'Anonymous'}</p>
+                <p class="text-xs text-slate-500">${timestamp}</p>
+            </div>
+        </div>
+        <div class="text-right">
+            <p class="font-black text-lg text-violet-600">₹${parseFloat(bidData.amount).toFixed(2)}</p>
+            ${bidData.is_winning ? '<p class="text-xs text-green-600 font-bold uppercase">Winning</p>' : ''}
+        </div>
+    `;
+
+        // Prepend to bid history (newest first)
+        bidHistoryEl.insertBefore(bidElement, bidHistoryEl.firstChild);
+        console.log('✅ Bid added to feed');
+
+        // Limit to 20 bids
+        while (bidHistoryEl.children.length > 20) {
+            bidHistoryEl.removeChild(bidHistoryEl.lastChild);
+        }
+
+        // Animate the new bid
+        if (typeof gsap !== 'undefined') {
+            gsap.from(bidElement, {
+                duration: 0.5,
                 x: -20,
                 opacity: 0,
-                duration: 0.3,
-                ease: "power2.out"
+                ease: 'power2.out'
             });
         }
+    }
 
-        function showError(msg) {
-            bidErrorEl.textContent = msg;
-            bidErrorEl.classList.remove('hidden');
-            bidSuccessEl.classList.add('hidden');
-            setTimeout(() => bidErrorEl.classList.add('hidden'), 3000);
+    // ===== AUCTION END FLOW FUNCTIONS =====
+
+    // This showCountdown is redundant with the one above, keeping the one that uses global elements
+    // function showCountdown(seconds) {
+    //     const overlay = document.getElementById('countdown-overlay');
+    //     const numberEl = document.getElementById('countdown-number');
+
+    //     if (overlay && numberEl && seconds > 0 && seconds <= 10) {
+    //         overlay.classList.remove('hidden');
+    //         numberEl.textContent = Math.ceil(seconds);
+    //     } else if (overlay && seconds > 10) {
+    //         overlay.classList.add('hidden');
+    //     }
+    // }
+
+    // This handleAuctionEnded is redundant with the one above, keeping the one that uses global elements
+    // function handleAuctionEnded(data) {
+    //     console.log('Auction ended:', data);
+
+    //     // Hide countdown
+    //     const countdownOverlay = document.getElementById('countdown-overlay');
+    //     if (countdownOverlay) countdownOverlay.classList.add('hidden');
+
+    //     // Disable bidding
+    //     if (bidButton) {
+    //         bidButton.disabled = true;
+    //         bidButton.innerHTML = '<i class="fas fa-ban mr-2"></i>AUCTION ENDED';
+    //         bidButton.classList.remove('bg-gradient-to-r', 'from-violet-600', 'to-fuchsia-600');
+    //         bidButton.classList.add('bg-slate-400');
+    //     }
+
+    //     // Check if current user is the winner
+    //     if (data.winner && data.winner === currentUsername) {
+    //         // Show payment modal for winner
+    //         showPaymentModal(data);
+    //     } else {
+    //         // Show auction ended message for non-winners
+    //         showError(`Auction ended. Winner: ${data.winner || 'None'}`);
+    //     }
+    // }
+
+    function initPaymentModal() {
+        const modal = document.getElementById('paymentPinModal');
+        if (!modal) return;
+
+        const expiresAtStr = modal.getAttribute('data-expires');
+        const verifyUrl = modal.getAttribute('data-verify-url');
+
+        // --- Timer Logic ---
+        if (expiresAtStr) {
+            const expiresAt = new Date(expiresAtStr);
+            const timerDisplay = document.getElementById('payment-timer');
+            const submitBtn = document.getElementById('verifyPaymentBtn');
+            const errorDiv = document.getElementById('paymentPinError');
+
+            function updatePaymentTimer() {
+                if (!timerDisplay) return;
+                const now = new Date();
+                const distance = expiresAt - now;
+
+                if (distance < 0) {
+                    timerDisplay.textContent = "EXPIRED";
+                    timerDisplay.classList.add('text-red-600');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                    if (errorDiv) {
+                        errorDiv.textContent = 'Payment window has expired.';
+                        errorDiv.classList.remove('hidden');
+                    }
+                    if (window.currentPaymentInterval) clearInterval(window.currentPaymentInterval);
+                    return;
+                }
+
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                if (distance < 120000) timerDisplay.classList.add('text-red-600', 'font-bold');
+            }
+
+            updatePaymentTimer();
+            window.currentPaymentInterval = setInterval(updatePaymentTimer, 1000);
         }
 
-        function showSuccess(msg) {
-            bidSuccessEl.textContent = msg;
-            bidSuccessEl.classList.remove('hidden');
-            bidErrorEl.classList.add('hidden');
-            setTimeout(() => bidSuccessEl.classList.add('hidden'), 3000);
+        // --- Form Submission Logic ---
+        const form = document.getElementById('paymentPinForm');
+        const pinInput = document.getElementById('payment-pin');
+
+        if (pinInput) {
+            pinInput.addEventListener('input', function (e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+            // Focus input
+            setTimeout(() => pinInput.focus(), 500);
         }
 
-        // Start polling immediately
-        startPolling();
-    });
+        if (form) {
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const pin = pinInput.value;
+                const errorDiv = document.getElementById('paymentPinError');
+                const successDiv = document.getElementById('paymentPinSuccess');
+                const submitBtn = document.getElementById('verifyPaymentBtn');
+
+                if (errorDiv) errorDiv.classList.add('hidden');
+                if (successDiv) successDiv.classList.add('hidden');
+
+                if (!/^\d{4,6}$/.test(pin)) {
+                    if (errorDiv) {
+                        errorDiv.textContent = 'PIN must be 4-6 digits';
+                        errorDiv.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                }
+
+                try {
+                    const formData = new FormData(this);
+
+                    const response = await fetch(verifyUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        if (successDiv) {
+                            successDiv.textContent = data.message;
+                            successDiv.classList.remove('hidden');
+                        }
+
+                        // Clear timer
+                        if (window.currentPaymentInterval) clearInterval(window.currentPaymentInterval);
+
+                        // Success Delay
+                        setTimeout(() => {
+                            modal.classList.add('hidden');
+                            modal.remove(); // Remove from DOM
+
+                            // Show standard winner overlay instead of celebration modal
+                            window.showWinnerOverlay(
+                                currentUsername,
+                                parseFloat("{{ lot.current_bid }}")
+                            );
+
+                        }, 1000);
+
+                    } else {
+                        if (errorDiv) {
+                            errorDiv.textContent = data.message || 'Payment verification failed';
+                            errorDiv.classList.remove('hidden');
+                        }
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Payment';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Payment Error:', error);
+                    if (errorDiv) {
+                        errorDiv.textContent = 'An error occurred. Please try again.';
+                        errorDiv.classList.remove('hidden');
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Payment';
+                    }
+                }
+            });
+        }
+    }
+
+    // showWinnerCelebration removed (consolidated into window.showWinnerOverlay)
+
+    // --- WEBSOCKET CONNECTION ---
+    function connectWebSocket() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log("WebSocket already open.");
+            return;
+        }
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/lot/${lotSlug}/`;
+
+        console.log("🔌 Connecting to WS:", wsUrl);
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function (e) {
+            console.log("✅ WebSocket Connected");
+            if (connectionStatusEl) {
+                connectionStatusEl.innerHTML = `
+                    <span class="flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                        <span class="text-green-700 font-bold">LIVE</span>
+                    </span>
+                    <span class="text-slate-400">WebSocket</span>`;
+            }
+            // Initial request for status to sync
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ type: 'request_status' }));
+            }
+        };
+
+        function handleWebSocketMessage(data) {
+            console.log("📨 Handling WS Message:", data.type);
+
+            if (data.type === 'bid_update') {
+                console.log("⚡ Bid Update Received:", data);
+
+                // Visual Feedback: Flash Flash the connection status
+                if (connectionStatusEl) {
+                    const time = new Date().toLocaleTimeString();
+                    connectionStatusEl.innerHTML = `
+                            <span class="flex items-center">
+                                <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                                <span class="text-green-700 font-bold">LIVE (PID: {{ server_pid }})</span>
+                            </span>
+                            <span class="text-xs text-slate-500 ml-2">Updated: ${time}</span>`;
+                }
+
+                // 1. Update Current Bid
+                try {
+                    if (currentBidEl) {
+                        currentBidEl.textContent = `₹${data.bid.amount.toFixed(2)}`;
+                        currentBidEl.classList.add('text-green-600', 'scale-110');
+                        setTimeout(() => currentBidEl.classList.remove('text-green-600', 'scale-110'), 500);
+                    }
+                } catch (e) { console.error("Error updating price:", e); }
+
+                // 2. Update Next Bid
+                try {
+                    if (data.minimum_bid && nextBidDisplayEl) {
+                        nextBidDisplayEl.textContent = `₹${data.minimum_bid.toFixed(2)}`;
+                    }
+                } catch (e) { console.error("Error updating next bid:", e); }
+
+                // 3. Update Increment
+                try {
+                    if (data.minimum_bid && incrementEl) {
+                        const inc = data.minimum_bid - data.bid.amount;
+                        incrementEl.textContent = `₹${inc.toFixed(2)}`;
+                    }
+                } catch (e) { console.error("Error updating increment:", e); }
+
+                // 4. Update Bid Count
+                try {
+                    if (data.bid_count && bidCountEl) {
+                        bidCountEl.textContent = data.bid_count;
+                        document.querySelectorAll('.bid-count-display').forEach(el => el.textContent = data.bid_count);
+                    }
+                } catch (e) { console.error("Error updating count:", e); }
+
+                // 5. Add to Feed
+                const bid = data.bid;
+                bid.user = bid.user || data.user;
+
+                // Construct unique key matching fetchUpdates logic
+                // Ensure amount is handled as number
+                const amt = typeof bid.amount === 'string' ? parseFloat(bid.amount) : bid.amount;
+                const key = `${bid.user}_${Math.floor(amt)}`;
+
+                if (knownBids && knownBids.has(key)) {
+                    console.log("⚡ Bid already known (duplicate skipped):", key);
+                } else {
+                    if (knownBids) knownBids.add(key);
+
+                    try {
+                        const isCurrentUser = bid.user === currentUsername;
+                        const timeStr = new Date(bid.timestamp).toLocaleTimeString();
+
+                        // 1. Clear ALL existing winning badges first
+                        document.querySelectorAll('.bid-item').forEach(el => {
+                            el.classList.remove('border-l-indigo-500', 'border-l-green-500', 'border-l-4');
+                            el.classList.add('border-slate-200');
+                            const label = el.querySelector('.winning-label');
+                            if (label) label.classList.add('hidden');
+                        });
+
+                        const html = `
+                        <div class="bid-item p-3 ${isCurrentUser ? 'bg-indigo-50 border-indigo-200 ml-8' : 'bg-white border-slate-200 mr-8'} border rounded reveal-bid border-l-4 border-l-green-500 transition-all duration-500">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-bold ${isCurrentUser ? 'text-indigo-900' : 'text-slate-900'} text-sm">
+                                    <i class="fas fa-gavel ${isCurrentUser ? 'text-indigo-600' : 'text-slate-400'} mr-1"></i> ${bid.user} ${isCurrentUser ? '(You)' : ''}
+                                </span>
+                                <span class="winning-label bg-green-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">WINNING</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-black ${isCurrentUser ? 'text-indigo-900' : 'text-purple-600'}">₹${amt.toFixed(2)}</span>
+                                <span class="text-[9px] text-slate-400 font-mono">${timeStr}</span>
+                            </div>
+                        </div>
+                        `;
+
+                        if (bidHistoryEl) {
+                            bidHistoryEl.insertAdjacentHTML('afterbegin', html);
+
+                            // Remove "No bids" message if present
+                            const emptyMsg = bidHistoryEl.querySelector('.text-center.text-slate-400');
+                            if (emptyMsg) emptyMsg.remove();
+
+                            // Animate
+                            if (typeof gsap !== 'undefined') {
+                                gsap.from(".reveal-bid:first-child", { x: -20, opacity: 0, duration: 0.3, ease: "power2.out" });
+                            }
+                        }
+                    } catch (e) { console.error("Error updating feed:", e); }
+                }
+
+                // 6. Toast
+                if (data.bid.user === currentUsername) {
+                    showSuccess('Your bid was placed successfully!');
+                }
+
+                // 7. NEW: Update Timer immediately on bid
+                if (data.time_remaining !== undefined && data.time_remaining !== null) {
+                    if (!mainTimerDisplay) mainTimerDisplay = document.getElementById('timer-display');
+                    if (mainTimerDisplay) {
+                        mainTimerDisplay.textContent = formatTime(data.time_remaining);
+                        // FIX: Only show countdown if it's genuinely in the 10s window (and not 0)
+                        if (data.time_remaining <= 10 && data.time_remaining > 0) {
+                            showCountdown(data.time_remaining);
+                        } else {
+                            if (countdownSection) countdownSection.classList.add('hidden');
+                        }
+                    }
+                }
+
+            } else if (data.type === 'timer_update') {
+                const timerData = data.data || data;
+                if (!mainTimerDisplay) mainTimerDisplay = document.getElementById('timer-display');
+                if (mainTimerDisplay) {
+                    mainTimerDisplay.textContent = formatTime(timerData.time_remaining);
+                    if (timerData.time_remaining > 0) {
+                        mainTimerDisplay.classList.remove('text-red-300');
+                    }
+                }
+
+                // Show countdown overlay if <= 10s (Independent of main display)
+                if (timerData.time_remaining <= 10 && timerData.time_remaining > 0) {
+                    showCountdown(timerData.time_remaining);
+                } else if (timerData.time_remaining <= 0) {
+                    if (countdownSection) countdownSection.classList.add('hidden');
+                }
+            } else if (data.type === 'lot_status') {
+                console.log("📊 Lot Status Received:", data.data);
+                const s = data.data;
+                if (!mainTimerDisplay) mainTimerDisplay = document.getElementById('timer-display');
+                if (mainTimerDisplay && s.time_remaining !== undefined) {
+                    mainTimerDisplay.textContent = formatTime(s.time_remaining);
+                    if (s.time_remaining <= 0) {
+                        mainTimerDisplay.textContent = (s.status === 'active') ? "CLOSING..." : "ENDED";
+                    }
+                }
+                if (currentBidEl && s.current_bid) currentBidEl.textContent = `₹${s.current_bid.toFixed(2)}`;
+                if (nextBidDisplayEl && s.minimum_bid) nextBidDisplayEl.textContent = `₹${s.minimum_bid.toFixed(2)}`;
+                if (bidCountEl && s.bid_count !== undefined) bidCountEl.textContent = s.bid_count;
+            } else if (data.type === 'auction_ended' || data.type === 'lot_closed') {
+                console.log("🏁 Auction Ended Signal:", data);
+                // Server sends nested data: {type: 'auction_ended', data: {winner: ...}}
+                handleAuctionEnded(data.data || data);
+            } else if (data.type === 'error') {
+                showError(data.message);
+            }
+        }
+
+        socket.onopen = function (e) {
+            console.log("✅ WebSocket Connected!");
+            logMobile("✅ WS Connected!");
+            if (connectionStatusEl) {
+                connectionStatusEl.innerHTML = `
+                    <span class="flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                        <span class="text-green-700 font-bold">LIVE (PID: {{ server_pid }})</span>
+                    </span>
+                    <span class="text-xs text-slate-500 ml-2">Connected @ ${new Date().toLocaleTimeString()}</span>`;
+            }
+        };
+
+        socket.onmessage = function (e) {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === 'timer_update') {
+                    const timerData = data.data || data;
+                    const t = parseFloat(timerData.time_remaining);
+                    if (t <= 12) { // Log slightly earlier to catch the transition
+                        logMobile(`⏱️ Received Timer Update: ${t.toFixed(1)}s`);
+                    }
+                } else {
+                    logMobile(`📩 Received: ${data.type}`);
+                }
+                handleWebSocketMessage(data);
+            } catch (err) {
+                console.error("WS Parse Error", err);
+                logMobile("❌ JS Parse Error: " + err.message);
+            }
+        };
+
+        socket.onclose = function (e) {
+            console.warn("⚠️ WebSocket Closed. Reconnecting...");
+            logMobile("⚠️ WS Closed. Code: " + e.code);
+            if (connectionStatusEl) {
+                connectionStatusEl.innerHTML = `
+                    <span class="flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                        <span class="text-red-700 font-bold">DISCONNECTED</span>
+                    </span>
+                    <span class="text-slate-400">Reconnecting...</span>`;
+            }
+            setTimeout(connectWebSocket, 3000);
+        };
+
+        socket.onerror = function (err) {
+            console.error("WS Error:", err);
+            logMobile("❌ WS Error! Check connection.");
+        };
+    }
 </script>
 {% endblock %}
