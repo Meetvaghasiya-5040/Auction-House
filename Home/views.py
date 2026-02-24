@@ -156,10 +156,9 @@ def add_item_view(request):
         for image in images:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{timestamp}_{image.name}"
+            # save returns the raw relative path, e.g. "item_images/foo.jpg"
             saved_path = default_storage.save(f"item_images/{filename}", image)
-            # Get the permanent URL (Cloudinary CDN on Render, /media/ path locally)
-            image_url = default_storage.url(saved_path)
-            images_paths.append(image_url)
+            images_paths.append(saved_path)
         
         # Calculate Shipping Fee
         # try:

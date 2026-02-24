@@ -120,10 +120,17 @@ class Item(models.Model):
             if path.startswith("http://") or path.startswith("https://"):
                 urls.append(path)       # Already a full URL — use as-is
             else:
+                # Clean up errant media/ prefixes that might exist in old DB rows
+                clean_path = path
+                if clean_path.startswith('/media/'):
+                    clean_path = clean_path.replace('/media/', '', 1)
+                elif clean_path.startswith('media/'):
+                    clean_path = clean_path.replace('media/', '', 1)
+                    
                 try:
-                    urls.append(default_storage.url(path))  # Resolves via active storage backend
+                    urls.append(default_storage.url(clean_path))  # Resolves via active storage backend
                 except Exception:
-                    urls.append(f"/media/{path}")           # Fallback for local dev
+                    urls.append(f"/media/{clean_path}")           # Fallback for local dev
         return urls
 
 
