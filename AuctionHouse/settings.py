@@ -50,6 +50,23 @@ UNFOLD = {
                     {"title": "Lots", "icon": "inventory_2", "link": "/admin/auction_list/lot/"},
                 ],
             },
+            {
+                "title": "Bids",
+                "separator": True,
+                "items": [
+                    {"title": "Bids", "icon": "gavel", "link": "/admin/bids/bid/"},
+                    {"title": "Transactions", "icon": "receipt_long", "link": "/admin/bids/transaction/"},
+                    {"title": "Wallets", "icon": "category", "link": "/admin/bids/wallet/"},
+                    {"title": "Admin Wallet", "icon": "inventory_2", "link": "/admin/bids/admin_wallet/"},
+                ],
+            },
+            {
+                "title": "Users",
+                "separator": True,
+                "items": [
+                    {"title": "Users", "icon": "gavel", "link": "/admin/users/user/"},
+                ],
+            },
         ],
     },
     "LIST_VIEW": {
@@ -71,6 +88,8 @@ UNFOLD = {
 INSTALLED_APPS = [
     "daphne",
     "unfold",
+    "unfold.contrib.filters", 
+    "unfold.contrib.forms",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

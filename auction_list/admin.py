@@ -22,6 +22,8 @@ class AuctionAdmin(admin.ModelAdmin):
     )
     search_fields = ("title", "description", "location")
     list_select_related = ("created_by", "approved_by")
+    list_filter = ("status", "created_by", "approved_by", "approved_at")
+    actions = ["delete_selected"]
     readonly_fields = (
         "created_at",
         "updated_at",
@@ -92,6 +94,8 @@ admin.site.register(Auction, AuctionAdmin)
 class CatagoryAdmin(admin.ModelAdmin):
     list_display = ["name", "item_count", "available_count", "created_at"]
     search_fields = ["name", "description"]
+    list_filter = ("item_count", "available_count", "created_at")
+    actions = ["delete_selected"]
     list_per_page = 20
     list_select_related = ()
     def item_count(self, obj):
@@ -121,6 +125,8 @@ class ItemAdmin(admin.ModelAdmin):
         "created_at",
     ]
     search_fields = ["title", "description", "item_catagory__name"]
+    list_filter = ("item_catagory", "owner", "current_lot", "created_at")
+    actions = ["delete_selected"]
 
     readonly_fields = [
         "created_at",
@@ -270,6 +276,9 @@ class LotAdmin(admin.ModelAdmin):
         "winning_bidder",
         "current_bid",
     )
+    list_filter = ("lot_catagory", "auction", "status", "created_at")
+    actions = ["delete_selected"]
+    search_fields = ("lot_number", "title", "auction__title")
     filter_horizontal = ("items",)
     list_per_page = 20
     fieldsets = (
@@ -383,6 +392,9 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_display = (
         "user",'lot','amount','issued_at'
     )
+    list_filter = ("user","lot","amount","issued_at")
+    actions = ["delete_selected"]
+    search_fields = ("user__username","lot__title","amount")
     list_per_page = 20
 
 admin.site.register(LotRegister)
