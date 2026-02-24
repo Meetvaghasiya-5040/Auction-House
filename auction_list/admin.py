@@ -390,7 +390,6 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_display = (
         "user",'lot','amount','issued_at'
     )
-    list_select_related = ("user", "lot")
     list_filter_submit = True
     list_filter = ("user","lot","amount","issued_at")
     list_per_page = 20
