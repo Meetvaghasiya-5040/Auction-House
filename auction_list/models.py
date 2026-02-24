@@ -11,7 +11,6 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from io import BytesIO
-from xhtml2pdf import pisa
 import uuid
 import threading
 
@@ -636,6 +635,7 @@ def send_invoice_email_task(invoice_id):
         
         # Render PDF HTML (Simple Design)
         try:
+            from xhtml2pdf import pisa
             pdf_html = render_to_string('bids/invoice_pdf.html', context)
             
             # Generate PDF
