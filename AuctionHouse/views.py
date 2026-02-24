@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth import get_user_model
+import threading
 
 
 def is_valid_email(email):
@@ -134,27 +135,47 @@ def register_view(request):
                 password=make_password(password),
             )
 
+            # Save profile image — isolated so any cloud/filesystem error
+            # does NOT prevent the user from being redirected home.
             if profile_image:
-                profile, created = Profile.objects.get_or_create(user=user)
-                profile.profile_image = profile_image
-                profile.save()
+                try:
+                    profile, created = Profile.objects.get_or_create(user=user)
+                    profile.profile_image = profile_image
+                    profile.save()
 
-                img_path = profile.profile_image.path
-                img = Image.open(img_path)
+                    # Only attempt PIL resize when we can reliably open the file.
+                    # On ephemeral cloud filesystems (e.g. Render) .path may fail,
+                    # so we guard it separately.
+                    try:
+                        img_path = profile.profile_image.path
+                        img = Image.open(img_path)
+                        max_size = (500, 500)
+                        if img.height > max_size[1] or img.width > max_size[0]:
+                            img.thumbnail(max_size, Image.Resampling.LANCZOS)
+                            img.save(img_path, quality=90, optimize=True)
+                    except Exception:
+                        # PIL resize failed (e.g. ephemeral FS on Render) — safe to ignore.
+                        pass
+                except Exception:
+                    # Profile image save failed — continue without image rather than
+                    # blocking registration.
+                    pass
 
-                max_size = (500, 500)
-                if img.height > max_size[1] or img.width > max_size[0]:
-                    img.thumbnail(max_size, Image.Resampling.LANCZOS)
-                    img.save(img_path, quality=90, optimize=True)
+            # Send welcome email in a background thread so SMTP latency
+            # cannot hang the HTTP response.
+            def send_welcome_email():
+                try:
+                    send_mail(
+                        "Welcome to Auction House!",
+                        f"Hi {first_name},\n\nThank you for registering with Auction House. We are excited to have you on board!\n\nBest regards,\nThe Auction House Team",
+                        settings.EMAIL_HOST_USER,
+                        [email],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
 
-            
-            send_mail(
-                "Welcome to Auction House!",
-                f"Hi {first_name},\n\nThank you for registering with Auction House. We are excited to have you on board!\n\nBest regards,\nThe Auction House Team",
-                settings.EMAIL_HOST_USER,
-                [email],
-                fail_silently=True,
-            )
+            threading.Thread(target=send_welcome_email, daemon=True).start()
 
             login(request, user)
 

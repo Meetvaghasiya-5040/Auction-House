@@ -17,5 +17,5 @@ urlpatterns = [
 ]
 
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Always serve media files (needed even in production for user-uploaded content)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -251,3 +251,4 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Required for WebSockets behind proxy
 USE_X_FORWARDED_HOST = True
 SECURE_SSL_REDIRECT = True
+LOGIN_REDIRECT_URL = 'home'
