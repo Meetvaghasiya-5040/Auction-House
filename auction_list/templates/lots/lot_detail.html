@@ -16,14 +16,16 @@
                 <a href="{% url 'item_detail' item.slug %}"
                     class="group bg-white border-2 border-slate-200 hover:border-purple-600 transition-colors p-2 pt-0">
                     <div class="aspect-square bg-slate-100 overflow-hidden mb-2 relative">
-                        {% if item.images %}
-                        <img src="/media/{{ item.images.0 }}" alt="{{ item.title }}"
+                        {% with img_url=item.get_image_urls.0 %}
+                        {% if img_url %}
+                        <img src="{{ img_url }}" alt="{{ item.title }}"
                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         {% else %}
                         <div class="flex items-center justify-center h-full text-slate-300">
                             <i class="fas fa-image text-4xl"></i>
                         </div>
                         {% endif %}
+                        {% endwith %}
                         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
                     </div>
                     <div class="px-1">
@@ -97,7 +99,8 @@
                     <div class="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
                         <p class="text-xs font-bold text-blue-700 uppercase mb-2">Your Verification Code</p>
                         <div class="flex items-center justify-between">
-                            <span class="text-3xl font-black text-blue-900 tracking-widest">{{lot.delivery.verification_code}}</span>
+                            <span
+                                class="text-3xl font-black text-blue-900 tracking-widest">{{lot.delivery.verification_code}}</span>
                             <i class="fas fa-shield-alt text-blue-400 text-2xl"></i>
                         </div>
                         <p class="text-[10px] text-blue-600 mt-2">Give this code to the seller or warehouse ONLY after
@@ -260,6 +263,21 @@
                 <button id="place-bid-btn"
                     class="w-full px-8 py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black text-2xl uppercase tracking-widest hover:from-purple-700 hover:to-blue-700 transition-all transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:transform-none shadow-lg">
                     <i class="fas fa-plus-circle mr-3"></i>Place Bid
+                </button>
+                {% elif lot.status == 'draft' %}
+                <button id="place-bid-btn" disabled class="w-full px-8 py-6 
+                    bg-gradient-to-r from-purple-600 to-blue-600 
+                    text-white font-black text-2xl uppercase tracking-widest 
+                    transition-all transform 
+                    shadow-lg cursor-not-allowed relative overflow-hidden">
+
+                    <!-- Text above overlay -->
+                    <span class="relative z-10">
+                        <i class="fas fa-lock mr-3"></i>Start Soon
+                    </span>
+
+                    <!-- Gray RGBA Shade -->
+                    <span class="absolute inset-0 bg-[rgba(120,120,120,0.75)]"></span>
                 </button>
                 {% else %}
                 <button id="place-bid-btn" disabled class="w-full px-8 py-6 

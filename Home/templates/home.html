@@ -144,14 +144,16 @@
                 class="group bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                 <!-- Image Slider (Simplified for card) -->
                 <div class="relative aspect-[4/3] bg-slate-100 overflow-hidden">
-                    {% if lot.items.first.images %}
-                    <img src="/media/{{ lot.items.first.images.0 }}" alt="{{ lot.title }}"
+                    {% with img_url=lot.items.first.get_image_urls.0 %}
+                    {% if img_url %}
+                    <img src="{{ img_url }}" alt="{{ lot.title }}"
                         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
                     {% else %}
                     <div class="w-full h-full flex items-center justify-center text-slate-300">
                         <i class="fas fa-image text-4xl"></i>
                     </div>
                     {% endif %}
+                    {% endwith %}
 
                     <div
                         class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
@@ -213,9 +215,11 @@
                         <div
                             class="bg-white rounded-xl overflow-hidden shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
                             <div class="relative h-40 bg-slate-200">
-                                {% if lot.items.first.images %}
-                                <img src="/media/{{ lot.items.first.images.0 }}" class="w-full h-full object-cover">
+                                {% with img_url=lot.items.first.get_image_urls.0 %}
+                                {% if img_url %}
+                                <img src="{{ img_url }}" class="w-full h-full object-cover">
                                 {% endif %}
+                                {% endwith %}
                                 <div
                                     class="absolute bottom-2 left-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
                                     {{ lot.num_bids }} BIDS

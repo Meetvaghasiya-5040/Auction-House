@@ -103,6 +103,22 @@ class Item(models.Model):
             slug = f"{base_slug}-{num}"
             num += 1
         return slug
+
+    @property
+    def get_image_urls(self):
+        """
+        Return a list of fully-resolved image URLs.
+        - If Cloudinary is active, default_storage.save() stores full https:// URLs → return as-is.
+        - If using local storage, paths are relative (e.g. 'item_images/foo.jpg') → prepend /media/.
+        """
+        urls = []
+        for path in (self.images or []):
+            if path.startswith("http://") or path.startswith("https://"):
+                urls.append(path)            # Already a full Cloudinary URL
+            elif path:
+                urls.append(f"/media/{path}")  # Local dev path
+        return urls
+
     
 
     @property

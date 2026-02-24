@@ -26,7 +26,8 @@
                 </div>
                 <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: rgba(31, 41, 55, 1);">Delivery Tracking
                 </h1>
-                <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">Lot #{{ lot.lot_number }} - {{lot.title }}</p>
+                <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">Lot #{{ lot.lot_number }} -
+                    {{lot.title }}</p>
             </div>
 
             <!-- Status Card -->
@@ -77,7 +78,8 @@
                     {% with progress=50 %}
                     {% endwith %}
                     {% endif %}
-                    {% if status != 'sold' and status != 'draft' and status != 'active' and status != 'delivered' and status != 'shipped' and status != 'at_warehouse' and status != 'shipped_to_warehouse' %}
+                    {% if status != 'sold' and status != 'draft' and status != 'active' and status != 'delivered' and
+                    status != 'shipped' and status != 'at_warehouse' and status != 'shipped_to_warehouse' %}
                     {% with progress=25 %}
                     {% endwith %}
                     {% endif %}
@@ -182,9 +184,10 @@
                         <i class="fas fa-box-open mr-2" style="color: rgba(59, 130, 246, 1);"></i>Item Details
                     </h3>
                     <div class="flex flex-col sm:flex-row gap-4">
-                        {% if item.images %}
+                        {% with img_url=item.get_image_urls.0 %}
+                        {% if img_url %}
                         <div class="flex-shrink-0">
-                            <img src="/media/{{ item.images.0 }}" class="w-full sm:w-32 h-32 object-cover"
+                            <img src="{{ img_url }}" class="w-full sm:w-32 h-32 object-cover"
                                 style="background: rgba(248, 250, 252, 1);">
                         </div>
                         {% else %}
@@ -193,8 +196,10 @@
                             <i class="fas fa-image text-4xl" style="color: rgba(203, 213, 225, 1);"></i>
                         </div>
                         {% endif %}
+                        {% endwith %}
                         <div class="flex-1">
-                            <h4 class="font-bold text-lg md:text-xl mb-2" style="color: rgba(31, 41, 55, 1);">{{item.title }}</h4>
+                            <h4 class="font-bold text-lg md:text-xl mb-2" style="color: rgba(31, 41, 55, 1);">
+                                {{item.title }}</h4>
                             <p class="text-sm mb-4" style="color: rgba(107, 114, 128, 1);">
                                 {{item.description|truncatechars:150 }}</p>
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
@@ -202,7 +207,8 @@
                                     style="background: rgba(239, 246, 255, 0.5); border: 1px solid rgba(219, 234, 254, 1);">
                                     <span class="block text-xs mb-1" style="color: rgba(107, 114, 128, 1);">Estimated
                                         Value</span>
-                                    <span class="font-bold" style="color: rgba(31, 41, 55, 1);">₹{{item.estimated_value}}</span>
+                                    <span class="font-bold"
+                                        style="color: rgba(31, 41, 55, 1);">₹{{item.estimated_value}}</span>
                                 </div>
                                 <div class="p-3"
                                     style="background: rgba(240, 253, 244, 0.5); border: 1px solid rgba(220, 252, 231, 1);">
@@ -215,13 +221,15 @@
                                     style="background: rgba(254, 243, 199, 0.5); border: 1px solid rgba(253, 230, 138, 1);">
                                     <span class="block text-xs mb-1" style="color: rgba(107, 114, 128, 1);">Winning
                                         Bid</span>
-                                    <span class="font-bold" style="color: rgba(31, 41, 55, 1);">₹{{lot.current_bid}}</span>
+                                    <span class="font-bold"
+                                        style="color: rgba(31, 41, 55, 1);">₹{{lot.current_bid}}</span>
                                 </div>
                                 <div class="p-3"
                                     style="background: rgba(243, 232, 255, 0.5); border: 1px solid rgba(233, 213, 255, 1);">
                                     <span class="block text-xs mb-1" style="color: rgba(107, 114, 128, 1);">Shipping
                                         Fee</span>
-                                    <span class="font-bold" style="color: rgba(31, 41, 55, 1);">₹{{lot.shipping_fee}}</span>
+                                    <span class="font-bold"
+                                        style="color: rgba(31, 41, 55, 1);">₹{{lot.shipping_fee}}</span>
                                 </div>
                             </div>
                         </div>
@@ -251,7 +259,8 @@
                                     style="color: rgba(107, 114, 128, 1);">Address</span>
                                 <p style="color: rgba(31, 41, 55, 1);">
                                     {{ request.user.profile.address }}<br>
-                                    {{ request.user.profile.city }}, {{ request.user.profile.state}} - {{request.user.profile.zip_code }}
+                                    {{ request.user.profile.city }}, {{ request.user.profile.state}} -
+                                    {{request.user.profile.zip_code }}
                                 </p>
                             </div>
                         </div>

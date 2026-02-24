@@ -401,21 +401,21 @@
 
         <!-- Image Gallery -->
         <div class="card p-4 slide-in">
-          {% if item.images %}
+          {% if item.get_image_urls %}
           <div class="gallery-container">
             <!-- Thumbnail Sidebar -->
             <div class="thumbnail-sidebar">
-              {% for image in item.images %}
+              {% for url in item.get_image_urls %}
               <div class="thumbnail {% if forloop.first %}active{% endif %}"
-                onclick="changeMainImage('/media/{{ image }}', this)" data-index="{{ forloop.counter0 }}">
-                <img src="/media/{{ image }}" alt="Thumbnail {{ forloop.counter }}">
+                onclick="changeMainImage('{{ url }}', this)" data-index="{{ forloop.counter0 }}">
+                <img src="{{ url }}" alt="Thumbnail {{ forloop.counter }}">
               </div>
               {% endfor %}
             </div>
 
             <!-- Main Image -->
             <div class="main-image-container" onclick="openLightbox(0)">
-              <img id="mainImage" src="/media/{{ item.images.0 }}" alt="{{ item.title }}" class="main-image">
+              <img id="mainImage" src="{{ item.get_image_urls.0 }}" alt="{{ item.title }}" class="main-image">
               <div
                 class="absolute top-3 right-3 bg-black bg-opacity-60 text-white px-3 py-1.5 rounded-full text-xs font-semibold">
                 <i class="fas fa-search-plus mr-1"></i>Click to Zoom
@@ -609,13 +609,14 @@
     {% endif %}
   </div>
 </div>
-{{ item.images|json_script:"item-images-data" }}
+{{ item.get_image_urls|json_script:"item-images-data" }}
 {% endif %}
 
 <script>
   let currentLightboxIndex = 0;
   const images = JSON.parse(document.getElementById("item-images-data").textContent) || [];
-  const imageUrls = images.map(img => "/media/" + img);
+  // get_image_urls already returns full URLs (Cloudinary or /media/path)
+  const imageUrls = images;
 
   function changeMainImage(imageSrc, thumbnailElement) {
     const mainImage = document.getElementById("mainImage");
