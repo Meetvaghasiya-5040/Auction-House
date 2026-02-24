@@ -1,1 +1,1 @@
-web: gunicorn AuctionHouse.wsgi
+web: gunicorn AuctionHouse.wsgi:application
