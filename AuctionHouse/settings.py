@@ -77,6 +77,12 @@ UNFOLD = {
             "onclick": "toggleFilters()",
         },
     ],
+    "EXTRA_JS": [
+        "admin/js/filter_toggle.js",
+    ],
+    "EXTRA_CSS": [
+        "admin/css/filter_toggle.css",
+    ],
 }
 
 

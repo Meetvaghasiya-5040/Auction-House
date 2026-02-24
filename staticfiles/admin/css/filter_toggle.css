@@ -1,0 +1,11 @@
+/* static/admin/css/filter_toggle.css */
+
+/* Hide filter sidebar */
+[data-unfold-filters].hidden {
+  display: none !important;
+}
+
+/* Make table container full width when filters hidden */
+body:has([data-unfold-filters].hidden) .unfold-changelist {
+  grid-template-columns: 1fr !important;
+}
