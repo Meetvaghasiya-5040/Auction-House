@@ -184,8 +184,8 @@ class ItemAdmin(ModelAdmin):
         if not obj or not obj.images:
             return "No Image"
         html = ""
-        for img in obj.images:
-            html += f'<img src="{settings.MEDIA_URL}{img}" width="120" style="margin:6px;border:1px solid #ccc;" />'
+        for url in obj.get_image_urls:
+            html += f'<img src="{url}" width="120" style="margin:6px;border:1px solid #ccc; max-width: 100%; height: auto;" />'
         return mark_safe(html)
 
     preview_image.short_description = "Images Preview"
