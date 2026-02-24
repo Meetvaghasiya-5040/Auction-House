@@ -12,7 +12,7 @@ def fix_status_case(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auction_list', '0020_lot_is_timed_lot_timed_end_time'),
+        ('auction_list', '0020_auction_start_email_sent_alter_auction_auction_type_and_more'),
     ]
 
     operations = [
