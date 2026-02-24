@@ -30,16 +30,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 UNFOLD = {
     "SITE_TITLE": "EasyBid Admin",
     "SITE_HEADER": "EasyBid",
     "SITE_URL": "/",
-
     "SHOW_THEME_SWITCHER": True,
-
     "SIDEBAR": {
-        "show_search": False,
+        "show_search": True,
         "show_all_applications": False,
         "navigation": [
             {
@@ -55,36 +52,19 @@ UNFOLD = {
             },
         ],
     },
-
     "LIST_VIEW": {
         "compact": True,
         "sticky_header": False,
     },
-
     "FORM": {
         "show_collapsible_help": False,
         "horizontal_fields": False,
         "show_help_text": False,
     },
-
     "BREADCRUMBS": False,
     "SHOW_FILTERS": False,
-
-    "CHANGELIST_ACTIONS": [
-        {
-            "title": "Filter",
-            "icon": "filter",
-            "onclick": "toggleFilters()",
-        },
-    ],
-    "EXTRA_JS": [
-        "admin/js/filter_toggle.js",
-    ],
-    "EXTRA_CSS": [
-        "admin/css/filter_toggle.css",
-    ],
+    # Remove CHANGELIST_ACTIONS, EXTRA_JS, EXTRA_CSS related to filter_toggle
 }
-
 
 # Application definition
 

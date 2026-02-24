@@ -20,7 +20,6 @@ class AuctionAdmin(admin.ModelAdmin):
         "total_value",
         "created_by",
     )
-    list_filter = ("status", "auction_type", "start_date", "end_date", "created_by")
     search_fields = ("title", "description", "location")
     list_select_related = ("created_by", "approved_by")
     readonly_fields = (
@@ -64,7 +63,6 @@ class AuctionAdmin(admin.ModelAdmin):
             },
         ),
     )
-    list_filter_submit = True
     list_per_page = 20
 
     def status_badge(self, obj):
@@ -94,7 +92,6 @@ admin.site.register(Auction, AuctionAdmin)
 class CatagoryAdmin(admin.ModelAdmin):
     list_display = ["name", "item_count", "available_count", "created_at"]
     search_fields = ["name", "description"]
-    list_filter_submit = True
     list_per_page = 20
     list_select_related = ()
     def item_count(self, obj):
@@ -123,9 +120,7 @@ class ItemAdmin(admin.ModelAdmin):
         "current_lot_display",
         "created_at",
     ]
-    list_filter = ["status", "item_catagory", "created_at"]
     search_fields = ["title", "description", "item_catagory__name"]
-    list_filter_submit = True
 
     readonly_fields = [
         "created_at",
@@ -267,7 +262,6 @@ class LotAdmin(admin.ModelAdmin):
         "colored_status",
         "created_at",
     )
-    list_filter = ("lot_catagory", "auction", "status", "created_at")
     list_select_related = ("lot_catagory", "auction", "winning_bidder")
     readonly_fields = (
         "starting_bid",
@@ -277,7 +271,6 @@ class LotAdmin(admin.ModelAdmin):
         "current_bid",
     )
     filter_horizontal = ("items",)
-    list_filter_submit = True
     list_per_page = 20
     fieldsets = (
         (
@@ -390,8 +383,6 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_display = (
         "user",'lot','amount','issued_at'
     )
-    list_filter_submit = True
-    list_filter = ("user","lot","amount","issued_at")
     list_per_page = 20
 
 admin.site.register(LotRegister)

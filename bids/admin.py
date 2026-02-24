@@ -5,10 +5,9 @@ from .models import Wallet, Bid, Transaction,AdminWallet
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
     list_display = ['user', 'balance', 'created_at', 'updated_at']
-    list_filter = ['created_at']
+    
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at', 'updated_at']
-    list_filter_submit = True
     list_per_page = 20
     
     fieldsets = (
@@ -28,11 +27,9 @@ class WalletAdmin(admin.ModelAdmin):
 @admin.register(Bid)
 class BidAdmin(admin.ModelAdmin):
     list_display = ['user', 'lot', 'amount', 'timestamp', 'is_winning', 'is_auto_bid']
-    list_filter = ['is_winning', 'is_auto_bid', 'timestamp']
     search_fields = ['user__username', 'lot__title']
     readonly_fields = ['timestamp']
     date_hierarchy = 'timestamp'
-    list_filter_submit = True
     list_per_page = 20    
     fieldsets = (
         ('Bid Information', {
@@ -51,11 +48,9 @@ class BidAdmin(admin.ModelAdmin):
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = ['transaction_type', 'amount', 'timestamp']
-    list_filter = ['transaction_type', 'timestamp']
     search_fields = ['wallet__user__username', 'description']
     readonly_fields = ['timestamp']
     date_hierarchy = 'timestamp'
-    list_filter_submit = True
     list_per_page = 20    
     fieldsets = (
         ('Transaction Information', {
