@@ -5,15 +5,9 @@ from django.contrib.auth.models import User
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     profile_image = models.ImageField(
-        upload_to="media/profile_images/",
+        upload_to="profile_images/",
         blank=True,
         null=True,
-        )
-    default_profile_image = models.ImageField(
-        upload_to="media/profile_images/",
-        blank=True,
-        null=True,
-        default="media/profile_images/default-image.webp",
     )
     THEME_CHOICES = [
         ('indigo', 'Indigo (Default)'),
@@ -33,12 +27,12 @@ class Profile(models.Model):
     state = models.CharField(max_length=100, blank=True)
     zip_code = models.CharField(max_length=20, blank=True)
     website = models.URLField(blank=True)
-    
+
     # Transaction PIN fields
     transaction_pin = models.CharField(max_length=128, blank=True, help_text="Hashed transaction PIN")
     pin_set = models.BooleanField(default=False, help_text="Has user set their transaction PIN?")
     pin_set_at = models.DateTimeField(null=True, blank=True, help_text="When PIN was set")
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -46,10 +40,22 @@ class Profile(models.Model):
         return f"{self.user.username} Profile"
 
     def get_profile_image_url(self):
-        """Get profile image URL or default"""
-        if self.profile_image and hasattr(self.profile_image, "url"):
-            return self.profile_image.url
-        return "/media/profile_images/default.png"
+        """
+        Return the profile image URL, or None if the image is missing/broken.
+        The template will show default-image.webp when this returns None.
+        """
+        # Known bad legacy values stored by the old model default
+        BAD_DEFAULTS = {
+            'profile_images/default.png',
+            'media/profile_images/default.png',
+            'media/profile_images/default-image.webp',
+        }
+        if self.profile_image and self.profile_image.name not in BAD_DEFAULTS:
+            try:
+                return self.profile_image.url
+            except Exception:
+                pass
+        return None
 
     class Meta:
         verbose_name = "Profile"

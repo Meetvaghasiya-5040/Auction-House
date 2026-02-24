@@ -163,18 +163,18 @@ CHANNEL_LAYERS = {
     },
 }
 
-# Database — uses DATABASE_URL on Render, falls back to SQLite for local dev
-import os
-import dj_database_url
-
+# Database — uses DATABASE_URL on Render (PostgreSQL), falls back to SQLite for local dev
 _DATABASE_URL = os.environ.get("DATABASE_URL")
 if _DATABASE_URL:
-    # Render Postgres — SSL required
-    DATABASES = {"default": dj_database_url.config(
-        default=_DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=True,
-    )}
+    DATABASES = {
+        "default": dj_database_url.parse(
+            _DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+    # Ensure SSL is passed correctly for psycopg2/psycopg3 on Render
+    DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = "require"
 else:
     # Local development — use SQLite (no SSL)
     DATABASES = {
