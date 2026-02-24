@@ -28,7 +28,7 @@ SECRET_KEY = "django-insecure--_lx4*%4c6t#i6a($ec-tet7xvio7qs14)&dkz5xlki30inv3q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["auction-house-5.onrender.com",'127.0.0.1']
 
 
 UNFOLD = {
@@ -269,3 +269,18 @@ WINNER_PAYMENT_TIMEOUT_MINUTES = 15
 WAREHOUSE_CITY = 'Ahmedabad'
 WAREHOUSE_STATE = 'Gujarat'
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://auction-house-5.onrender.com",
+]
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Required for WebSockets behind proxy
+USE_X_FORWARDED_HOST = True
+SECURE_SSL_REDIRECT = True
