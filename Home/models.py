@@ -1,4 +1,4 @@
-from django.db import models
+afrom django.db import models
 from django.contrib.auth.models import User
 
 
@@ -8,7 +8,7 @@ class Profile(models.Model):
         upload_to="media/profile_images/",
         blank=True,
         null=True,
-        default="profile_images/default.png",
+        default="media/profile_images/default-image.webp",
     )
     THEME_CHOICES = [
         ('indigo', 'Indigo (Default)'),
