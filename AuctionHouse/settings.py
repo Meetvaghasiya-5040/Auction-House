@@ -73,7 +73,7 @@ UNFOLD = {
             {
                 'title':'Profile',
                 'items':[
-                    {'title':'Profile','icon':'gavel','link':'/admin/Home/Profile/'}
+                    {'title':'Profile','icon':'gavel','link':'/admin/Home/profile/'}
                 ],
             },
         ],
