@@ -97,7 +97,6 @@ class CatagoryAdmin(ModelAdmin):
     list_filter_submit = True
     list_display = ["name", "item_count", "available_count", "created_at"]
     search_fields = ["name", "description"]
-    list_filter = ("item_count", "available_count", "created_at")
     actions = ["delete_selected"]
     list_per_page = 20
     list_select_related = ()
