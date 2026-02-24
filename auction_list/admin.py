@@ -63,6 +63,8 @@ class AuctionAdmin(admin.ModelAdmin):
             },
         ),
     )
+    list_filter_submit = True
+    list_per_page = 20
 
     def status_badge(self, obj):
         colors = {
@@ -91,7 +93,8 @@ admin.site.register(Auction, AuctionAdmin)
 class CatagoryAdmin(admin.ModelAdmin):
     list_display = ["name", "item_count", "available_count", "created_at"]
     search_fields = ["name", "description"]
-    list_per_page = 50
+    list_filter_submit = True
+    list_per_page = 20
 
     def item_count(self, obj):
         count = obj.total_items
@@ -121,13 +124,15 @@ class ItemAdmin(admin.ModelAdmin):
     ]
     list_filter = ["status", "item_catagory", "created_at"]
     search_fields = ["title", "description", "item_catagory__name"]
+    list_filter_submit = True
+
     readonly_fields = [
         "created_at",
         "updated_at",
         "current_lot_display",
         "preview_image",
     ]
-    list_per_page = 50
+    list_per_page = 20
 
     fieldsets = (
         (
@@ -270,6 +275,8 @@ class LotAdmin(admin.ModelAdmin):
         "current_bid",
     )
     filter_horizontal = ("items",)
+    list_filter_submit = True
+    list_per_page = 20
     fieldsets = (
         (
             "Core Information",
@@ -381,6 +388,8 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_display = (
         "user",'lot','amount','issued_at'
     )
+    list_filter_submit = True
+    list_filter_submit = True
 
 admin.site.register(LotRegister)
 admin.site.register(AuctionRegister)

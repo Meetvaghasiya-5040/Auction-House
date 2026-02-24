@@ -10,3 +10,5 @@ class ProfileAdmin(admin.ModelAdmin):
     search_fields = ["user__username", "user__email"]
     list_filter = ["created_at"]
     readonly_fields = ["created_at", "updated_at"]
+    list_filter_submit = True
+    list_per_page = 20
