@@ -5,9 +5,15 @@ from django.contrib.auth.models import User
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     profile_image = models.ImageField(
-        upload_to="profile_images/",
+        upload_to="media/profile_images/",
         blank=True,
         null=True,
+        )
+    default_profile_image = models.ImageField(
+        upload_to="media/profile_images/",
+        blank=True,
+        null=True,
+        default="media/profile_images/default-image.webp",
     )
     THEME_CHOICES = [
         ('indigo', 'Indigo (Default)'),
