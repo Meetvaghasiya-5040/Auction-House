@@ -135,30 +135,16 @@ def register_view(request):
                 password=make_password(password),
             )
 
-            # Save profile image — isolated so any cloud/filesystem error
-            # does NOT prevent the user from being redirected home.
+            # Save profile image to Cloudinary. Isolated so any upload error
+            # does NOT prevent the user being redirected home.
             if profile_image:
                 try:
                     profile, created = Profile.objects.get_or_create(user=user)
                     profile.profile_image = profile_image
                     profile.save()
-
-                    # Only attempt PIL resize when we can reliably open the file.
-                    # On ephemeral cloud filesystems (e.g. Render) .path may fail,
-                    # so we guard it separately.
-                    try:
-                        img_path = profile.profile_image.path
-                        img = Image.open(img_path)
-                        max_size = (500, 500)
-                        if img.height > max_size[1] or img.width > max_size[0]:
-                            img.thumbnail(max_size, Image.Resampling.LANCZOS)
-                            img.save(img_path, quality=90, optimize=True)
-                    except Exception:
-                        # PIL resize failed (e.g. ephemeral FS on Render) — safe to ignore.
-                        pass
+                    # Note: PIL local-resize removed — Cloudinary handles the image.
                 except Exception:
-                    # Profile image save failed — continue without image rather than
-                    # blocking registration.
+                    # Upload failed — registration continues without image.
                     pass
 
             # Send welcome email in a background thread so SMTP latency
