@@ -288,12 +288,13 @@ MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp-relay.brevo.com"
-EMAIL_PORT = 587
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp-relay.brevo.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "a34d24001@smtp-brevo.com"        # Brevo SMTP login (not the key)
-EMAIL_HOST_PASSWORD = os.environ.get("BREVO_SMTP_KEY")  # Set this on Render
-DEFAULT_FROM_EMAIL = "Auction House <a34d24001@smtp-brevo.com>"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "a34d24001@smtp-brevo.com")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD") or os.environ.get("BREVO_SMTP_KEY")
+# Default to the host user if not specified otherwise
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", f"Auction House <{EMAIL_HOST_USER}>")
 
 
 
