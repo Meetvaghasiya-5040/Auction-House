@@ -101,7 +101,7 @@
     <!-- ═══════════════════════════════════
          MOBILE STICKY BAR  (hidden on lg+)
     ═══════════════════════════════════ -->
-    <div class="lg:hidden sticky top-0 z-40 flex items-center justify-between bg-gray-900 border-b-4 border-gold px-4 py-3">
+    <div class="lg:hidden sticky top-0 z-[9990] flex items-center justify-between bg-gray-900 border-b-4 border-gold px-4 py-3">
         <button onclick="openDrawer()"
             class="bg-gold flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-900 hover:brightness-110 transition-all">
             <i class="fas fa-sliders-h"></i> Filters &amp; Sort
@@ -115,14 +115,14 @@
          OVERLAY
     ═══════════════════════════════════ -->
     <div id="filterOverlay" onclick="closeDrawer()"
-        class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"></div>
+        class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[9998]"></div>
 
     <!-- ═══════════════════════════════════
          FILTER DRAWER  (mobile/tablet)
     ═══════════════════════════════════ -->
     <aside id="filterDrawer"
         style="transform:translateX(-110%)"
-        class="filter-drawer fixed top-0 left-0 h-full bg-white z-[60] flex flex-col overflow-y-auto w-[min(360px,92vw)]">
+        class="filter-drawer fixed top-0 left-0 h-full bg-white z-[9999] flex flex-col overflow-y-auto w-[min(360px,92vw)]">
 
         <div class="sticky top-0 z-10 bg-gray-900 border-b-4 border-gold px-5 py-4 flex items-center justify-between">
             <h3 class="playfair text-white text-xl font-semibold">Refine Results</h3>
@@ -401,12 +401,18 @@
         drawer.classList.add('open');
         overlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
     }
     function closeDrawer() {
         drawer.classList.remove('open');
         overlay.classList.add('hidden');
         document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
     }
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
 
     // ── Client-side sort ──────────────────────────────
     document.getElementById('sortSelect').addEventListener('change', function () {
