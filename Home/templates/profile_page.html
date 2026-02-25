@@ -590,8 +590,7 @@
                 <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                   <div>
                     <p class="text-sm text-slate-700">
-                      Showing <span class="font-bold">{{ bids.start_index }}</span> to <span class="font-bold">{{
-                        bids.end_index }}</span> of <span class="font-bold">{{ bids.paginator.count }}</span> results
+                      Showing <span class="font-bold">{{ bids.start_index }}</span> to <span class="font-bold">{{ bids.end_index }}</span> of <span class="font-bold">{{ bids.paginator.count }}</span> results
                     </p>
                   </div>
                   <div>
@@ -681,8 +680,7 @@
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-semibold text-slate-900 mb-1 uppercase tracking-wide truncate">
                         {{transaction.description }}</p>
-                      <p class="text-xs text-slate-500">{{ transaction.timestamp|date:"M d, Y" }} at
-                        {{transaction.timestamp|time:"H:i" }}</p>
+                      <p class="text-xs text-slate-500">{{ transaction.timestamp|date:"M d, Y" }} at {{transaction.timestamp|time:"H:i" }}</p>
                     </div>
                     <span class="px-2 py-1 inline-flex text-[10px] leading-5 font-bold ml-2 flex-shrink-0 rounded-full uppercase tracking-wide whitespace-nowrap
                       {% if transaction.transaction_type == 'deposit' %}bg-green-100 text-green-800
@@ -767,9 +765,7 @@
                   <div>
                     <p class="text-sm text-slate-700">
                       Showing <span class="font-bold">{{ transactions.start_index }}</span> to <span
-                        class="font-bold">{{
-                        transactions.end_index }}</span> of <span class="font-bold">{{transactions.paginator.count
-                        }}</span> results
+                        class="font-bold">{{transactions.end_index }}</span> of <span class="font-bold">{{transactions.paginator.count}}</span> results
                     </p>
                   </div>
                   <div>

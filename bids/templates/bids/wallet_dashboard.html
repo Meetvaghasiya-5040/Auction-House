@@ -4,129 +4,265 @@
 {% block title %}My Wallet - Auction House{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    
-    <!-- Left: Title -->
-    <div>
-        <h1 class="text-3xl md:text-4xl font-black text-slate-900 flex items-center">
-            <i class="fas fa-wallet text-green-600 mr-3"></i>
-            My Wallet
-        </h1>
-        <p class="text-slate-600 mt-2">
-            Manage your bidding funds and transaction history
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .wallet-root { font-family: 'DM Sans', sans-serif; }
+  .serif { font-family: 'Cormorant Garamond', serif; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .anim-1 { animation: fadeUp 0.5s ease both; }
+  .anim-2 { animation: fadeUp 0.5s 0.1s ease both; }
+  .anim-3 { animation: fadeUp 0.5s 0.18s ease both; }
+  .anim-4 { animation: fadeUp 0.5s 0.26s ease both; }
+
+  /* Gold gradient for Add Funds panel */
+  .gold-panel { background: linear-gradient(135deg, #E8C97A 0%, #C9A84C 50%, #A07830 100%); }
+
+  /* Radial glows inside hero */
+  .hero-glow-1 {
+    position:absolute; top:-60px; left:-60px; width:280px; height:280px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .hero-glow-2 {
+    position:absolute; bottom:-40px; right:200px; width:200px; height:200px;
+    background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
+    pointer-events:none;
+  }
+
+  /* Quick amount hover */
+  .quick-amount { transition: all 0.18s ease; }
+  .quick-amount:hover {
+    border-color: #C9A84C !important;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.14);
+    transform: translateY(-2px);
+  }
+
+  /* Download btn hover */
+  .btn-dl:hover {
+    border-color: #C9A84C !important;
+    color: #A07830 !important;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.15);
+  }
+
+  /* Add funds btn hover */
+  .btn-add:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    background: #1E2530 !important;
+  }
+
+  /* Pill active/hover */
+  .pill { transition: all 0.15s; }
+  .pill:hover, .pill.active {
+    border-color: #C9A84C !important;
+    color: #A07830 !important;
+    background: #FBF6EC !important;
+  }
+
+  /* Transaction row hover */
+  .tx-item { transition: background 0.15s; }
+  .tx-item:hover { background: #F8F7F4 !important; }
+</style>
+
+<div class="wallet-root min-h-screen py-10 pb-20" style="background:#F8F7F4; color:#0F1318;">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- ── PAGE HEADER ── -->
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-9 anim-1">
+      <div>
+        <p class="text-xs font-semibold tracking-widest uppercase mb-1.5" style="color:#A07830; letter-spacing:0.18em;">Auction House · Member Account</p>
+        <h1 class="serif text-4xl md:text-5xl font-bold leading-none" style="color:#0F1318;">My Wallet</h1>
+      </div>
+      <a href="{% url 'transaction_invoice' %}"
+         class="btn-dl inline-flex items-center gap-2 px-5 py-3 rounded-lg text-xs font-semibold uppercase tracking-wider bg-white border border-gray-200 no-underline transition-all whitespace-nowrap"
+         style="color:#0F1318; letter-spacing:0.08em;">
+        <i class="fas fa-file-arrow-down"></i>
+        <span class="hidden sm:inline">Download Statement</span>
+        <span class="inline sm:hidden">Statement</span>
+      </a>
+    </div>
+
+    <!-- ── BALANCE HERO ── -->
+    <div class="relative rounded-2xl overflow-hidden mb-7 anim-2" style="background:#0F1318;">
+      <div class="hero-glow-1"></div>
+      <div class="hero-glow-2"></div>
+
+      <!-- Grid: balance | add-funds panel -->
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto]">
+
+        <!-- Left: balance -->
+        <div class="relative z-10 px-8 py-10 md:px-12 md:py-11">
+          <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:rgba(255,255,255,0.45); letter-spacing:0.18em;">Available Balance</p>
+
+          <div class="serif font-bold leading-none mb-4 flex items-start" style="color:#FEFEFE; font-size:clamp(36px,6vw,60px);">
+            <span class="font-medium mt-1 mr-1" style="font-size:clamp(18px,3vw,32px); color:#E8C97A; vertical-align:super;">₹</span>
+            {{ wallet.balance|floatformat:2 }}
+          </div>
+
+          <p class="text-xs mb-7" style="color:rgba(255,255,255,0.3);">
+            <i class="fas fa-circle-dot mr-1.5" style="color:#E8C97A; font-size:8px;"></i>
+            Last updated {{ wallet.updated_at|date:"M d, Y · H:i" }}
+          </p>
+
+          <!-- Stats strip -->
+          <div class="flex flex-wrap gap-6 pt-6 border-t" style="border-color:rgba(255,255,255,0.08);">
+            <div class="flex flex-col gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wider" style="color:rgba(255,255,255,0.3); letter-spacing:0.12em;">Total Deposited</span>
+              <span class="text-base font-semibold" style="color:#4ADE80;">+₹{{ total_deposited|default:"0.00"|floatformat:2 }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wider" style="color:rgba(255,255,255,0.3); letter-spacing:0.12em;">Total Spent</span>
+              <span class="text-base font-semibold" style="color:#F87171;">−₹{{ total_spent|default:"0.00"|floatformat:2 }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wider" style="color:rgba(255,255,255,0.3); letter-spacing:0.12em;">Transactions</span>
+              <span class="text-base font-semibold" style="color:#FEFEFE;">{{ transactions|length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Add Funds panel -->
+        <div class="gold-panel relative z-10 flex flex-row md:flex-col items-center justify-between md:justify-center gap-4 px-7 py-7 md:px-10 md:py-11 border-t md:border-t-0 md:border-l" style="min-width:190px; border-color:rgba(255,255,255,0.1);">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0" style="background:rgba(0,0,0,0.12); color:#0F1318;">
+            <i class="fas fa-arrow-trend-up"></i>
+          </div>
+          <div class="text-center">
+            <strong class="serif block font-bold" style="font-size:20px; color:#0F1318; line-height:1.1;">Add Funds</strong>
+            <small class="text-xs font-medium" style="color:rgba(0,0,0,0.5); letter-spacing:0.04em;">Instant top-up</small>
+          </div>
+          <a href="{% url 'add_funds' %}"
+             class="btn-add inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider no-underline transition-all whitespace-nowrap flex-shrink-0"
+             style="background:#0F1318; color:#FEFEFE; letter-spacing:0.06em;">
+            <i class="fas fa-plus"></i> Add Money
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── QUICK ADD AMOUNTS ── -->
+    <div class="flex gap-2.5 flex-wrap mb-7 anim-3">
+      {% for amount in "500,1000,2500,5000,10000"|split:"," %}
+      <a href="{% url 'add_funds' %}?amount={{ amount }}"
+         class="quick-amount flex-1 rounded-xl border bg-white text-center no-underline py-4 px-3"
+         style="min-width:80px; border-color:#E0DDD5;">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#6B7585; letter-spacing:0.08em;">Quick Add</p>
+        <p class="serif text-xl font-bold" style="color:#0F1318;">
+          ₹{% if amount == "1000" %}1,000{% elif amount == "2500" %}2,500{% elif amount == "5000" %}5,000{% elif amount == "10000" %}10,000{% else %}{{ amount }}{% endif %}
         </p>
+      </a>
+      {% endfor %}
     </div>
 
-    <!-- Right: Download Button -->
-    <a href="{% url 'transaction_invoice' %}"
-       class="inline-flex items-center justify-center 
-       px-4 sm:px-6 py-2.5 sm:py-3 
-       text-xs sm:text-sm font-bold text-white 
-       bg-gradient-to-r from-green-600 to-emerald-600 
-       hover:from-green-700 hover:to-emerald-700 
-       rounded-xl shadow-lg hover:shadow-xl 
-       transform hover:-translate-y-0.5 transition-all 
-       uppercase tracking-wide whitespace-nowrap">
-       
-        <i class="fas fa-download mr-2"></i>
-        <span class="hidden sm:inline">Download Transaction History</span>
-        <span class="sm:hidden">Download</span>
-    </a>
+    <!-- ── TRANSACTIONS SECTION ── -->
+    <div class="anim-4">
 
-</div>
+      <!-- Section header -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="serif text-2xl font-bold flex items-center gap-2.5" style="color:#0F1318;">
+          <i class="fas fa-clock-rotate-left text-lg" style="color:#A07830;"></i>
+          Transaction History
+        </h2>
 
-        <!-- Balance Card -->
-        <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-2xl p-8 mb-8 text-white">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div>
-                    <p class="text-green-100 text-sm font-medium mb-2">Available Balance</p>
-                    <h2 class="text-5xl font-black mb-4">₹{{ wallet.balance|floatformat:2 }}</h2>
-                    <p class="text-green-100 text-xs">Last updated: {{ wallet.updated_at|date:"M d, Y H:i" }}</p>
-                </div>
-                <div class="mt-4 md:mt-0">
-                    <a href="{% url 'add_funds' %}"
-                        class="bg-white text-green-600 px-6 py-3 rounded-lg font-bold hover:bg-green-50 transition shadow-lg inline-flex items-center">
-                        <i class="fas fa-plus-circle mr-2"></i>
-                        Add Funds
-                    </a>
-                </div>
-            </div>
+        <!-- Filter pills -->
+        <div class="flex gap-1.5 flex-wrap">
+          <button class="pill active px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase border bg-white" style="border-color:#E0DDD5; color:#6B7585; letter-spacing:0.06em;">All</button>
+          <button class="pill px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase border bg-white" style="border-color:#E0DDD5; color:#6B7585;">Deposits</button>
+          <button class="pill px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase border bg-white" style="border-color:#E0DDD5; color:#6B7585;">Bids</button>
+          <button class="pill px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase border bg-white" style="border-color:#E0DDD5; color:#6B7585;">Refunds</button>
         </div>
+      </div>
 
-        <!-- Transaction History -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4">
-                <h3 class="text-xl font-bold text-white">
-                    <i class="fas fa-history mr-2"></i>Transaction History
-                </h3>
-            </div>
+      {% if transactions %}
+      <div class="rounded-2xl overflow-hidden border bg-white" style="border-color:#E0DDD5;">
+        {% for transaction in transactions %}
+        <div class="tx-item grid items-center gap-4 px-5 py-4 border-b {% if forloop.last %}border-b-0{% endif %} bg-white"
+             data-type="{{ transaction.transaction_type }}"
+             style="grid-template-columns: auto 1fr auto; border-color:#E0DDD5;">
 
-            <div class="overflow-x-auto">
-                {% if transactions %}
-                <table class="w-full">
-                    <thead class="bg-slate-50 border-b-2 border-slate-200">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Date</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Type</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Description</th>
-                            <th class="px-6 py-4 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for transaction in transactions %}
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                {{ transaction.timestamp|date:"M d, Y H:i" }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold
-                                    {% if transaction.transaction_type == 'deposit' %}
-                                        bg-green-100 text-green-800
-                                    {% elif transaction.transaction_type == 'bid_placed' %}
-                                        bg-purple-100 text-purple-800
-                                    {% elif transaction.transaction_type == 'bid_refund' %}
-                                        bg-blue-100 text-blue-800
-                                    {% elif transaction.transaction_type == 'winning_payment' %}
-                                        bg-orange-100 text-orange-800
-                                    {% else %}
-                                        bg-slate-100 text-slate-800
-                                    {% endif %}
-                                ">
-                                    {{ transaction.get_transaction_type_display }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-slate-700">
-                                {{ transaction.description }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold
-                                {% if transaction.amount >= 0 %}
-                                    text-green-600
-                                {% else %}
-                                    text-red-600
-                                {% endif %}
-                            ">
-                                {% if transaction.amount >= 0 %}+{% endif %}₹{{ transaction.amount|floatformat:2 }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="px-6 py-12 text-center">
-                    <i class="fas fa-inbox text-6xl text-slate-300 mb-4"></i>
-                    <p class="text-slate-500 text-lg">No transactions yet</p>
-                    <p class="text-slate-400 text-sm mt-2">Add funds to start bidding!</p>
-                </div>
-                {% endif %}
-            </div>
+          <!-- Icon -->
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm flex-shrink-0
+            {% if transaction.transaction_type == 'deposit' %}bg-green-50 text-green-700
+            {% elif transaction.transaction_type == 'bid_placed' %}bg-purple-50 text-purple-700
+            {% elif transaction.transaction_type == 'bid_refund' %}bg-blue-50 text-blue-700
+            {% elif transaction.transaction_type == 'winning_payment' %}bg-orange-50 text-orange-700
+            {% else %}bg-gray-100 text-gray-500{% endif %}">
+            <i class="fas
+              {% if transaction.transaction_type == 'deposit' %}fa-arrow-down-to-line
+              {% elif transaction.transaction_type == 'bid_placed' %}fa-gavel
+              {% elif transaction.transaction_type == 'bid_refund' %}fa-rotate-left
+              {% elif transaction.transaction_type == 'winning_payment' %}fa-trophy
+              {% else %}fa-receipt{% endif %}"></i>
+          </div>
+
+          <!-- Body -->
+          <div class="min-w-0">
+            <span class="inline-block text-xs font-bold uppercase rounded px-2 py-0.5 mb-1
+              {% if transaction.transaction_type == 'deposit' %}bg-green-50 text-green-700
+              {% elif transaction.transaction_type == 'bid_placed' %}bg-purple-50 text-purple-700
+              {% elif transaction.transaction_type == 'bid_refund' %}bg-blue-50 text-blue-700
+              {% elif transaction.transaction_type == 'winning_payment' %}bg-orange-50 text-orange-700
+              {% else %}bg-gray-100 text-gray-500{% endif %}"
+              style="letter-spacing:0.1em;">
+              {{ transaction.get_transaction_type_display }}
+            </span>
+            <p class="text-sm font-medium truncate" style="color:#0F1318;">{{ transaction.description }}</p>
+            <p class="text-xs mt-0.5" style="color:#6B7585;">
+              <i class="far fa-clock mr-1"></i>{{ transaction.timestamp|date:"M d, Y · H:i" }}
+            </p>
+          </div>
+
+          <!-- Amount -->
+          <div class="text-right text-base font-bold whitespace-nowrap flex-shrink-0
+            {% if transaction.amount >= 0 %}text-green-700{% else %}text-red-600{% endif %}">
+            {% if transaction.amount >= 0 %}+{% endif %}₹{{ transaction.amount|floatformat:2 }}
+          </div>
+
         </div>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <!-- Empty state -->
+      <div class="rounded-2xl border bg-white text-center py-16 px-6" style="border-color:#E0DDD5;">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
+             style="background:#EFEEE9; color:#6B7585;">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <p class="serif text-xl font-bold mb-1" style="color:#0F1318;">No transactions yet</p>
+        <p class="text-sm mb-5" style="color:#6B7585;">Add funds to your wallet to start bidding on exclusive lots.</p>
+        <a href="{% url 'add_funds' %}"
+           class="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-xs font-bold uppercase tracking-wider no-underline"
+           style="background:#0F1318; color:#FEFEFE; letter-spacing:0.06em;">
+          <i class="fas fa-plus"></i> Add Funds Now
+        </a>
+      </div>
+      {% endif %}
+
     </div>
+  </div>
 </div>
+
+<script>
+  const pills = document.querySelectorAll('.pill');
+  const items = document.querySelectorAll('.tx-item');
+  const typeMap = { 'All': null, 'Deposits': 'deposit', 'Bids': 'bid_placed', 'Refunds': 'bid_refund' };
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const filter = typeMap[pill.textContent.trim()];
+      items.forEach(item => {
+        item.style.display = (!filter || item.dataset.type === filter) ? '' : 'none';
+      });
+    });
+  });
+</script>
+
 {% endblock %}

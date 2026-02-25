@@ -4,69 +4,173 @@
 {% block title %}Won Lots - Auction House{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl md:text-4xl font-black text-slate-900">
-                <i class="fas fa-trophy text-yellow-500 mr-3"></i>Won Lots
-            </h1>
-            <p class="text-slate-600 mt-2">Congratulations on your winning bids!</p>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .won-root { font-family: 'DM Sans', sans-serif; }
+  .serif { font-family: 'Cormorant Garamond', serif; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .anim-1 { animation: fadeUp 0.45s ease both; }
+  .anim-2 { animation: fadeUp 0.45s 0.08s ease both; }
+  .anim-3 { animation: fadeUp 0.45s 0.16s ease both; }
+
+  /* Gold shimmer on trophy icon */
+  @keyframes shimmer {
+    0%,100% { color: #c9a84c; }
+    50%      { color: #f0d080; }
+  }
+  .trophy-shimmer { animation: shimmer 2.5s ease-in-out infinite; }
+
+  .won-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid #e8c97a;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 12px rgba(201,168,76,0.1);
+  }
+  .won-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(201,168,76,0.18);
+  }
+
+  .status-chip {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .status-completed { background: #e8f5ee; color: #1a7a4a; border: 1px solid #a7d7bc; }
+  .status-pending   { background: #fef3e8; color: #d97706; border: 1px solid #fcd4a0; }
+  .status-other     { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+</style>
+
+<div class="won-root min-h-screen py-10" style="background:#f8f7f4;">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- PAGE HEADER -->
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-10 anim-1">
+      <div>
+        <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color:#a07830; font-family:'DM Sans',sans-serif;">Auction House · My Account</p>
+        <h1 class="serif text-4xl md:text-5xl font-bold flex items-center gap-3" style="color:#0f1318; line-height:1;">
+          <i class="fas fa-trophy trophy-shimmer"></i> Won Lots
+        </h1>
+        <p class="text-sm mt-2" style="color:#6b7585;">Your winning bids and acquired pieces</p>
+      </div>
+      {% if won_lots %}
+      <div class="rounded-xl px-5 py-3 border flex items-center gap-3" style="background:#fff; border-color:#e8c97a;">
+        <i class="fas fa-trophy text-xl" style="color:#c9a84c;"></i>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider" style="color:#6b7585;">Total Won</p>
+          <p class="serif text-2xl font-bold" style="color:#0f1318;">{{ won_lots|length }} Lot{{ won_lots|length|pluralize }}</p>
         </div>
-
-        <!-- Won Lots Grid -->
-        {% if won_lots %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for lot in won_lots %}
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-yellow-400">
-                <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 px-4 py-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-white font-bold text-sm">
-                            <i class="fas fa-trophy mr-2"></i>Winner
-                        </span>
-                        <span class="bg-white text-yellow-600 text-xs px-2 py-1 rounded-full font-bold">
-                            {{ lot.status|upper }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="p-6">
-                    <h3 class="font-black text-lg text-slate-900 mb-3">{{ lot.title }}</h3>
-
-                    <div class="space-y-2 text-sm mb-4">
-                        <div class="flex justify-between">
-                            <span class="text-slate-600">Winning Bid:</span>
-                            <span class="font-bold text-green-600">₹{{ lot.current_bid|floatformat:2 }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-600">Auction:</span>
-                            <span class="text-slate-900 font-semibold text-xs">{{   lot.auction.title|truncatechars:20}}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-600">Won On:</span>
-                            <span class="text-slate-700">{{ lot.updated_at|date:"M d, Y" }}</span>
-                        </div>
-                    </div>
-
-                    <a href="{% url 'lot_detail' lot.slug %}"
-                        class="block bg-purple-600 hover:bg-purple-700 text-white text-center py-3 rounded-lg font-bold transition">
-                        View Details
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <i class="fas fa-trophy text-8xl text-slate-300 mb-6"></i>
-            <h3 class="text-2xl font-bold text-slate-700 mb-3">No Won Lots Yet</h3>
-            <p class="text-slate-500 mb-6">Keep bidding to win your first lot!</p>
-            <a href="{% url 'view_lots' %}"
-                class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-bold transition">
-                <i class="fas fa-gavel mr-2"></i>Browse Active Lots
-            </a>
-        </div>
-        {% endif %}
+      </div>
+      {% endif %}
     </div>
+
+    <!-- WINNER'S BANNER -->
+    {% if won_lots %}
+    <div class="rounded-2xl mb-10 px-6 py-5 flex flex-wrap items-center gap-4 anim-2"
+         style="background:linear-gradient(135deg,#0f1318 0%,#1e2530 100%); border: 1px solid #c9a84c30;">
+      <div class="flex items-center gap-4 flex-1 min-w-0">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+             style="background:rgba(201,168,76,0.15); border:1.5px solid rgba(201,168,76,0.4);">
+          <i class="fas fa-medal" style="color:#e8c97a; font-size:20px;"></i>
+        </div>
+        <div>
+          <p class="font-bold" style="color:#fefefe; font-size:15px;">Congratulations on your wins!</p>
+          <p class="text-xs mt-0.5" style="color:rgba(255,255,255,0.4);">All items listed below are officially yours. View each lot for payment & collection details.</p>
+        </div>
+      </div>
+      <a href="{% url 'view_lots' %}"
+         class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex-shrink-0"
+         style="background:#c9a84c; color:#0f1318;">
+        <i class="fas fa-gavel"></i> Bid on More
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- WON LOTS GRID -->
+    {% if won_lots %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 anim-3">
+      {% for lot in won_lots %}
+      <div class="won-card">
+
+        <!-- Gold header bar -->
+        <div class="px-4 py-3 flex items-center justify-between"
+             style="background:linear-gradient(90deg,#c9a84c,#e8c97a);">
+          <span class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider" style="color:#0f1318;">
+            <i class="fas fa-trophy"></i> Winner
+          </span>
+          <span class="status-chip
+            {% if lot.status == 'completed' %}status-completed
+            {% elif lot.status == 'pending' %}status-pending
+            {% else %}status-other{% endif %}">
+            {{ lot.status|upper }}
+          </span>
+        </div>
+
+        <!-- Card body -->
+        <div class="p-5">
+          <h3 class="serif font-bold text-xl mb-1 leading-snug" style="color:#0f1318;">{{ lot.title }}</h3>
+          <p class="text-xs mb-4" style="color:#6b7585;">{{ lot.auction.title|truncatechars:40 }}</p>
+
+          <!-- Winning bid highlight -->
+          <div class="rounded-xl p-3 mb-4 flex items-center justify-between"
+               style="background:#f8f7f4; border:1px solid #e0ddd5;">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#6b7585;">Winning Bid</p>
+              <p class="serif text-2xl font-bold" style="color:#1a7a4a;">₹{{ lot.current_bid|floatformat:2 }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                 style="background:#e8f5ee; border:1.5px solid #a7d7bc;">
+              <i class="fas fa-check" style="color:#1a7a4a;"></i>
+            </div>
+          </div>
+
+          <!-- Meta -->
+          <div class="flex items-center justify-between text-xs mb-5" style="color:#6b7585;">
+            <span><i class="far fa-calendar mr-1"></i>{{ lot.updated_at|date:"M d, Y" }}</span>
+            <span class="font-medium" style="color:#0f1318;">Lot #{{ lot.id }}</span>
+          </div>
+
+          <a href="{% url 'lot_detail' lot.slug %}"
+             class="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
+             style="background:#0f1318; color:#fefefe;"
+             onmouseover="this.style.background='#c9a84c'; this.style.color='#0f1318';"
+             onmouseout="this.style.background='#0f1318'; this.style.color='#fefefe';">
+            <i class="fas fa-arrow-right"></i> View & Collect
+          </a>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- EMPTY STATE -->
+    <div class="anim-2 rounded-2xl border-2 border-dashed py-20 text-center" style="border-color:#e0ddd5; background:#fff;">
+      <div class="mx-auto mb-5 flex items-center justify-center w-20 h-20 rounded-full"
+           style="background:#f8f7f4; border:2px solid #e8c97a;">
+        <i class="fas fa-trophy text-3xl" style="color:#d4b96a;"></i>
+      </div>
+      <p class="serif text-2xl font-bold mb-2" style="color:#0f1318;">No Wins Yet</p>
+      <p class="text-sm mb-6 max-w-xs mx-auto" style="color:#6b7585;">Your trophies will appear here once you win an auction. Keep bidding — your moment is coming!</p>
+      <a href="{% url 'view_lots' %}"
+         class="inline-flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-bold uppercase tracking-wider"
+         style="background:#0f1318; color:#fefefe;">
+        <i class="fas fa-gavel"></i> Browse Active Lots
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
 </div>
 {% endblock %}

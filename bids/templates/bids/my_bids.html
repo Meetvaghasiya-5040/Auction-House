@@ -4,162 +4,254 @@
 {% block title %}My Bids - Auction House{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <!-- Header -->
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    
-    <!-- Left: Title -->
-    <div>
-        <h1 class="text-3xl md:text-4xl font-black text-slate-900 flex items-center">
-            <i class="fas fa-gavel text-purple-600 mr-3"></i>
-            My Bids
-        </h1>
-        <p class="text-slate-600 mt-2">
-            Track all your bidding activity
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  .bids-root { font-family: 'DM Sans', sans-serif; }
+  .serif { font-family: 'Cormorant Garamond', serif; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .anim-1 { animation: fadeUp 0.45s ease both; }
+  .anim-2 { animation: fadeUp 0.45s 0.08s ease both; }
+  .anim-3 { animation: fadeUp 0.45s 0.16s ease both; }
+  .anim-4 { animation: fadeUp 0.45s 0.24s ease both; }
+
+  /* Winning card glow */
+  .winning-card { box-shadow: 0 0 0 2px #1a7a4a, 0 8px 32px rgba(26,122,74,0.12); }
+  /* Outbid card */
+  .outbid-card  { box-shadow: 0 0 0 1.5px #e0ddd5; }
+
+  /* Completed bid row */
+  .bid-row { transition: background 0.15s; }
+  .bid-row:hover { background: #f8f7f4; }
+
+  /* Status chips */
+  .chip-won  { background:#e8f5ee; color:#1a7a4a; border:1px solid #a7d7bc; }
+  .chip-lost { background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; }
+
+  /* Progress bar */
+  .bid-progress-track { background:#e9e7e0; height:4px; border-radius:2px; overflow:hidden; }
+  .bid-progress-fill  { height:100%; border-radius:2px; background: linear-gradient(90deg,#c9a84c,#e8c97a); transition:width 0.6s ease; }
+</style>
+
+<div class="bids-root min-h-screen py-10" style="background:#f8f7f4;">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- PAGE HEADER -->
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-10 anim-1">
+      <div>
+        <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color:#a07830; font-family:'DM Sans',sans-serif;">Auction House · My Account</p>
+        <h1 class="serif text-4xl md:text-5xl font-bold" style="color:#0f1318; line-height:1;">My Bids</h1>
+        <p class="text-sm mt-2" style="color:#6b7585;">Track all your bidding activity across auctions</p>
+      </div>
+      <a href="{% url 'download_invoice' %}"
+         class="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
+         style="background:#0f1318; color:#fefefe; letter-spacing:0.07em;"
+         onmouseover="this.style.background='#c9a84c'; this.style.color='#0f1318';"
+         onmouseout="this.style.background='#0f1318'; this.style.color='#fefefe';">
+        <i class="fas fa-file-arrow-down"></i>
+        <span class="hidden sm:inline">Download Bid History</span>
+        <span class="sm:hidden">Download</span>
+      </a>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10 anim-2">
+      {% with winning_count=active_bids|length %}
+      <div class="rounded-xl p-4 border" style="background:#fff; border-color:#e0ddd5;">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#6b7585;">Active Bids</p>
+        <p class="serif text-3xl font-bold" style="color:#0f1318;">{{ active_bids|length }}</p>
+      </div>
+      <div class="rounded-xl p-4 border" style="background:#fff; border-color:#e0ddd5;">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#6b7585;">Completed</p>
+        <p class="serif text-3xl font-bold" style="color:#0f1318;">{{ completed_bids|length }}</p>
+      </div>
+      <div class="rounded-xl p-4 border" style="background:#fff; border-color:#e0ddd5;">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#1a7a4a;">Winning</p>
+        <p class="serif text-3xl font-bold" style="color:#1a7a4a;">
+          {% with count=0 %}
+            {% for b in active_bids %}{% if b.is_winning %}{{ forloop.counter }}{% endif %}{% endfor %}
+          {% endwith %}
         </p>
+      </div>
+      <div class="rounded-xl p-4 border" style="background:#fff; border-color:#e0ddd5;">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#c0392b;">Outbid</p>
+        <p class="serif text-3xl font-bold" style="color:#c0392b;">
+          {% for b in active_bids %}{% if not b.is_winning %}{{ forloop.counter }}{% endif %}{% endfor %}
+        </p>
+      </div>
+      {% endwith %}
     </div>
 
-    <!-- Right: Download Button -->
-    <a href="{% url 'download_invoice' %}"
-       class="inline-flex items-center justify-center 
-       px-4 sm:px-6 py-2.5 sm:py-3 
-       text-xs sm:text-sm font-bold text-white 
-       bg-gradient-to-r from-violet-600 to-fuchsia-600 
-       hover:from-violet-700 hover:to-fuchsia-700 
-       rounded-xl shadow-lg hover:shadow-xl 
-       transform hover:-translate-y-0.5 transition-all 
-       uppercase tracking-wide whitespace-nowrap">
-       
-        <i class="fas fa-download mr-2"></i>
-        <span class="hidden sm:inline">DOWNLOAD BID HISTORY</span>
-        <span class="sm:hidden">DOWNLOAD</span>
-    </a>
+    <!-- ACTIVE BIDS -->
+    <div class="mb-10 anim-3">
+      <div class="flex items-center gap-3 mb-5">
+        <span class="w-1 h-6 rounded-full inline-block" style="background:#c9a84c;"></span>
+        <h2 class="serif text-2xl font-bold" style="color:#0f1318;">Active Bids</h2>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full ml-1" style="background:#fef3e8; color:#d97706; border:1px solid #fcd4a0;">LIVE</span>
+      </div>
 
-</div>
+      {% if active_bids %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for bid in active_bids %}
+        <div class="rounded-xl overflow-hidden {% if bid.is_winning %}winning-card{% else %}outbid-card{% endif %} bg-white">
+          <!-- Card top bar -->
+          <div class="px-4 py-2.5 flex items-center justify-between"
+               style="background:{% if bid.is_winning %}#1a7a4a{% else %}#374151{% endif %};">
+            <span class="text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+              {% if bid.is_winning %}
+                <i class="fas fa-trophy text-yellow-300"></i> Winning
+              {% else %}
+                <i class="fas fa-chevrons-up"></i> Outbid
+              {% endif %}
+            </span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded"
+                  style="background:rgba(255,255,255,0.15); color:#fff;">
+              {{ bid.lot.auction.title|truncatechars:16 }}
+            </span>
+          </div>
 
-        <!-- Active Bids -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-            <div class="bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-4">
-                <h3 class="text-xl font-bold text-white">
-                    <i class="fas fa-fire mr-2"></i>Active Bids
-                </h3>
+          <div class="p-5">
+            <h3 class="serif font-bold text-lg mb-4 leading-snug" style="color:#0f1318;">{{ bid.lot.title }}</h3>
+
+            <!-- Bid comparison -->
+            <div class="space-y-3 text-sm mb-4">
+              <div class="flex justify-between items-center">
+                <span style="color:#6b7585;">Your Bid</span>
+                <span class="font-bold" style="color:#6b4fa0;">₹{{ bid.amount|floatformat:2 }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span style="color:#6b7585;">Current Bid</span>
+                <span class="font-bold text-base" style="color:#0f1318;">₹{{ bid.lot.current_bid|floatformat:2 }}</span>
+              </div>
+              <!-- Mini progress: your bid vs current -->
+              <div class="bid-progress-track mt-1">
+                <div class="bid-progress-fill" style="width: {% if bid.amount >= bid.lot.current_bid %}100{% else %}{% widthratio bid.amount bid.lot.current_bid 100 %}{% endif %}%;"></div>
+              </div>
+              <div class="flex justify-between items-center pt-1">
+                <span style="color:#6b7585;">Placed</span>
+                <span style="color:#374151;" class="font-medium">{{ bid.timestamp|date:"M d, H:i" }}</span>
+              </div>
             </div>
 
-            <div class="p-6">
-                {% if active_bids %}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {% for bid in active_bids %}
-                    <div
-                        class="border-2 {% if bid.is_winning %}border-green-500 bg-green-50{% else %}border-slate-200{% endif %} rounded-lg p-4 hover:shadow-lg transition">
-                        <div class="flex justify-between items-start mb-3">
-                            <h4 class="font-bold text-slate-900 text-sm">{{ bid.lot.title }}</h4>
-                            {% if bid.is_winning %}
-                            <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                                <i class="fas fa-trophy"></i> Winning
-                            </span>
-                            {% else %}
-                            <span class="bg-slate-300 text-slate-700 text-xs px-2 py-1 rounded-full font-bold">
-                                Outbid
-                            </span>
-                            {% endif %}
-                        </div>
-
-                        <div class="space-y-2 text-xs">
-                            <div class="flex justify-between">
-                                <span class="text-slate-600">Your Bid:</span>
-                                <span class="font-bold text-purple-600">₹{{ bid.amount|floatformat:2 }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-600">Current Bid:</span>
-                                <span class="font-bold text-slate-900">₹{{ bid.lot.current_bid|floatformat:2 }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-600">Placed:</span>
-                                <span class="text-slate-700">{{ bid.timestamp|date:"M d, H:i" }}</span>
-                            </div>
-                        </div>
-
-                        <a href="{% url 'lot_detail' bid.lot.slug %}"
-                            class="block mt-4 bg-purple-600 hover:bg-purple-700 text-white text-center py-2 rounded-lg font-semibold text-xs transition">
-                            View Lot
-                        </a>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-12">
-                    <i class="fas fa-gavel text-6xl text-slate-300 mb-4"></i>
-                    <p class="text-slate-500 text-lg">No active bids</p>
-                    <p class="text-slate-400 text-sm mt-2">Start bidding on lots to see them here!</p>
-                    <a href="{% url 'view_lots' %}"
-                        class="inline-block mt-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold transition">
-                        Browse Lots
-                    </a>
-                </div>
-                {% endif %}
-            </div>
+            <a href="{% url 'lot_detail' bid.lot.slug %}"
+               class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
+               style="background:#0f1318; color:#fefefe;"
+               onmouseover="this.style.background='#c9a84c'; this.style.color='#0f1318';"
+               onmouseout="this.style.background='#0f1318'; this.style.color='#fefefe';">
+              <i class="fas fa-gavel"></i> View & Bid
+            </a>
+          </div>
         </div>
+        {% endfor %}
+      </div>
 
-        <!-- Completed Bids -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4">
-                <h3 class="text-xl font-bold text-white">
-                    <i class="fas fa-history mr-2"></i>Completed Bids
-                </h3>
-            </div>
-
-            <div class="overflow-x-auto">
-                {% if completed_bids %}
-                <table class="w-full">
-                    <thead class="bg-slate-50 border-b-2 border-slate-200">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase">Lot</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase">Your Bid</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase">Final Price</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase">Status</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for bid in completed_bids %}
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="px-6 py-4 text-sm font-semibold text-slate-900">
-                                {{ bid.lot.title }}
-                            </td>
-                            <td class="px-6 py-4 text-sm font-bold text-purple-600">
-                                ₹{{ bid.amount|floatformat:2 }}
-                            </td>
-                            <td class="px-6 py-4 text-sm font-bold text-slate-900">
-                                ₹{{ bid.lot.current_bid|floatformat:2 }}
-                            </td>
-                            <td class="px-6 py-4">
-                                {% if bid.lot.winning_bidder == user %}
-                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold">
-                                    <i class="fas fa-trophy"></i> Won
-                                </span>
-                                {% else %}
-                                <span class="bg-slate-100 text-slate-700 text-xs px-3 py-1 rounded-full font-bold">
-                                    Lost
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 text-sm text-slate-600">
-                                {{ bid.timestamp|date:"M d, Y" }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="px-6 py-12 text-center">
-                    <i class="fas fa-inbox text-6xl text-slate-300 mb-4"></i>
-                    <p class="text-slate-500 text-lg">No completed bids yet</p>
-                </div>
-                {% endif %}
-            </div>
+      {% else %}
+      <div class="rounded-xl border-2 border-dashed py-16 text-center" style="border-color:#e0ddd5; background:#fff;">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#f3f0e8;">
+          <i class="fas fa-gavel text-2xl" style="color:#c9a84c;"></i>
         </div>
+        <p class="serif text-xl font-bold mb-1" style="color:#0f1318;">No Active Bids</p>
+        <p class="text-sm mb-5" style="color:#6b7585;">Explore live lots and place your first bid</p>
+        <a href="{% url 'view_lots' %}"
+           class="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wider"
+           style="background:#0f1318; color:#fefefe;">
+          <i class="fas fa-search"></i> Browse Lots
+        </a>
+      </div>
+      {% endif %}
     </div>
+
+    <!-- COMPLETED BIDS -->
+    <div class="anim-4">
+      <div class="flex items-center gap-3 mb-5">
+        <span class="w-1 h-6 rounded-full inline-block" style="background:#6b7585;"></span>
+        <h2 class="serif text-2xl font-bold" style="color:#0f1318;">Completed Bids</h2>
+      </div>
+
+      {% if completed_bids %}
+      <div class="rounded-xl overflow-hidden border" style="background:#fff; border-color:#e0ddd5;">
+
+        <!-- Desktop/Tablet: stacked cards approach (no horizontal scroll) -->
+        <div class="hidden sm:block">
+          <!-- Header row -->
+          <div class="grid gap-4 px-6 py-3 border-b" style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr; border-color:#e0ddd5; background:#f8f7f4;">
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:#6b7585;">Lot</span>
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:#6b7585;">Your Bid</span>
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:#6b7585;">Final Price</span>
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:#6b7585;">Result</span>
+            <span class="text-xs font-bold uppercase tracking-wider" style="color:#6b7585;">Date</span>
+          </div>
+          {% for bid in completed_bids %}
+          <div class="grid gap-4 px-6 py-4 bid-row border-b items-center"
+               style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr; border-color:#f0eee8;">
+            <div>
+              <p class="font-semibold text-sm" style="color:#0f1318;">{{ bid.lot.title }}</p>
+              <p class="text-xs mt-0.5" style="color:#6b7585;">{{ bid.lot.auction.title|truncatechars:30 }}</p>
+            </div>
+            <p class="font-bold text-sm" style="color:#6b4fa0;">₹{{ bid.amount|floatformat:2 }}</p>
+            <p class="font-bold text-sm" style="color:#0f1318;">₹{{ bid.lot.current_bid|floatformat:2 }}</p>
+            <div>
+              {% if bid.lot.winning_bidder == user %}
+              <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full chip-won">
+                <i class="fas fa-trophy text-yellow-500"></i> Won
+              </span>
+              {% else %}
+              <span class="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full chip-lost">Lost</span>
+              {% endif %}
+            </div>
+            <p class="text-xs" style="color:#6b7585;">{{ bid.timestamp|date:"M d, Y" }}</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Mobile: card list -->
+        <div class="sm:hidden divide-y" style="border-color:#f0eee8;">
+          {% for bid in completed_bids %}
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <p class="font-semibold text-sm pr-2" style="color:#0f1318;">{{ bid.lot.title }}</p>
+              {% if bid.lot.winning_bidder == user %}
+              <span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full chip-won flex-shrink-0">
+                <i class="fas fa-trophy text-yellow-500"></i> Won
+              </span>
+              {% else %}
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full chip-lost flex-shrink-0">Lost</span>
+              {% endif %}
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-xs">
+              <div>
+                <p style="color:#6b7585;">Your Bid</p>
+                <p class="font-bold" style="color:#6b4fa0;">₹{{ bid.amount|floatformat:2 }}</p>
+              </div>
+              <div>
+                <p style="color:#6b7585;">Final</p>
+                <p class="font-bold" style="color:#0f1318;">₹{{ bid.lot.current_bid|floatformat:2 }}</p>
+              </div>
+              <div>
+                <p style="color:#6b7585;">Date</p>
+                <p style="color:#374151;">{{ bid.timestamp|date:"M d, Y" }}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% else %}
+      <div class="rounded-xl border-2 border-dashed py-14 text-center" style="border-color:#e0ddd5; background:#fff;">
+        <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style="background:#f3f0e8;">
+          <i class="fas fa-inbox text-xl" style="color:#c9a84c;"></i>
+        </div>
+        <p class="serif text-xl font-bold mb-1" style="color:#0f1318;">No Completed Bids</p>
+        <p class="text-sm" style="color:#6b7585;">Your bidding history will appear here once auctions close.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
 </div>
 {% endblock %}
