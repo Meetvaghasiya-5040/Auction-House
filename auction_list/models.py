@@ -454,6 +454,12 @@ class Lot(models.Model):
         # Generate slug if not present
         if not self.slug:
             self.slug = self.generate_unique_slug()
+            
+        # Inherit min_bid_increment from parent Auction if it's still the default (100.00)
+        # or if it was not explicitly set during creation
+        if self.min_bid_increment == Decimal('100.00') and self.auction:
+            self.min_bid_increment = self.auction.min_bid_increment
+            
         super().save(*args, **kwargs)
     
     def generate_unique_slug(self):
