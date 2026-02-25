@@ -1450,7 +1450,8 @@
             <i class="fas fa-boxes" style="color:var(--auction-accent)"></i>
             Items in Lot
           </span>
-          <span style="font-size:10px;font-weight:700;color:var(--text-muted)">{{ lot.items.count }} item{{lot.items.count|pluralize }}</span>
+          <span style="font-size:10px;font-weight:700;color:var(--text-muted)">{{ lot.items.count }}
+            item{{lot.items.count|pluralize }}</span>
         </div>
         <div class="ld-card-body">
           <div class="items-grid">
@@ -1924,20 +1925,31 @@
     if (auctionEnded) { console.log("🚫 Auction ended, blocking bid."); return; }
     console.log("👉 placeBid called");
     logMobile("👉 placeBid button clicked");
+
     bidButton = document.getElementById('place-bid-btn');
+    const mobileBidBtn = document.querySelector('.mobile-bid-bar .mbb-btn');
     nextBidDisplayEl = document.getElementById('next-bid-display');
+
     if (isSubmitting) { console.log("⏳ Already submitting..."); return; }
     if (!nextBidDisplayEl) { alert("Error: Next bid display not found. Please refresh."); return; }
+
     const nextBidText = nextBidDisplayEl.textContent;
     const cleanText = nextBidText.replace(/[^0-9.]/g, '');
     const amount = parseFloat(cleanText);
     console.log(`💰 Bidding amount parsed: "${nextBidText}" -> ${amount}`);
+
     if (!amount || isNaN(amount)) { showError('Invalid bid amount'); return; }
     isSubmitting = true;
+
     if (bidButton) {
       bidButton.disabled = true;
       bidButton.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>PLACING...';
     }
+    if (mobileBidBtn) {
+      mobileBidBtn.disabled = true;
+      mobileBidBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Placing...';
+    }
+
     try {
       const formData = new FormData();
       formData.append('amount', amount);
@@ -1945,6 +1957,7 @@
       const response = await fetch(`/bids/place-bid/${lotSlug}/`, { method: 'POST', body: formData });
       const result = await response.json();
       console.log("📨 Bid response:", result);
+
       if (result.success) {
         showSuccess('Bid placed successfully!');
         if (result.wallet_balance !== undefined) {
@@ -1959,9 +1972,15 @@
     } finally {
       isSubmitting = false;
       const isEnded = mainTimerDisplay && mainTimerDisplay.textContent.trim() === "ENDED";
-      if (!isEnded && bidButton) {
-        bidButton.disabled = false;
-        bidButton.innerHTML = '<i class="fas fa-gavel" style="margin-right:8px;"></i>PLACE BID';
+      if (!isEnded) {
+        if (bidButton) {
+          bidButton.disabled = false;
+          bidButton.innerHTML = '<i class="fas fa-gavel" style="margin-right:8px;"></i>PLACE BID';
+        }
+        if (mobileBidBtn) {
+          mobileBidBtn.disabled = false;
+          mobileBidBtn.innerHTML = '<i class="fas fa-gavel" style="margin-right:6px;"></i>Place Bid';
+        }
       }
     }
   }
