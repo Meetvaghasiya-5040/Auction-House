@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from decimal import Decimal
-from .models import Wallet, Bid, Transaction
+from .models import Wallet, Bid, Transaction, PendingPayment
 from auction_list.models import Lot, Invoice
 
 
@@ -282,7 +282,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
 from datetime import timedelta
-from .models import PendingPayment
+from .models import PendingPayment  # already imported at top, kept for clarity
 from django.db import transaction as db_transaction
 
 
