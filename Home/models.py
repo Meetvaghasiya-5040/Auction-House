@@ -27,6 +27,7 @@ class Profile(models.Model):
     state = models.CharField(max_length=100, blank=True)
     zip_code = models.CharField(max_length=20, blank=True)
     website = models.URLField(blank=True)
+    profile_image_base64 = models.TextField(blank=True, null=True, help_text="Fallback base64 image for Render")
 
     # Transaction PIN fields
     transaction_pin = models.CharField(max_length=128, blank=True, help_text="Hashed transaction PIN")
@@ -55,6 +56,11 @@ class Profile(models.Model):
                 return self.profile_image.url
             except Exception:
                 pass
+                
+        # Fallback to base64
+        if hasattr(self, 'profile_image_base64') and self.profile_image_base64:
+            return self.profile_image_base64
+            
         return None
 
     class Meta:

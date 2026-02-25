@@ -114,7 +114,15 @@ def edit_profile_view(request):
         
         # Update Profile model fields
         if request.FILES.get("profile_image"):
-            profile.profile_image = request.FILES.get("profile_image")
+            profile_img = request.FILES.get("profile_image")
+            if hasattr(settings, 'CLOUDINARY_STORAGE') and settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+                profile.profile_image = profile_img
+            else:
+                import base64
+                image_data = profile_img.read()
+                base64_encoded = base64.b64encode(image_data).decode('utf-8')
+                mime_type = profile_img.content_type
+                profile.profile_image_base64 = f"data:{mime_type};base64,{base64_encoded}"
         
         theme_color = request.POST.get("theme_color")
         if theme_color:
@@ -154,11 +162,21 @@ def add_item_view(request):
         images_paths = []
         
         for image in images:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{timestamp}_{image.name}"
-            # save returns the raw relative path, e.g. "item_images/foo.jpg"
-            saved_path = default_storage.save(f"item_images/{filename}", image)
-            images_paths.append(saved_path)
+            # Check if Cloudinary is configured
+            if hasattr(settings, 'CLOUDINARY_STORAGE') and settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"{timestamp}_{image.name}"
+                # save returns the raw relative path, e.g. "item_images/foo.jpg"
+                saved_path = default_storage.save(f"item_images/{filename}", image)
+                images_paths.append(saved_path)
+            else:
+                # Fallback to Base64 encoding for Render's ephemeral disk
+                import base64
+                image_data = image.read()
+                base64_encoded = base64.b64encode(image_data).decode('utf-8')
+                mime_type = image.content_type
+                data_uri = f"data:{mime_type};base64,{base64_encoded}"
+                images_paths.append(data_uri)
         
         # Calculate Shipping Fee
         # try:

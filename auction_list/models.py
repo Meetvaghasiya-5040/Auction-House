@@ -109,6 +109,7 @@ class Item(models.Model):
         """
         Return a list of fully-resolved image URLs.
         - Full https:// URLs (already Cloudinary) → returned as-is.
+        - Base64 Data URIs → returned as-is.
         - Relative paths (legacy local paths) → resolved via default_storage.url()
           which returns the Cloudinary CDN URL on Render, or /media/path locally.
         """
@@ -117,8 +118,8 @@ class Item(models.Model):
         for path in (self.images or []):
             if not path:
                 continue
-            if path.startswith("http://") or path.startswith("https://"):
-                urls.append(path)       # Already a full URL — use as-is
+            if path.startswith("http://") or path.startswith("https://") or path.startswith("data:"):
+                urls.append(path)       # Already a full URL or data URI — use as-is
             else:
                 # Clean up errant media/ prefixes that might exist in old DB rows
                 clean_path = path

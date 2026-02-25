@@ -140,15 +140,20 @@ def register_view(request):
             if profile_image:
                 try:
                     profile = Profile.objects.get(user=user)
-                    profile.profile_image = profile_image
-                    profile.save(update_fields=['profile_image'])
-                    # Note: Cloudinary handles the image storage automatically.
+                    from django.conf import settings
+                    if hasattr(settings, 'CLOUDINARY_STORAGE') and settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+                        profile.profile_image = profile_image
+                        profile.save(update_fields=['profile_image'])
+                    else:
+                        import base64
+                        image_data = profile_image.read()
+                        base64_encoded = base64.b64encode(image_data).decode('utf-8')
+                        mime_type = profile_image.content_type
+                        profile.profile_image_base64 = f"data:{mime_type};base64,{base64_encoded}"
+                        profile.save(update_fields=['profile_image_base64'])
                 except Exception:
-                    # Upload failed — registration continues without image.
                     pass
 
-            # Send welcome email in a background thread so SMTP latency
-            # cannot hang the HTTP response.
             def send_welcome_email():
                 try:
                     send_mail(
