@@ -166,7 +166,7 @@ def register_view(request):
                 except Exception:
                     pass
 
-            threading.Thread(target=send_welcome_email, daemon=True).start()
+            send_welcome_email()
 
             login(request, user)
 

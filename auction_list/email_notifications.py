@@ -6,26 +6,19 @@ from django.conf import settings
 from django.template.loader import render_to_string
 import threading
 
-class EmailThread(threading.Thread):
-    def __init__(self, subject, html_content, recipient_list):
-        self.subject = subject
-        self.recipient_list = recipient_list
-        self.html_content = html_content
-        threading.Thread.__init__(self)
-
-    def run(self):
-        try:
-            email = EmailMessage(
-                subject=self.subject,
-                body=self.html_content,
-                from_email=settings.EMAIL_HOST_USER,
-                to=self.recipient_list,
-            )
-            email.content_subtype = 'html'
-            email.send(fail_silently=False)
-            print(f"✅ Async email sent to: {self.recipient_list}")
-        except Exception as e:
-            print(f"❌ Error sending async email: {e}")
+def send_email_sync(subject, html_content, recipient_list):
+    try:
+        email = EmailMessage(
+            subject=subject,
+            body=html_content,
+            from_email=settings.EMAIL_HOST_USER,
+            to=recipient_list,
+        )
+        email.content_subtype = 'html'
+        email.send(fail_silently=False)
+        print(f"✅ Sync email sent to: {recipient_list}")
+    except Exception as e:
+        print(f"❌ Error sending sync email: {e}")
 
 
 def send_pickup_confirmed_email(item):
@@ -56,7 +49,7 @@ def send_pickup_confirmed_email(item):
         
         html_message = render_to_string('auction_list/emails/pickup_confirmed.html', context)
         
-        EmailThread(subject, html_message, [seller.email]).start()
+        send_email_sync(subject, html_message, [seller.email])
         print(f"✅ Pickup confirmation email queued for seller: {seller.email}")
         return True
         
@@ -100,7 +93,7 @@ def send_item_at_warehouse_email(item):
         
         html_message_seller = render_to_string('auction_list/emails/item_at_warehouse.html', context_seller)
         
-        EmailThread(subject_seller, html_message_seller, [seller.email]).start()
+        send_email_sync(subject_seller, html_message_seller, [seller.email])
         print(f"✅ Warehouse email queued for seller: {seller.email}")
         
         # Email to buyer (only if buyer exists)
@@ -117,7 +110,7 @@ def send_item_at_warehouse_email(item):
             
             html_message_buyer = render_to_string('auction_list/emails/item_at_warehouse.html', context_buyer)
             
-            EmailThread(subject_buyer, html_message_buyer, [buyer.email]).start()
+            send_email_sync(subject_buyer, html_message_buyer, [buyer.email])
             print(f"✅ Warehouse email queued for buyer: {buyer.email}")
         
         return True
@@ -157,7 +150,7 @@ def send_lot_ready_for_delivery_email(lot):
         
         html_message = render_to_string('auction_list/emails/lot_ready_for_delivery.html', context)
         
-        EmailThread(subject, html_message, [buyer.email]).start()
+        send_email_sync(subject, html_message, [buyer.email])
         print(f"✅ Lot ready email queued for buyer: {buyer.email}")
         return True
         
@@ -209,7 +202,7 @@ Auction House Team
         
         html_message = render_to_string('auction_list/emails/lot_shipped.html', context)
         
-        EmailThread(subject, html_message, [buyer.email]).start()
+        send_email_sync(subject, html_message, [buyer.email])
         print(f"✅ Lot shipped email queued for buyer: {buyer.email}")
         return True
         
@@ -247,7 +240,7 @@ def send_lot_delivered_email(lot):
         
         html_message_buyer = render_to_string('auction_list/emails/lot_delivered.html', context_buyer)
         
-        EmailThread(subject_buyer, html_message_buyer, [buyer.email]).start()
+        send_email_sync(subject_buyer, html_message_buyer, [buyer.email])
         print(f"✅ Delivery complete email queued for buyer: {buyer.email}")
         
         # Email to seller
@@ -264,7 +257,7 @@ def send_lot_delivered_email(lot):
             
             html_message_seller = render_to_string('auction_list/emails/lot_delivered.html', context_seller)
             
-            EmailThread(subject_seller, html_message_seller, [seller.email]).start()
+            send_email_sync(subject_seller, html_message_seller, [seller.email])
             print(f"✅ Delivery complete email queued for seller: {seller.email}")
         
         return True

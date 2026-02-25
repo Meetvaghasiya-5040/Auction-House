@@ -201,8 +201,7 @@ def get_bid_updates(request, slug):
             if lot.close_lot():
                 lot.refresh_from_db()
                 if lot.winning_bidder:
-                    import threading
-                    def send_winner_notification_bg(lot_id):
+                    def send_winner_notification_sync(lot_id):
                         try:
                             from auction_list.models import Lot
                             from bids.invoice_generator import generate_invoice
@@ -212,8 +211,8 @@ def get_bid_updates(request, slug):
                             if path:
                                 send_winner_email(lot_obj, lot_obj.winning_bidder, path)
                         except Exception as e:
-                            print(f"Background Email Error: {e}")
-                    threading.Thread(target=send_winner_notification_bg, args=(lot.id,)).start()
+                            print(f"Email Error: {e}")
+                    send_winner_notification_sync(lot.id)
             
         # Serialize recent bids
         recent_bids = lot.recent_bids
@@ -368,8 +367,6 @@ def verify_payment_pin(request):
             try:
                 from auction_list.models import Invoice, send_invoice_email_task
                 import uuid
-                import threading
-                
                 invoice = Invoice.objects.create(
                     user=request.user,
                     lot=lot,
@@ -379,8 +376,8 @@ def verify_payment_pin(request):
                     status='paid'
                 )
                 
-                # Send invoice email in background
-                threading.Thread(target=send_invoice_email_task, args=(invoice.id,)).start()
+                # Send invoice email synchronously
+                send_invoice_email_task(invoice.id)
             except Exception as e:
                 print(f"Error creating invoice: {e}")
         
