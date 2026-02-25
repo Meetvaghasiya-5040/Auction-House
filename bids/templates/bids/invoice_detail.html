@@ -4,178 +4,364 @@
 {% block title %}Invoice #{{ invoice.invoice_number }} | Auction House{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-100 py-12">
-    <div class="max-w-4xl mx-auto px-4">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-        <!-- Actions Bar -->
-        <div class="mb-6 flex justify-between items-center print:hidden">
-            <a href="{% url 'my_invoices' %}"
-                class="flex items-center text-slate-500 hover:text-slate-900 font-bold text-sm uppercase tracking-wider transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Invoices
-            </a>
+<style>
+* { font-family:'Poppins',sans-serif !important; box-sizing:border-box; }
+body { background:#F0F2F5; }
 
-            <button onclick="window.print()"
-                class="bg-slate-900 hover:bg-purple-600 text-white px-6 py-2.5 font-bold uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl flex items-center">
-                <i class="fas fa-print mr-2"></i> Print Invoice
-            </button>
-            <a href="{% url 'download_invoice-1' invoice.id %}"
-                class="bg-slate-900 hover:bg-purple-600 text-white px-6 py-2.5 font-bold uppercase tracking-widest text-xs transition-all shadow-lg hover:shadow-xl flex items-center">
-                <i class="fas fa-download mr-2"></i> Download Invoice
-            </a>
+.page-wrap { min-height:100vh; background:#F0F2F5; padding:32px 0 64px; }
+.container  { max-width:860px; margin:0 auto; padding:0 20px; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);} }
+.a1{animation:fadeUp .4s ease both;}
+.a2{animation:fadeUp .4s .08s ease both;}
+
+/* ── Action bar ── */
+.action-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:24px; }
+.btn-back { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:#4B5563; text-decoration:none; padding:8px 14px; border-radius:8px; background:#fff; border:1.5px solid #E8ECF4; transition:.2s; }
+.btn-back:hover { border-color:#0891B2; color:#0891B2; }
+.action-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.btn-action { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:9px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; text-decoration:none; cursor:pointer; border:none; transition:.2s; white-space:nowrap; }
+.btn-print  { background:#fff; color:#1A1D23; border:1.5px solid #E8ECF4; }
+.btn-print:hover { border-color:#6B7280; background:#F8F9FC; }
+.btn-dl     { background:#0891B2; color:#fff; }
+.btn-dl:hover { background:#0E7490; transform:translateY(-1px); }
+
+/* ── Invoice card ── */
+.invoice-card { background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.08); }
+
+/* ── Top accent strip ── */
+.accent-strip { height:6px; background:linear-gradient(90deg,#0891B2,#7C3AED,#D97706); }
+
+/* ── Invoice header ── */
+.inv-header { padding:36px 40px; display:grid; grid-template-columns:1fr auto; gap:24px; border-bottom:1.5px solid #F0F2F5; }
+.brand { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.brand-icon { width:44px; height:44px; background:#0891B2; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; }
+.brand-name { font-size:20px; font-weight:800; color:#1A1D23; letter-spacing:-.3px; }
+.brand-sub { font-size:12px; color:#8A93A6; margin-top:2px; }
+.comp-info p { font-size:12px; color:#6B7280; margin:2px 0; display:flex; align-items:center; gap:6px; }
+.comp-info p i { color:#0891B2; width:14px; font-size:11px; }
+
+.inv-title-block { text-align:right; }
+.inv-word { font-size:42px; font-weight:900; color:#F0F2F5; letter-spacing:-1px; line-height:1; margin-bottom:6px; }
+.inv-number { font-size:18px; font-weight:700; color:#1A1D23; font-family:monospace !important; margin-bottom:4px; }
+.inv-date { font-size:11px; color:#8A93A6; margin-bottom:12px; }
+.badge-paid    { display:inline-flex; align-items:center; gap:5px; padding:5px 14px; background:#DCFCE7; color:#15803D; border:1.5px solid #BBF7D0; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+.badge-pending { display:inline-flex; align-items:center; gap:5px; padding:5px 14px; background:#FEF3C7; color:#D97706; border:1.5px solid #FDE68A; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; }
+.badge-other   { display:inline-flex; padding:5px 14px; background:#F1F5F9; color:#64748B; border:1.5px solid #E2E8F0; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; }
+
+/* ── Billing / Auction details section ── */
+.details-section { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1.5px solid #F0F2F5; }
+.detail-col { padding:28px 40px; }
+.detail-col:first-child { border-right:1.5px solid #F0F2F5; }
+.detail-label { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#0891B2; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.detail-label i { font-size:11px; }
+.bill-name  { font-size:16px; font-weight:700; color:#1A1D23; margin-bottom:4px; }
+.bill-email { font-size:12px; color:#6B7280; }
+
+.detail-grid { display:flex; flex-direction:column; gap:10px; }
+.detail-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.dr-key { font-size:11px; color:#8A93A6; font-weight:500; white-space:nowrap; }
+.dr-val { font-size:12px; font-weight:700; color:#1A1D23; text-align:right; }
+
+/* ── Line items ── */
+.items-section { border-bottom:1.5px solid #F0F2F5; }
+.items-header { display:grid; grid-template-columns:1fr 60px 140px; gap:12px; padding:14px 40px; background:#F8F9FC; font-size:10px; font-weight:700; color:#8A93A6; text-transform:uppercase; letter-spacing:.08em; border-bottom:1.5px solid #F0F2F5; }
+.items-header span:not(:first-child) { text-align:right; }
+
+.line-item { display:grid; grid-template-columns:1fr 60px 140px; gap:12px; padding:24px 40px; align-items:start; border-bottom:1px solid #F8F9FC; }
+.line-item:last-child { border-bottom:none; }
+.li-title { font-size:14px; font-weight:700; color:#1A1D23; margin-bottom:4px; }
+.li-desc  { font-size:12px; color:#6B7280; line-height:1.5; margin-bottom:6px; }
+.li-tag   { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#0891B2; background:#ECFEFF; border:1px solid #A5F3FC; padding:2px 8px; border-radius:5px; }
+.li-qty   { font-size:13px; font-weight:600; color:#4B5563; text-align:right; padding-top:2px; }
+.li-amount { font-size:15px; font-weight:800; color:#1A1D23; text-align:right; padding-top:1px; }
+
+/* ── Totals ── */
+.totals-section { padding:0 40px 8px; }
+.total-row { display:flex; justify-content:flex-end; align-items:center; gap:0; padding:10px 0; border-bottom:1px solid #F8F9FC; }
+.total-row:last-child { border-bottom:none; }
+.total-key { font-size:12px; color:#6B7280; font-weight:500; min-width:120px; text-align:right; padding-right:24px; }
+.total-val { font-size:13px; font-weight:700; color:#1A1D23; min-width:120px; text-align:right; }
+.total-row.grand { padding:16px 0 20px; margin-top:4px; border-top:2px solid #E8ECF4; border-bottom:none; }
+.total-row.grand .total-key { font-size:14px; font-weight:800; color:#1A1D23; }
+.total-row.grand .total-val { font-size:22px; font-weight:900; color:#0891B2; }
+
+/* ── Payment info strip ── */
+.payment-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-top:1.5px solid #F0F2F5; border-bottom:1.5px solid #F0F2F5; }
+.ps-item { padding:20px 28px; display:flex; align-items:center; gap:12px; }
+.ps-item:not(:last-child) { border-right:1.5px solid #F0F2F5; }
+.ps-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.ps-label { font-size:10px; font-weight:600; color:#8A93A6; text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+.ps-val   { font-size:12px; font-weight:700; color:#1A1D23; }
+
+/* ── Footer ── */
+.inv-footer { background:#1A1D23; padding:28px 40px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.inv-footer-left p { font-size:13px; font-weight:600; color:#fff; margin:0 0 4px; }
+.inv-footer-left small { font-size:11px; color:rgba(255,255,255,.35); }
+.inv-footer-right { display:flex; align-items:center; gap:8px; }
+.footer-tag { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:20px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+
+/* ── Notice ── */
+.notice-box { background:#ECFEFF; border:1.5px solid #A5F3FC; border-radius:12px; padding:13px 16px; display:flex; align-items:flex-start; gap:10px; margin-top:20px; }
+.notice-box i { color:#0891B2; margin-top:2px; flex-shrink:0; }
+.notice-box p { font-size:12px; color:#164E63; margin:0; line-height:1.6; }
+
+/* ── Print ── */
+@media print {
+  body { background:#fff !important; }
+  .page-wrap { background:#fff !important; padding:0; }
+  .action-bar, .notice-box { display:none !important; }
+  .invoice-card { border-radius:0; box-shadow:none; }
+  .accent-strip { display:none; }
+}
+
+/* ── Responsive ── */
+@media(max-width:680px) {
+  .inv-header { grid-template-columns:1fr; }
+  .inv-title-block { text-align:left; }
+  .inv-word { font-size:28px; }
+  .details-section { grid-template-columns:1fr; }
+  .detail-col:first-child { border-right:none; border-bottom:1.5px solid #F0F2F5; }
+  .detail-col { padding:22px 20px; }
+  .items-header, .line-item { grid-template-columns:1fr auto; padding:16px 20px; }
+  .items-header span:nth-child(2), .line-item .li-qty { display:none; }
+  .totals-section { padding:0 20px 8px; }
+  .payment-strip { grid-template-columns:1fr; }
+  .ps-item { border-right:none !important; border-bottom:1.5px solid #F0F2F5; padding:16px 20px; }
+  .ps-item:last-child { border-bottom:none; }
+  .inv-header { padding:24px 20px; }
+  .inv-footer { padding:22px 20px; }
+  .items-header { display:none; }
+  .line-item .li-amount { min-width:90px; }
+}
+</style>
+
+<div class="page-wrap">
+<div class="container">
+
+  <!-- ACTION BAR -->
+  <div class="action-bar a1 print:hidden">
+    <a href="{% url 'my_invoices' %}" class="btn-back">
+      <i class="fas fa-arrow-left"></i> Back to Invoices
+    </a>
+    <div class="action-btns">
+      <button onclick="window.print()" class="btn-action btn-print">
+        <i class="fas fa-print"></i> Print
+      </button>
+      <a href="{% url 'download_invoice-1' invoice.id %}" class="btn-action btn-dl">
+        <i class="fas fa-file-arrow-down"></i> Download PDF
+      </a>
+    </div>
+  </div>
+
+  <!-- INVOICE CARD -->
+  <div class="invoice-card a2">
+
+    <!-- Accent strip -->
+    <div class="accent-strip"></div>
+
+    <!-- ── HEADER ── -->
+    <div class="inv-header">
+      <!-- Left: Company -->
+      <div>
+        <div class="brand">
+          <div class="brand-icon"><i class="fas fa-gavel"></i></div>
+          <div>
+            <p class="brand-name">AUCTION HOUSE</p>
+            <p class="brand-sub">Official Invoice</p>
+          </div>
         </div>
-
-        <!-- Invoice Card -->
-        <div
-            class="bg-white shadow-2xl overflow-hidden border-t-8 border-purple-600 print:shadow-none print:border-none">
-
-            <!-- Invoice Header -->
-            <div class="p-8 md:p-12 border-b border-slate-100">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                        <div class="flex items-center gap-3 mb-2">
-                            <i class="fas fa-gavel text-purple-600 text-3xl"></i>
-                            <span class="font-black text-2xl text-slate-900 tracking-tighter">AUCTION HOUSE</span>
-                        </div>
-                        <p class="text-slate-500 text-sm font-medium">Ahmedabad</p>
-                        <p class="text-slate-500 text-sm font-medium">auctionhouse@gmail.com</p>
-                    </div>
-
-                    <div class="text-right">
-                        <h1
-                            class="text-4xl md:text-5xl font-black text-slate-100 uppercase tracking-tighter leading-none mb-2">
-                            Invoice</h1>
-                        <div class="font-mono text-slate-900 font-bold text-lg">#{{ invoice.invoice_number }}</div>
-                        <div class="text-slate-500 text-sm font-medium mt-1">Issued: {{ invoice.issued_at|date:"F d, Y"}}</div>
-
-                        <div class="mt-4">
-                            {% if invoice.status == 'paid' %}
-                            <span
-                                class="bg-green-100 text-green-700 border border-green-200 px-4 py-1 text-sm font-bold uppercase tracking-widest inline-block">PAID</span>
-                            {% else %}
-                            <span
-                                class="bg-red-100 text-red-700 border border-red-200 px-4 py-1 text-sm font-bold uppercase tracking-widest inline-block">{{invoice.status }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Billing Details -->
-            <div class="p-8 md:p-12 bg-slate-50 border-b border-slate-100">
-                <div class="flex flex-col md:flex-row gap-12">
-                    <div class="flex-1">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Bill To</h3>
-                        <div class="font-bold text-slate-900 text-lg mb-1">{{ user.get_full_name|default:user.username }}</div>
-                        <div class="text-slate-600">{{ user.email }}</div>
-                        <!-- Add address if available in user profile, assuming not available for now -->
-                    </div>
-
-                    <div class="flex-1">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Auction Details
-                        </h3>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div class="text-slate-500 font-medium">Auction:</div>
-                            <div class="font-bold text-slate-900 text-right">{{ auction.title }}</div>
-
-                            <div class="text-slate-500 font-medium">Lot Number:</div>
-                            <div class="font-bold text-slate-900 text-right">#{{ lot.lot_number }}</div>
-
-                            <div class="text-slate-500 font-medium">Lot Title:</div>
-                            <div class="font-bold text-slate-900 text-right">{{ lot.title }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Line Items -->
-            <div>
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-slate-900 text-white text-xs uppercase tracking-widest">
-                            <th class="py-4 px-8 md:px-12 font-bold w-1/2">Description</th>
-                            <th class="py-4 px-4 font-bold text-right">Qty</th>
-                            <th class="py-4 px-8 md:px-12 font-bold text-right">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <!-- Main Lot Item -->
-                        <tr>
-                            <td class="py-6 px-8 md:px-12">
-                                <div class="font-bold text-slate-900 text-lg mb-1">{{ lot.title }}</div>
-                                <div class="text-slate-500 text-sm max-w-md">{{ lot.description|truncatechars:100 }}
-                                </div>
-                                <div class="mt-2 text-xs text-purple-600 font-bold uppercase tracking-wide">Winning Bid
-                                </div>
-                            </td>
-                            <td class="py-6 px-4 text-right font-medium text-slate-600">1</td>
-                            <td class="py-6 px-8 md:px-12 text-right font-bold text-slate-900">₹{{invoice.amount|floatformat:2 }}</td>
-                        </tr>
-
-                        <!-- 
-                        Example for fees if we had them separate from amount:
-                        <tr>
-                            <td class="py-4 px-12 text-slate-600">Buyer's Premium (0%)</td>
-                            <td class="py-4 px-4 text-right text-slate-600">1</td>
-                            <td class="py-4 px-12 text-right font-bold text-slate-900">₹0.00</td>
-                        </tr>
-                        -->
-                    </tbody>
-                    <tfoot class="bg-slate-50">
-                        <tr>
-                            <td colspan="2"
-                                class="pt-8 pb-2 px-8 md:px-12 text-right font-medium text-slate-500 text-sm">Subtotal
-                            </td>
-                            <td class="pt-8 pb-2 px-8 md:px-12 text-right font-bold text-slate-900">₹{{invoice.amount|floatformat:2 }}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" class="py-2 px-8 md:px-12 text-right font-medium text-slate-500 text-sm">Tax
-                                (0%)</td>
-                            <td class="py-2 px-8 md:px-12 text-right font-bold text-slate-900">₹0.00</td>
-                        </tr>
-                        <tr class="border-t-2 border-slate-200">
-                            <td colspan="2"
-                                class="py-6 px-8 md:px-12 text-right font-black text-slate-900 text-xl uppercase tracking-tight">
-                                Total Due</td>
-                            <td class="py-6 px-8 md:px-12 text-right font-black text-purple-600 text-2xl">₹{{invoice.amount|floatformat:2 }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <!-- Footer -->
-            <div class="bg-slate-900 p-8 md:p-12 text-center text-slate-400 text-sm">
-                <p class="mb-2 font-medium">Thank you for your business!</p>
-                <p class="text-xs text-slate-600">Payment Processed Successfully via Wallet Deduction.</p>
-            </div>
+        <div class="comp-info">
+          <p><i class="fas fa-location-dot"></i>Ahmedabad, Gujarat, India</p>
+          <p><i class="fas fa-envelope"></i>auctionhouse@gmail.com</p>
+          <p><i class="fas fa-globe"></i>www.auctionhouse.in</p>
+          <p><i class="fas fa-phone"></i>+91 98765 43210</p>
         </div>
+      </div>
+
+      <!-- Right: Invoice meta -->
+      <div class="inv-title-block">
+        <div class="inv-word">INVOICE</div>
+        <div class="inv-number">#{{ invoice.invoice_number }}</div>
+        <div class="inv-date">
+          <i class="fas fa-calendar-days" style="color:#0891B2; margin-right:4px;"></i>
+          Issued: {{ invoice.issued_at|date:"F d, Y" }}
+        </div>
+        {% if invoice.status == 'paid' %}
+        <span class="badge-paid"><i class="fas fa-circle-check"></i>Paid</span>
+        {% elif invoice.status == 'pending' %}
+        <span class="badge-pending"><i class="fas fa-clock"></i>Pending</span>
+        {% else %}
+        <span class="badge-other">{{ invoice.status|title }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── BILLING + AUCTION DETAILS ── -->
+    <div class="details-section">
+
+      <!-- Bill To -->
+      <div class="detail-col">
+        <p class="detail-label"><i class="fas fa-user"></i>Bill To</p>
+        <p class="bill-name">{{ user.get_full_name|default:user.username }}</p>
+        <p class="bill-email">{{ user.email }}</p>
+        <div style="margin-top:14px; display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#6B7280;">
+            <i class="fas fa-id-card" style="color:#0891B2; width:14px; font-size:11px;"></i>
+            Member ID: <strong style="color:#1A1D23;">{{ user.id }}</strong>
+          </div>
+          <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:#6B7280;">
+            <i class="fas fa-calendar" style="color:#0891B2; width:14px; font-size:11px;"></i>
+            Joined: <strong style="color:#1A1D23;">{{ user.date_joined|date:"M Y" }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auction Details -->
+      <div class="detail-col">
+        <p class="detail-label"><i class="fas fa-landmark"></i>Auction Details</p>
+        <div class="detail-grid">
+          <div class="detail-row">
+            <span class="dr-key">Auction</span>
+            <span class="dr-val">{{ auction.title }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="dr-key">Lot Number</span>
+            <span class="dr-val">#{{ lot.lot_number }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="dr-key">Lot Title</span>
+            <span class="dr-val">{{ lot.title }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="dr-key">Payment Method</span>
+            <span class="dr-val" style="color:#0891B2;">Wallet Deduction</span>
+          </div>
+          <div class="detail-row">
+            <span class="dr-key">Invoice Date</span>
+            <span class="dr-val">{{ invoice.issued_at|date:"M d, Y" }}</span>
+          </div>
+        </div>
+      </div>
 
     </div>
+
+    <!-- ── LINE ITEMS ── -->
+    <div class="items-section">
+      <div class="items-header">
+        <span>Description</span>
+        <span style="text-align:right;">Qty</span>
+        <span style="text-align:right;">Amount</span>
+      </div>
+
+      <!-- Main item -->
+      <div class="line-item">
+        <div>
+          <p class="li-title">{{ lot.title }}</p>
+          <p class="li-desc">{{ lot.description|truncatechars:120 }}</p>
+          <span class="li-tag"><i class="fas fa-gavel"></i> Winning Bid · Lot #{{ lot.lot_number }}</span>
+        </div>
+        <div class="li-qty">1</div>
+        <div class="li-amount">₹{{ invoice.amount|floatformat:2 }}</div>
+      </div>
+
+      <!-- Buyer's premium row (zero) -->
+      <div class="line-item" style="padding-top:14px; padding-bottom:14px;">
+        <div>
+          <p style="font-size:13px; font-weight:600; color:#6B7280; margin:0 0 2px;">Buyer's Premium</p>
+          <p style="font-size:11px; color:#9CA3AF; margin:0;">Standard auction processing fee</p>
+        </div>
+        <div class="li-qty" style="color:#9CA3AF;">1</div>
+        <div class="li-amount" style="color:#9CA3AF;">₹0.00</div>
+      </div>
+    </div>
+
+    <!-- ── TOTALS ── -->
+    <div class="totals-section" style="padding-top:16px;">
+      <div class="total-row">
+        <span class="total-key">Subtotal</span>
+        <span class="total-val">₹{{ invoice.amount|floatformat:2 }}</span>
+      </div>
+      <div class="total-row">
+        <span class="total-key">Buyer's Premium</span>
+        <span class="total-val">₹0.00</span>
+      </div>
+      <div class="total-row">
+        <span class="total-key">GST / Tax (0%)</span>
+        <span class="total-val">₹0.00</span>
+      </div>
+      <div class="total-row grand">
+        <span class="total-key">Total Due</span>
+        <span class="total-val">₹{{ invoice.amount|floatformat:2 }}</span>
+      </div>
+    </div>
+
+    <!-- ── PAYMENT INFO STRIP ── -->
+    <div class="payment-strip">
+      <div class="ps-item">
+        <div class="ps-icon" style="background:#DCFCE7;"><i class="fas fa-wallet" style="color:#16A34A;"></i></div>
+        <div>
+          <p class="ps-label">Payment Method</p>
+          <p class="ps-val">Wallet Balance</p>
+        </div>
+      </div>
+      <div class="ps-item">
+        <div class="ps-icon" style="background:#ECFEFF;"><i class="fas fa-calendar-check" style="color:#0891B2;"></i></div>
+        <div>
+          <p class="ps-label">Payment Date</p>
+          <p class="ps-val">{{ invoice.issued_at|date:"M d, Y" }}</p>
+        </div>
+      </div>
+      <div class="ps-item">
+        <div class="ps-icon" style="background:{% if invoice.status == 'paid' %}#DCFCE7{% else %}#FEF3C7{% endif %};"><i class="fas fa-{% if invoice.status == 'paid' %}circle-check{% else %}clock{% endif %}" style="color:{% if invoice.status == 'paid' %}#16A34A{% else %}#D97706{% endif %};"></i></div>
+        <div>
+          <p class="ps-label">Status</p>
+          <p class="ps-val" style="color:{% if invoice.status == 'paid' %}#16A34A{% else %}#D97706{% endif %};">
+            {% if invoice.status == 'paid' %}Payment Confirmed{% else %}{{ invoice.status|title }}{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div class="inv-footer">
+      <div class="inv-footer-left">
+        <p>Thank you for bidding with Auction House!</p>
+        <small>Payment was processed securely via wallet deduction · Keep this invoice for your records.</small>
+      </div>
+      <div class="inv-footer-right">
+        <span class="footer-tag" style="background:rgba(8,145,178,.2); color:#67E8F9;">
+          <i class="fas fa-shield-halved"></i> Secure
+        </span>
+        <span class="footer-tag" style="background:rgba(34,197,94,.15); color:#4ADE80;">
+          <i class="fas fa-check"></i> Official
+        </span>
+      </div>
+    </div>
+
+  </div>
+  <!-- /invoice-card -->
+
+  <!-- NOTICE -->
+  <div class="notice-box a2 print:hidden">
+    <i class="fas fa-circle-info"></i>
+    <p>This is an official invoice from Auction House. For queries regarding this invoice, GST invoicing, or collection arrangements, please contact us at <strong>auctionhouse@gmail.com</strong> or call <strong>+91 98765 43210</strong>.</p>
+  </div>
+
+</div>
 </div>
 
 <style>
-    @media print {
-        body {
-            background: white;
-        }
-
-        .min-h-screen {
-            min-height: auto;
-            padding: 0;
-        }
-
-        footer,
-        nav,
-        .print\:hidden {
-            display: none !important;
-        }
-
-        .shadow-2xl {
-            box-shadow: none !important;
-        }
-
-        .border-t-8 {
-            border-top-width: 0 !important;
-        }
-    }
+@media print {
+  body { background:#fff !important; }
+  .page-wrap { background:#fff !important; padding:0 !important; }
+  .action-bar, .notice-box { display:none !important; }
+  .invoice-card { border-radius:0 !important; box-shadow:none !important; }
+  .accent-strip { display:none !important; }
+  nav, footer { display:none !important; }
+}
 </style>
+
 {% endblock %}
