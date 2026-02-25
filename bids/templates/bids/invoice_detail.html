@@ -867,8 +867,7 @@
                         <p class="ps-label">Status</p>
                         <p class="ps-val"
                             style="color:{% if invoice.status == 'paid' %}#16A34A{% else %}#D97706{% endif %};">
-                            {% if invoice.status == 'paid' %}Payment Confirmed{% else %}{{ invoice.status|title }}{%
-                            endif %}
+                            {% if invoice.status == 'paid' %}Payment Confirmed{% else %}{{ invoice.status|title }}{% endif %}
                         </p>
                     </div>
                 </div>
