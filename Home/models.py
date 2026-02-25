@@ -45,6 +45,10 @@ class Profile(models.Model):
         Return the profile image URL, or None if the image is missing/broken.
         The template will show default-image.webp when this returns None.
         """
+        # First, check the base64 field — this is always persistent
+        if self.profile_image_base64:
+            return self.profile_image_base64
+
         # Known bad legacy values stored by the old model default
         BAD_DEFAULTS = {
             'profile_images/default.png',
@@ -53,14 +57,14 @@ class Profile(models.Model):
         }
         if self.profile_image and self.profile_image.name not in BAD_DEFAULTS:
             try:
-                return self.profile_image.url
+                url = self.profile_image.url
+                # If the URL is a local /media/ path (not Cloudinary),
+                # the file may not exist on Render's ephemeral disk — skip it
+                if url and not url.startswith('/media/'):
+                    return url
             except Exception:
                 pass
-                
-        # Fallback to base64
-        if hasattr(self, 'profile_image_base64') and self.profile_image_base64:
-            return self.profile_image_base64
-            
+
         return None
 
     class Meta:

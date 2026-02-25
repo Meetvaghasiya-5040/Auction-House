@@ -111,27 +111,31 @@ class Item(models.Model):
         - Full https:// URLs (already Cloudinary) → returned as-is.
         - Base64 Data URIs → returned as-is.
         - Relative paths (legacy local paths) → resolved via default_storage.url()
-          which returns the Cloudinary CDN URL on Render, or /media/path locally.
+          BUT skipped if URL resolves to a /media/ path (file won't exist on Render).
         """
         from django.core.files.storage import default_storage
         urls = []
         for path in (self.images or []):
             if not path:
                 continue
+            # Already a full URL (Cloudinary) or a base64 data URI — use as-is
             if path.startswith("http://") or path.startswith("https://") or path.startswith("data:"):
-                urls.append(path)       # Already a full URL or data URI — use as-is
+                urls.append(path)
             else:
-                # Clean up errant media/ prefixes that might exist in old DB rows
+                # Clean up errant media/ prefixes
                 clean_path = path
                 if clean_path.startswith('/media/'):
                     clean_path = clean_path.replace('/media/', '', 1)
                 elif clean_path.startswith('media/'):
                     clean_path = clean_path.replace('media/', '', 1)
-                    
                 try:
-                    urls.append(default_storage.url(clean_path))  # Resolves via active storage backend
+                    resolved_url = default_storage.url(clean_path)
+                    # Skip /media/ URLs — those files are gone on Render's ephemeral disk
+                    if resolved_url.startswith('/media/'):
+                        continue
+                    urls.append(resolved_url)
                 except Exception:
-                    urls.append(f"/media/{clean_path}")           # Fallback for local dev
+                    pass  # Skip broken paths silently
         return urls
 
 
