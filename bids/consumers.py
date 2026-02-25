@@ -72,7 +72,8 @@ class BiddingConsumer(AsyncWebsocketConsumer):
                 pass
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         if self.scope['user'].is_authenticated:
             await self.channel_layer.group_discard(f"user_{self.scope['user'].id}", self.channel_name)
 
