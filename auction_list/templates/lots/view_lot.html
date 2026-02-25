@@ -4,376 +4,451 @@
 {% block title %}Explore Lots | {{ auction.title|default:"All Auctions" }}{% endblock %}
 
 {% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,700&family=Outfit:wght@300;400;500;600;700;800&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+    body { font-family: 'Outfit', sans-serif; }
+    .playfair { font-family: 'Cormorant Garamond', serif; }
+    .mono { font-family: 'Azeret Mono', monospace; }
 
-    * {
-        font-family: 'Inter', sans-serif;
+    /* Custom colors not in default Tailwind palette */
+    .text-gold  { color: #c9a84c; }
+    .bg-gold    { background-color: #c9a84c; }
+    .border-gold{ border-color: #c9a84c; }
+    .bg-navy    { background-color: #1a2744; }
+    .text-navy  { color: #1a2744; }
+    .bg-paper   { background-color: #f7f3ee; }
+    .bg-cream   { background-color: #ede8e1; }
+
+    /* Grid-line texture for header */
+    .header-grid-bg {
+        background-image:
+            repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(201,168,76,0.07) 39px, rgba(201,168,76,0.07) 40px),
+            repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(201,168,76,0.07) 39px, rgba(201,168,76,0.07) 40px);
     }
 
-    .filter-card {
-        will-change: transform;
-        transition: all 0.3s ease;
+    /* Select arrow override */
+    select {
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%230f0f0f' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.65rem center;
+        padding-right: 2rem !important;
     }
 
-    .lot-card {
-        will-change: transform, box-shadow;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Gold top bar on every card */
+    .card-gold-bar::before {
+        content: '';
+        display: block;
+        height: 4px;
+        background: linear-gradient(90deg, #c9a84c, #e8c96a);
     }
 
-    .lot-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    /* Card hover */
+    .lot-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
+    .lot-card:hover { transform: translateY(-3px); box-shadow: 5px 5px 0 #111827; }
+
+    /* Live badge pulse */
+    .badge-live { animation: blk 2s ease-in-out infinite; }
+    @keyframes blk { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    /* Card entrance animation */
+    @keyframes fadeUp {
+        from { opacity:0; transform: translateY(14px); }
+        to   { opacity:1; transform: translateY(0); }
     }
+    .lot-card { animation: fadeUp 0.4s ease both; }
+    .lot-card:nth-child(1){animation-delay:0ms}
+    .lot-card:nth-child(2){animation-delay:60ms}
+    .lot-card:nth-child(3){animation-delay:120ms}
+    .lot-card:nth-child(4){animation-delay:180ms}
+    .lot-card:nth-child(5){animation-delay:240ms}
+    .lot-card:nth-child(6){animation-delay:300ms}
+    .lot-card:nth-child(7){animation-delay:360ms}
+    .lot-card:nth-child(8){animation-delay:420ms}
+    .lot-card:nth-child(9){animation-delay:480ms}
 
-    .badge-live {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    @keyframes pulse {
-
-        0%,
-        100% {
-            opacity: 1;
-        }
-
-        50% {
-            opacity: 0.7;
-        }
-    }
+    /* Drawer slide */
+    .filter-drawer { transition: transform 0.32s cubic-bezier(0.4,0,0.2,1); }
+    .filter-drawer.open { transform: translateX(0) !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-    <!-- Hero Header -->
-    <div class="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 border-b-4 border-yellow-400">
-        <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-12">
-            <div class="text-center">
-                <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mb-3">
-                    {% if auction %}
-                    <span class="text-yellow-400">{{ auction.title }}</span>
-                    {% else %}
-                    Browse All Lots
-                    {% endif %}
-                </h1>
-                <p class="text-slate-300 text-lg">Discover premium items and place your bids</p>
-            </div>
+<div class="min-h-screen bg-paper">
+
+    <!-- ═══════════════════════════════════
+         HERO HEADER
+    ═══════════════════════════════════ -->
+    <header class="header-grid-bg bg-navy border-b-4 border-gold relative overflow-hidden">
+        <span class="absolute text-[180px] md:text-[260px] top-0 left-0 leading-none opacity-[0.03] text-yellow-300 pointer-events-none select-none">⚖</span>
+        <div class="relative max-w-screen-xl mx-auto px-4 sm:px-6 py-12 md:py-16 text-center">
+            <p class="mono text-[0.65rem] tracking-[0.35em] uppercase text-gold opacity-80 mb-3">
+                {% if auction %}Auction &bull; {{ auction.start_date|date:"d M Y" }}{% else %}All Auctions{% endif %}
+            </p>
+            <h1 class="playfair text-5xl sm:text-6xl md:text-7xl font-bold text-white leading-tight mb-3">
+                {% if auction %}
+                    <span class="text-gold">{{ auction.title }}</span>
+                {% else %}
+                    Browse All <span class="text-gold">Lots</span>
+                {% endif %}
+            </h1>
+            <p class="text-white/50 text-sm md:text-base">Discover premium items &amp; place competitive bids</p>
         </div>
+    </header>
+
+    <!-- ═══════════════════════════════════
+         MOBILE STICKY BAR  (hidden on lg+)
+    ═══════════════════════════════════ -->
+    <div class="lg:hidden flex items-center justify-between bg-gray-900 border-b-4 border-gold px-4 py-3">
+        <button onclick="openDrawer()"
+            class="bg-gold flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-900 hover:brightness-110 transition-all">
+            <i class="fas fa-sliders-h"></i> Filters &amp; Sort
+        </button>
+        <span class="mono text-xs text-white/50">
+            <strong class="text-gold">{{ lots.count }}</strong> lots found
+        </span>
     </div>
 
-    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-8">
-        <div class="flex flex-col lg:flex-row gap-6">
-            <!-- Filter Sidebar -->
-            <aside class="w-full lg:w-80 shrink-0">
-                <div class="sticky top-4">
-                    <div class="filter-card bg-white border-2 border-slate-900 shadow-lg">
-                        <!-- Filter Header -->
-                        <div class="bg-slate-900 px-6 py-4 border-b-2 border-yellow-400">
-                            <h3 class="text-lg font-black uppercase tracking-wider text-white flex items-center gap-2">
-                                <i class="fas fa-filter"></i>
-                                Filter Lots
-                            </h3>
+    <!-- ═══════════════════════════════════
+         OVERLAY
+    ═══════════════════════════════════ -->
+    <div id="filterOverlay" onclick="closeDrawer()"
+        class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[9998]"></div>
+
+    <!-- ═══════════════════════════════════
+         FILTER DRAWER  (mobile/tablet)
+    ═══════════════════════════════════ -->
+    <aside id="filterDrawer"
+        style="transform:translateX(-110%)"
+        class="filter-drawer fixed top-0 left-0 h-full bg-white z-[9999] flex flex-col overflow-y-auto w-[min(360px,92vw)]">
+
+        <div class="sticky top-0 z-10 bg-gray-900 border-b-4 border-gold px-5 py-4 flex items-center justify-between">
+            <h3 class="playfair text-white text-xl font-semibold">Refine Results</h3>
+            <button onclick="closeDrawer()" class="w-8 h-8 border border-white/20 text-white flex items-center justify-center text-sm hover:bg-white/10 transition-colors">✕</button>
+        </div>
+
+        <div class="p-5 flex-1">
+            <form method="GET">
+                {% if auction %}<input type="hidden" name="auction" value="{{ auction.slug }}">{% endif %}
+
+                <!-- Sort -->
+                <div class="mb-5">
+                    <label class="mono block text-[0.6rem] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
+                        <i class="fas fa-sort-amount-down mr-1"></i> Sort By
+                    </label>
+                    <select name="sort" class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold text-gray-900 focus:border-yellow-500 focus:outline-none">
+                        <option value="newest"     {% if request.GET.sort == 'newest'     %}selected{% endif %}>Newest First</option>
+                        <option value="price_low"  {% if request.GET.sort == 'price_low'  %}selected{% endif %}>Price: Low → High</option>
+                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+                        <option value="bids"       {% if request.GET.sort == 'bids'       %}selected{% endif %}>Most Bids</option>
+                    </select>
+                </div>
+
+                <!-- Category -->
+                <div class="mb-5">
+                    <label class="mono block text-[0.6rem] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
+                        <i class="fas fa-tag mr-1"></i> Category
+                    </label>
+                    <select name="category" class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold text-gray-900 focus:border-yellow-500 focus:outline-none">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Price Range -->
+                <div class="mb-5">
+                    <label class="mono block text-[0.6rem] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
+                        <i class="fas fa-rupee-sign mr-1"></i> Price Range (₹)
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}"
+                            class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold focus:border-yellow-500 focus:outline-none">
+                        <input type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}"
+                            class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold focus:border-yellow-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-6">
+                    <label class="mono block text-[0.6rem] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
+                        <i class="fas fa-circle mr-1"></i> Lot Status
+                    </label>
+                    <select name="status" class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold text-gray-900 focus:border-yellow-500 focus:outline-none">
+                        <option value="">All Statuses</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>🟢 Active (Live)</option>
+                        <option value="sold"   {% if request.GET.status == 'sold'   %}selected{% endif %}>✔ Sold</option>
+                        <option value="unsold" {% if request.GET.status == 'unsold' %}selected{% endif %}>⏸ Unsold</option>
+                    </select>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-navy transition-colors mb-2">
+                    <i class="fas fa-check mr-1"></i> Apply Filters
+                </button>
+                <a href="{% if auction %}{% url 'view_lots' auction.slug %}{% else %}{% url 'view_lots' %}{% endif %}"
+                    class="block w-full py-2.5 border-2 border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-widest text-center hover:border-gray-900 hover:text-gray-900 transition-colors">
+                    <i class="fas fa-redo-alt mr-1"></i> Reset All
+                </a>
+
+                <div class="bg-gray-900 mt-5 p-5 text-center">
+                    <div class="playfair text-5xl font-semibold text-gold leading-none">{{ lots.count }}</div>
+                    <div class="mono text-[0.58rem] tracking-[0.25em] uppercase text-white/40 mt-1">Lots Available</div>
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════
+         PAGE LAYOUT
+    ═══════════════════════════════════ -->
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 py-6">
+        <div class="flex gap-6">
+
+            <!-- DESKTOP SIDEBAR ──────────────────────── -->
+            <aside class="hidden lg:block w-72 shrink-0">
+                <div class="sticky top-6">
+                    <div class="border-2 border-gray-900 overflow-hidden">
+                        <div class="bg-gray-900 border-b-4 border-gold px-5 py-4">
+                            <h3 class="playfair text-white text-xl font-semibold">Refine Results</h3>
                         </div>
+                        <div class="p-5 bg-white">
+                            <form id="desktopFilterForm" method="GET">
+                                {% if auction %}<input type="hidden" name="auction" value="{{ auction.slug }}">{% endif %}
 
-                        <!-- Filter Form -->
-                        <form id="filterForm" class="p-6 space-y-6">
-                            <!-- Category Filter -->
-                            <div>
-                                <label class="block text-xs font-black uppercase text-slate-900 mb-3 tracking-widest">
-                                    <i class="fas fa-tag mr-1"></i> Category
-                                </label>
-                                <select name="category" id="categoryFilter"
-                                    class="w-full px-4 py-3 border-2 border-slate-300 focus:border-blue-600 focus:outline-none text-sm font-semibold bg-white hover:border-slate-900 transition-colors">
-                                    <option value="">All Categories</option>
-                                    {% for category in categories %}
-                                    <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
-                                        {{ category.name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <!-- Price Range -->
-                            <div>
-                                <label class="block text-xs font-black uppercase text-slate-900 mb-3 tracking-widest">
-                                    <i class="fas fa-rupee-sign mr-1"></i> Price Range
-                                </label>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <input type="number" name="min_price" id="minPrice" placeholder="Min"
-                                        value="{{ request.GET.min_price }}"
-                                        class="px-3 py-3 border-2 border-slate-300 focus:border-blue-600 outline-none text-sm font-semibold">
-                                    <input type="number" name="max_price" id="maxPrice" placeholder="Max"
-                                        value="{{ request.GET.max_price }}"
-                                        class="px-3 py-3 border-2 border-slate-300 focus:border-blue-600 outline-none text-sm font-semibold">
+                                <!-- Category -->
+                                <div class="mb-5">
+                                    <label class="mono block text-[0.6rem] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
+                                        <i class="fas fa-tag mr-1"></i> Category
+                                    </label>
+                                    <select name="category" id="dCat"
+                                        class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold text-gray-900 focus:border-yellow-500 focus:outline-none">
+                                        <option value="">All Categories</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
-                            </div>
 
-                            <!-- Status Filter -->
-                            <div>
-                                <label class="block text-xs font-black uppercase text-slate-900 mb-3 tracking-widest">
-                                    <i class="fas fa-info-circle mr-1"></i> Status
-                                </label>
-                                <select name="status" id="statusFilter"
-                                    class="w-full px-4 py-3 border-2 border-slate-300 focus:border-blue-600 focus:outline-none text-sm font-semibold bg-white hover:border-slate-900 transition-colors">
-                                    <option value="">All Status</option>
-                                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>🟢
-                                        Active</option>
-                                    <option value="sold" {% if request.GET.status == 'sold' %}selected{% endif %}>✓ Sold
-                                    </option>
-                                    <option value="unsold" {% if request.GET.status == 'unsold' %}selected{% endif %}>⏸
-                                        Unsold</option>
-                                </select>
-                            </div>
+                                <!-- Price -->
+                                <div class="mb-5">
+                                    <label class="mono block text-[0.6rem] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
+                                        <i class="fas fa-rupee-sign mr-1"></i> Price Range (₹)
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="number" name="min_price" placeholder="Min" value="{{ request.GET.min_price }}"
+                                            class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold focus:border-yellow-500 focus:outline-none">
+                                        <input type="number" name="max_price" placeholder="Max" value="{{ request.GET.max_price }}"
+                                            class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold focus:border-yellow-500 focus:outline-none">
+                                    </div>
+                                </div>
 
-                            <!-- Action Buttons -->
-                            <div class="flex gap-2">
+                                <!-- Status -->
+                                <div class="mb-6">
+                                    <label class="mono block text-[0.6rem] font-bold tracking-[0.2em] uppercase text-slate-400 mb-2">
+                                        <i class="fas fa-circle mr-1"></i> Status
+                                    </label>
+                                    <select name="status" id="dStatus"
+                                        class="w-full px-3 py-2.5 border-2 border-slate-200 bg-stone-50 text-sm font-semibold text-gray-900 focus:border-yellow-500 focus:outline-none">
+                                        <option value="">All Statuses</option>
+                                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>🟢 Active (Live)</option>
+                                        <option value="sold"   {% if request.GET.status == 'sold'   %}selected{% endif %}>✔ Sold</option>
+                                        <option value="unsold" {% if request.GET.status == 'unsold' %}selected{% endif %}>⏸ Unsold</option>
+                                    </select>
+                                </div>
+
+                                <!-- Price inputs trigger form on blur -->
                                 <button type="submit"
-                                    class="flex-1 py-3 bg-blue-600 text-white font-bold text-sm uppercase tracking-wider hover:bg-blue-700 transition-colors">
-                                    Apply
+                                    class="w-full py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-navy transition-colors mb-2">
+                                    Apply Filters
                                 </button>
                                 <a href="{% if auction %}{% url 'view_lots' auction.slug %}{% else %}{% url 'view_lots' %}{% endif %}"
-                                    class="px-4 py-3 border-2 border-slate-900 text-slate-900 font-bold text-sm uppercase hover:bg-slate-900 hover:text-white transition-colors">
-                                    <i class="fas fa-redo"></i>
+                                    class="block w-full py-2.5 border-2 border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-widest text-center hover:border-gray-900 hover:text-gray-900 transition-colors">
+                                    Reset All
                                 </a>
-                            </div>
-                        </form>
 
-                        <!-- Quick Stats -->
-                        <div class="border-t-2 border-slate-200 p-6 bg-slate-50">
-                            <div class="text-center">
-                                <div class="text-3xl font-black text-slate-900" id="lotCount">{{ lots.count }}</div>
-                                <div class="text-xs uppercase tracking-widest text-slate-500 font-bold mt-1">Lots Found
+                                <div class="bg-gray-900 mt-5 p-5 text-center">
+                                    <div class="playfair text-5xl font-semibold text-gold leading-none">{{ lots.count }}</div>
+                                    <div class="mono text-[0.58rem] tracking-[0.25em] uppercase text-white/40 mt-1">Lots Available</div>
                                 </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- Lots Grid -->
-            <div class="flex-1">
+            <!-- MAIN CONTENT ──────────────────────────── -->
+            <div class="flex-1 min-w-0">
+
                 <!-- Sort Bar -->
-                <div
-                    class="bg-white border-2 border-slate-900 shadow-lg mb-6 p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-cream border-2 border-stone-200 px-4 py-3 mb-5">
                     <div class="flex items-center gap-2">
-                        <i class="fas fa-sort text-slate-900"></i>
-                        <span class="text-sm font-bold text-slate-900">Sort By:</span>
+                        <span class="mono text-[0.62rem] tracking-[0.15em] uppercase text-slate-500 whitespace-nowrap">
+                            <i class="fas fa-sort mr-1"></i> Sort:
+                        </span>
                         <select id="sortSelect"
-                            class="px-3 py-2 border-2 border-slate-300 text-sm font-semibold focus:outline-none focus:border-blue-600">
+                            class="px-3 py-2 border-2 border-slate-200 bg-white text-sm font-semibold text-gray-900 focus:border-yellow-500 focus:outline-none">
                             <option value="newest">Newest First</option>
-                            <option value="price_low">Price: Low to High</option>
-                            <option value="price_high">Price: High to Low</option>
+                            <option value="price_low">Price: Low → High</option>
+                            <option value="price_high">Price: High → Low</option>
                             <option value="bids">Most Bids</option>
                         </select>
                     </div>
-                    <div class="text-sm text-slate-600">
-                        <span class="font-semibold">{{ lots.count }}</span> result{{ lots.count|pluralize }}
-                    </div>
+                    <span class="mono text-[0.68rem] text-slate-400">
+                        <strong class="text-gray-900 text-sm">{{ lots.count }}</strong> result{{ lots.count|pluralize }}
+                    </span>
                 </div>
 
-                <!-- Lots Grid Container -->
-                <div id="lotsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- LOTS GRID -->
+                <div id="lotsContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
+
                     {% for lot in lots %}
-                    <article class="lot-card bg-white border-2 border-slate-200 overflow-hidden group">
-                        <!-- Lot Header -->
-                        <div class="bg-gradient-to-r from-slate-900 to-blue-900 p-4 border-b-2 border-yellow-400">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs font-mono font-bold text-yellow-400">LOT #{{lot.lot_number}}</span>
-                                {% if lot.status == 'active' %}
-                                <span
-                                    class="badge-live px-2 py-1 bg-green-500 text-white text-xs font-bold uppercase rounded">
-                                    🔴 Live
-                                </span>
-                                {% elif lot.status == 'sold' %}
-                                <span class="px-2 py-1 bg-blue-500 text-white text-xs font-bold uppercase rounded">
-                                    ✔️ Sold
-                                </span>
-                                {% endif %}
+                    <article class="lot-card card-gold-bar bg-white border-2 border-gray-900 flex flex-col overflow-hidden"
+                        data-price="{{ lot.current_bid }}"
+                        data-bids="{{ lot.bids.count }}"
+                        data-id="{{ lot.id }}">
+
+                        <!-- Header -->
+                        <div class="px-4 pt-3 pb-3 border-b border-stone-100 flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="mono text-[0.58rem] font-bold tracking-[0.12em] uppercase text-slate-400 mb-1">LOT #{{ lot.lot_number }}</p>
+                                <h3 class="playfair text-lg font-semibold text-gray-900 leading-snug line-clamp-2">{{ lot.title }}</h3>
                             </div>
-                            <h3
-                                class="text-lg font-black text-white uppercase tracking-tight leading-tight group-hover:text-yellow-400 transition-colors">
-                                {{ lot.title|truncatewords:5 }}
-                            </h3>
+                            {% if lot.status == 'active' %}
+                            <span class="badge-live shrink-0 mono text-[0.58rem] font-bold tracking-widest uppercase px-2 py-1 border-[1.5px] border-green-600 text-green-700 bg-green-50 whitespace-nowrap">● Live</span>
+                            {% elif lot.status == 'sold' %}
+                            <span class="shrink-0 mono text-[0.58rem] font-bold tracking-widest uppercase px-2 py-1 border-[1.5px] border-blue-700 text-blue-800 bg-blue-50 whitespace-nowrap">✔ Sold</span>
+                            {% else %}
+                            <span class="shrink-0 mono text-[0.58rem] font-bold tracking-widest uppercase px-2 py-1 border-[1.5px] border-slate-300 text-slate-500 bg-stone-50 whitespace-nowrap">⏸ Closed</span>
+                            {% endif %}
                         </div>
 
-                        <!-- Lot Body -->
-                        <div class="p-4">
-                            <p class="text-sm text-slate-600 mb-4 line-clamp-2">{{ lot.description|truncatewords:15 }}
-                            </p>
+                        <!-- Body -->
+                        <div class="px-4 py-3 flex flex-col gap-3 flex-1">
 
-                            <!-- Category Badge -->
-                            <div class="mb-4">
-                                <span
-                                    class="inline-block px-3 py-1 bg-purple-100 text-purple-800 text-xs font-bold uppercase rounded-full">
-                                    <i class="fas fa-tag mr-1"></i>{{ lot.lot_catagory.name|default:"Uncategorized" }}
-                                </span>
-                            </div>
+                            <!-- Description -->
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ lot.description|truncatewords:20 }}</p>
+
+                            <!-- Category -->
+                            <span class="mono inline-flex items-center gap-1.5 text-[0.58rem] font-bold tracking-wider uppercase bg-gray-900 text-gold px-2.5 py-1 w-fit">
+                                <i class="fas fa-tag text-[0.5rem]"></i> {{ lot.lot_catagory.name|default:"Uncategorized" }}
+                            </span>
 
                             <!-- Pricing -->
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div class="bg-slate-50 border border-slate-200 p-3 rounded">
-                                    <div class="text-xs uppercase tracking-wider font-bold text-slate-400 mb-1">Starting
-                                    </div>
-                                    <div class="text-base font-black text-slate-600">₹{{ lot.starting_bid|floatformat:0}}</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="border-[1.5px] border-slate-200 bg-stone-50 p-3">
+                                    <p class="mono text-[0.53rem] font-bold tracking-[0.18em] uppercase text-slate-400 mb-1">Starting</p>
+                                    <p class="playfair text-lg font-semibold text-slate-500">₹{{ lot.starting_bid|floatformat:0 }}</p>
                                 </div>
-                                <div class="bg-blue-50 border-2 border-blue-600 p-3 rounded">
-                                    <div class="text-xs uppercase tracking-wider font-bold text-blue-600 mb-1">Current
-                                    </div>
-                                    <div class="text-lg font-black text-blue-900">₹{{ lot.current_bid|floatformat:0 }}
-                                    </div>
+                                <div class="border-2 border-gold bg-yellow-50 p-3">
+                                    <p class="mono text-[0.53rem] font-bold tracking-[0.18em] uppercase text-gold mb-1">Current</p>
+                                    <p class="playfair text-2xl font-bold text-navy">₹{{ lot.current_bid|floatformat:0 }}</p>
                                 </div>
                             </div>
 
-                            <!-- Stats -->
-                            <div
-                                class="flex justify-between items-center text-xs text-slate-500 mb-4 pb-4 border-b border-slate-200">
-                                <span><i class="fas fa-gavel mr-1"></i> {{ lot.bids.count }} bid{{ lot.bids.count|pluralize }}</span>
-                                <span><i class="fas fa-box mr-1"></i> {{ lot.items.count }} item{{ lot.items.count|pluralize }}</span>
+                            <!-- Meta -->
+                            <div class="flex items-center gap-4 pt-2 border-t border-dashed border-slate-200 mono text-[0.62rem] text-slate-400">
+                                <span class="flex items-center gap-1">
+                                    <i class="fas fa-gavel text-gold"></i> {{ lot.bids.count }} bid{{ lot.bids.count|pluralize }}
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <i class="fas fa-box text-gold"></i> {{ lot.items.count }} item{{ lot.items.count|pluralize }}
+                                </span>
                             </div>
-
-                            <!-- Action Button -->
-                            <a href="{% url 'lot_detail' lot.slug %}"
-                                class="block w-full py-3 bg-slate-900 text-white font-black text-sm uppercase tracking-wider text-center hover:bg-blue-600 transition-colors">
-                                {% if lot.status == 'active' %}
-                                <i class="fas fa-gavel mr-2"></i>Place Bid
-                                {% else %}
-                                <i class="fas fa-eye mr-2"></i>View Details
-                                {% endif %}
-                            </a>
                         </div>
+
+                        <!-- CTA -->
+                        <a href="{% url 'lot_detail' lot.slug %}"
+                            class="block w-full py-3.5 text-xs font-bold uppercase tracking-widest text-center transition-colors border-t-2
+                            {% if lot.status == 'active' %}border-gray-900 bg-gray-900 text-gold hover:bg-navy{% else %}border-stone-200 bg-stone-50 text-slate-600 hover:bg-stone-100{% endif %}">
+                            {% if lot.status == 'active' %}
+                                <i class="fas fa-gavel mr-1.5"></i> Place Bid
+                            {% else %}
+                                <i class="fas fa-eye mr-1.5"></i> View Details
+                            {% endif %}
+                        </a>
+
                     </article>
                     {% empty %}
-                    <div class="col-span-full">
-                        <div class="bg-white border-2 border-dashed border-slate-300 rounded-lg p-12 text-center">
-                            <i class="fas fa-search text-6xl text-slate-300 mb-4"></i>
-                            <h3 class="text-2xl font-black text-slate-900 mb-2">No Lots Found</h3>
-                            <p class="text-slate-600 mb-6">Try adjusting your filters or search terms</p>
-                            <a href="{% if auction %}{% url 'view_lots' auction.slug %}{% else %}{% url 'view_lots' %}{% endif %}"
-                                class="inline-block px-6 py-3 bg-slate-900 text-white font-bold uppercase hover:bg-blue-600 transition-colors">
-                                Clear Filters
-                            </a>
-                        </div>
+                    <div class="col-span-full border-2 border-dashed border-slate-300 bg-stone-50 p-16 text-center">
+                        <i class="fas fa-search text-5xl text-slate-300 mb-4 block"></i>
+                        <h3 class="playfair text-3xl font-semibold text-gray-900 mb-2">No Lots Found</h3>
+                        <p class="text-slate-500 text-sm mb-6">Try adjusting your filters or browse all lots.</p>
+                        <a href="{% if auction %}{% url 'view_lots' auction.slug %}{% else %}{% url 'view_lots' %}{% endif %}"
+                            class="inline-block px-6 py-3 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-navy transition-colors">
+                            Clear All Filters
+                        </a>
                     </div>
                     {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
+                </div><!-- /lotsContainer -->
+            </div><!-- /main content -->
+        </div><!-- /flex -->
+    </div><!-- /page wrap -->
+</div><!-- /min-h-screen -->
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Animate lot cards on load - FIXED to prevent fading
-        gsap.fromTo(".lot-card", 
-            {
-                y: 30,
-                opacity: 0
-            },
-            {
-                duration: 0.5,
-                y: 0,
-                opacity: 1,
-                stagger: 0.05,
-                ease: "power2.out",
-                clearProps: "all"  // Clears inline styles after animation completes
-            }
-        );
+    // ── Drawer controls ────────────────────────────────
+    const drawer  = document.getElementById('filterDrawer');
+    const overlay = document.getElementById('filterOverlay');
 
-        // Animate filter card - FIXED
-        gsap.fromTo(".filter-card",
-            {
-                x: -30,
-                opacity: 0
-            },
-            {
-                duration: 0.6,
-                x: 0,
-                opacity: 1,
-                ease: "power2.out",
-                clearProps: "all"
-            }
-        );
+    function openDrawer() {
+        drawer.classList.add('open');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+    }
+    function closeDrawer() {
+        drawer.classList.remove('open');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+    }
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
 
-        // Filter form handling
-        const filterForm = document.getElementById('filterForm');
-        const lotsContainer = document.getElementById('lotsContainer');
-        const lotCount = document.getElementById('lotCount');
+    // ── Client-side sort ──────────────────────────────
+    document.getElementById('sortSelect').addEventListener('change', function () {
+        const val  = this.value;
+        const grid = document.getElementById('lotsContainer');
+        const cards = Array.from(grid.querySelectorAll('.lot-card'));
 
-        // Auto-submit on filter change
-        const filterInputs = filterForm.querySelectorAll('select, input');
-        filterInputs.forEach(input => {
-            input.addEventListener('change', () => {
-                filterForm.submit();
-            });
+        cards.sort((a, b) => {
+            if (val === 'price_low')  return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+            if (val === 'price_high') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+            if (val === 'bids')       return parseInt(b.dataset.bids)   - parseInt(a.dataset.bids);
+            return parseInt(b.dataset.id) - parseInt(a.dataset.id);
         });
 
-        // Sort functionality
-        const sortSelect = document.getElementById('sortSelect');
-        sortSelect.addEventListener('change', function () {
-            const cards = Array.from(document.querySelectorAll('.lot-card'));
-            const container = document.getElementById('lotsContainer');
-
-            cards.sort((a, b) => {
-                const sortValue = this.value;
-
-                if (sortValue === 'price_low') {
-                    const priceA = parseFloat(a.querySelector('.text-blue-900').textContent.replace('₹', '').replace(',', ''));
-                    const priceB = parseFloat(b.querySelector('.text-blue-900').textContent.replace('₹', '').replace(',', ''));
-                    return priceA - priceB;
-                } else if (sortValue === 'price_high') {
-                    const priceA = parseFloat(a.querySelector('.text-blue-900').textContent.replace('₹', '').replace(',', ''));
-                    const priceB = parseFloat(b.querySelector('.text-blue-900').textContent.replace('₹', '').replace(',', ''));
-                    return priceB - priceA;
-                }
-                // Default: newest first (no sorting needed as it's already in order)
-                return 0;
-            });
-
-            // Clear and re-append sorted cards
-            container.innerHTML = '';
-            cards.forEach(card => container.appendChild(card));
-
-            // Re-animate with clearProps
-            gsap.fromTo(".lot-card",
-                {
-                    y: 20,
-                    opacity: 0
-                },
-                {
-                    duration: 0.4,
-                    y: 0,
-                    opacity: 1,
-                    stagger: 0.03,
-                    ease: "power2.out",
-                    clearProps: "all"
-                }
-            );
+        grid.innerHTML = '';
+        cards.forEach((card, i) => {
+            card.style.animation = 'none';
+            grid.appendChild(card);
+            void card.offsetWidth;
+            card.style.animation = `fadeUp 0.3s ease ${i * 30}ms both`;
         });
+    });
 
-        // Smart Page Refresh (only if looking at a specific auction)
-        const auctionStart = "{{ auction.start_date|date:'Y-m-d H:i:s' }}";
-        const auctionEnd = "{{ auction.end_date|date:'Y-m-d H:i:s' }}";
-        const refreshTimes = [];
+    // ── Desktop selects auto-submit ────────────────────
+    ['dCat', 'dStatus'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => document.getElementById('desktopFilterForm').submit());
+    });
 
-        if (auctionStart) refreshTimes.push(new Date(auctionStart).getTime());
-        if (auctionEnd) refreshTimes.push(new Date(auctionEnd).getTime());
-
-        const now = Date.now();
-        console.log("🚀 Initializing Smart Refresh for View Lots...");
-
-        refreshTimes.forEach(time => {
-            const delay = time - now;
-            if (delay > 0) {
-                setTimeout(() => {
-                    console.log("⏰ Auction status changed! Refreshing page...");
-                    window.location.reload();
-                }, delay);
-            }
-        });
+    // ── Smart auction page refresh ─────────────────────
+    const aStart = "{{ auction.start_date|date:'Y-m-d H:i:s'|default:'' }}";
+    const aEnd   = "{{ auction.end_date|date:'Y-m-d H:i:s'|default:'' }}";
+    [aStart, aEnd].forEach(d => {
+        if (!d) return;
+        const ms = new Date(d).getTime() - Date.now();
+        if (ms > 0) setTimeout(() => location.reload(), ms);
     });
 </script>
 {% endblock %}
