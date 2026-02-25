@@ -4,277 +4,682 @@
 {% block title %}My Invoices - Auction House{% endblock %}
 
 {% block content %}
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
 
 <style>
-* { font-family:'Poppins',sans-serif !important; box-sizing:border-box; }
-body { background:#F0F2F5; }
+    * {
+        box-sizing: border-box;
+    }
 
-.page-wrap { min-height:100vh; background:#F0F2F5; padding:32px 0 64px; }
-.container  { max-width:1080px; margin:0 auto; padding:0 20px; }
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #F0F2F5;
+    }
 
-@keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
-.a1{animation:fadeUp .4s ease both;} .a2{animation:fadeUp .4s .07s ease both;}
-.a3{animation:fadeUp .4s .14s ease both;} .a4{animation:fadeUp .4s .21s ease both;}
+    .page-wrap {
+        min-height: 100vh;
+        background: #F0F2F5;
+        padding: 32px 0 64px;
+    }
 
-.page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
-.page-header h1{font-size:26px;font-weight:700;color:#1A1D23;margin:0;display:flex;align-items:center;gap:10px;}
-.icon-wrap{width:38px;height:38px;background:#0891B2;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
-.breadcrumb{font-size:12px;color:#8A93A6;margin-top:3px;}
-.breadcrumb span{color:#0891B2;}
+    .container {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
 
-/* Stats */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
-.stat-card{background:#fff;border-radius:14px;padding:18px 20px;border:1.5px solid #E8ECF4;display:flex;align-items:center;gap:14px;}
-.sc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.sc-val{font-size:22px;font-weight:800;color:#1A1D23;line-height:1;margin-bottom:2px;}
-.sc-lbl{font-size:11px;font-weight:500;color:#8A93A6;}
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
 
-/* Info box */
-.info-box{background:#ECFEFF;border:1.5px solid #A5F3FC;border-radius:12px;padding:13px 16px;display:flex;align-items:flex-start;gap:10px;margin-bottom:22px;}
-.info-box i{color:#0891B2;margin-top:2px;flex-shrink:0;}
-.info-box p{font-size:12px;color:#164E63;margin:0;line-height:1.6;}
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
-/* Section */
-.section-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
-.section-hdr{display:flex;align-items:center;gap:10px;}
-.section-hdr h2{font-size:16px;font-weight:700;color:#1A1D23;margin:0;}
-.filter-pills{display:flex;gap:6px;flex-wrap:wrap;}
-.pill{padding:6px 14px;border-radius:20px;border:1.5px solid #D1D9E6;background:#fff;font-size:11px;font-weight:600;color:#8A93A6;cursor:pointer;transition:.15s;}
-.pill.active,.pill:hover{border-color:#0891B2;color:#0891B2;background:#ECFEFF;}
+    .a1 {
+        animation: fadeUp .4s ease both;
+    }
 
-/* Invoice list */
-.inv-list{background:#fff;border-radius:16px;border:1.5px solid #E8ECF4;overflow:hidden;}
-.inv-list-header{display:grid;gap:10px;padding:12px 20px;background:#F8F9FC;border-bottom:1.5px solid #E8ECF4;font-size:11px;font-weight:700;color:#8A93A6;text-transform:uppercase;letter-spacing:.06em;grid-template-columns:140px 1fr 1fr 100px 90px 110px;}
-.inv-row{display:grid;gap:10px;padding:15px 20px;border-bottom:1px solid #F0F2F5;align-items:center;grid-template-columns:140px 1fr 1fr 100px 90px 110px;transition:background .15s;}
-.inv-row:last-child{border-bottom:none;}
-.inv-row:hover{background:#F8F9FC;}
+    .a2 {
+        animation: fadeUp .4s .07s ease both;
+    }
 
-.inv-number{font-family:monospace;font-size:12px;font-weight:700;color:#0891B2;text-decoration:none;border-bottom:1px dashed #A5F3FC;}
-.inv-number:hover{color:#1A1D23;}
+    .a3 {
+        animation: fadeUp .4s .14s ease both;
+    }
 
-.badge-paid{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;border-radius:20px;font-size:10px;font-weight:700;}
-.badge-pending{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;border-radius:20px;font-size:10px;font-weight:700;}
-.badge-other{display:inline-flex;padding:3px 10px;background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0;border-radius:20px;font-size:10px;font-weight:700;}
+    .a4 {
+        animation: fadeUp .4s .21s ease both;
+    }
 
-.btn-view{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;background:#0891B2;color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;transition:.2s;}
-.btn-view:hover{background:#0E7490;}
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
 
-/* Mobile cards */
-.inv-mobile-card{padding:14px 16px;border-bottom:1px solid #F0F2F5;}
-.inv-mobile-card:last-child{border-bottom:none;}
+    .page-header h1 {
+        font-size: 26px;
+        font-weight: 700;
+        color: #1A1D23;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-/* Summary card */
-.summary-card{background:#1A1D23;border-radius:16px;padding:22px 28px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:relative;overflow:hidden;}
-.summary-card::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(8,145,178,.2) 0%,transparent 65%);pointer-events:none;}
-.sc-item{display:flex;flex-direction:column;gap:3px;position:relative;z-index:1;}
-.sc-item .label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);}
-.sc-item .value{font-size:20px;font-weight:800;color:#fff;}
-.sc-item .value.cyan{color:#67E8F9;}
-.sc-item .value.green{color:#4ADE80;}
-.sc-item .value.amber{color:#FCD34D;}
-.sc-divider{width:1px;height:40px;background:rgba(255,255,255,.1);position:relative;z-index:1;}
+    .icon-wrap {
+        width: 38px;
+        height: 38px;
+        background: #0891B2;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 16px;
+    }
 
-.empty-box{background:#fff;border:1.5px solid #E8ECF4;border-radius:16px;padding:72px 24px;text-align:center;}
-.empty-box .ei{width:68px;height:68px;background:#ECFEFF;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#0891B2;border:2px dashed #A5F3FC;margin:0 auto 14px;}
-.empty-box h3{font-size:17px;font-weight:700;color:#1A1D23;margin:0 0 6px;}
-.empty-box p{font-size:13px;color:#8A93A6;margin:0 0 18px;max-width:300px;margin-left:auto;margin-right:auto;}
+    .breadcrumb {
+        font-size: 12px;
+        color: #8A93A6;
+        margin-top: 3px;
+    }
 
-@media(max-width:768px){
-  .stats-row{grid-template-columns:repeat(2,1fr);}
-  .inv-list-header,.inv-row{display:none;}
-  .summary-card{padding:18px 20px;}
-  .sc-divider{display:none;}
-}
-@media(max-width:480px){
-  .stats-row{grid-template-columns:repeat(2,1fr);}
-}
+    .breadcrumb span {
+        color: #0891B2;
+    }
+
+    /* Stats */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 18px 20px;
+        border: 1.5px solid #E8ECF4;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .sc-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .sc-val {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1A1D23;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .sc-lbl {
+        font-size: 11px;
+        font-weight: 500;
+        color: #8A93A6;
+    }
+
+    /* Info box */
+    .info-box {
+        background: #ECFEFF;
+        border: 1.5px solid #A5F3FC;
+        border-radius: 12px;
+        padding: 13px 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .info-box i {
+        color: #0891B2;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .info-box p {
+        font-size: 12px;
+        color: #164E63;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Section */
+    .section-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .section-hdr {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-hdr h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1A1D23;
+        margin: 0;
+    }
+
+    .filter-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .pill {
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1.5px solid #D1D9E6;
+        background: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        color: #8A93A6;
+        cursor: pointer;
+        transition: .15s;
+    }
+
+    .pill.active,
+    .pill:hover {
+        border-color: #0891B2;
+        color: #0891B2;
+        background: #ECFEFF;
+    }
+
+    /* Invoice list */
+    .inv-list {
+        background: #fff;
+        border-radius: 16px;
+        border: 1.5px solid #E8ECF4;
+        overflow: hidden;
+    }
+
+    .inv-list-header {
+        display: grid;
+        gap: 10px;
+        padding: 12px 20px;
+        background: #F8F9FC;
+        border-bottom: 1.5px solid #E8ECF4;
+        font-size: 11px;
+        font-weight: 700;
+        color: #8A93A6;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        grid-template-columns: 140px 1fr 1fr 100px 90px 110px;
+    }
+
+    .inv-row {
+        display: grid;
+        gap: 10px;
+        padding: 15px 20px;
+        border-bottom: 1px solid #F0F2F5;
+        align-items: center;
+        grid-template-columns: 140px 1fr 1fr 100px 90px 110px;
+        transition: background .15s;
+    }
+
+    .inv-row:last-child {
+        border-bottom: none;
+    }
+
+    .inv-row:hover {
+        background: #F8F9FC;
+    }
+
+    .inv-number {
+        font-family: monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: #0891B2;
+        text-decoration: none;
+        border-bottom: 1px dashed #A5F3FC;
+    }
+
+    .inv-number:hover {
+        color: #1A1D23;
+    }
+
+    .badge-paid {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        background: #DCFCE7;
+        color: #15803D;
+        border: 1px solid #BBF7D0;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .badge-pending {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        background: #FEF3C7;
+        color: #D97706;
+        border: 1px solid #FDE68A;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .badge-other {
+        display: inline-flex;
+        padding: 3px 10px;
+        background: #F1F5F9;
+        color: #64748B;
+        border: 1px solid #E2E8F0;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .btn-view {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 16px;
+        background: #0891B2;
+        color: #fff;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        text-decoration: none;
+        transition: .2s;
+    }
+
+    .btn-view:hover {
+        background: #0E7490;
+    }
+
+    /* Mobile cards */
+    .inv-mobile-card {
+        padding: 14px 16px;
+        border-bottom: 1px solid #F0F2F5;
+    }
+
+    .inv-mobile-card:last-child {
+        border-bottom: none;
+    }
+
+    /* Summary card */
+    .summary-card {
+        background: #1A1D23;
+        border-radius: 16px;
+        padding: 22px 28px;
+        margin-bottom: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .summary-card::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(8, 145, 178, .2) 0%, transparent 65%);
+        pointer-events: none;
+    }
+
+    .sc-item {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .sc-item .label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, .35);
+    }
+
+    .sc-item .value {
+        font-size: 20px;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .sc-item .value.cyan {
+        color: #67E8F9;
+    }
+
+    .sc-item .value.green {
+        color: #4ADE80;
+    }
+
+    .sc-item .value.amber {
+        color: #FCD34D;
+    }
+
+    .sc-divider {
+        width: 1px;
+        height: 40px;
+        background: rgba(255, 255, 255, .1);
+        position: relative;
+        z-index: 1;
+    }
+
+    .empty-box {
+        background: #fff;
+        border: 1.5px solid #E8ECF4;
+        border-radius: 16px;
+        padding: 72px 24px;
+        text-align: center;
+    }
+
+    .empty-box .ei {
+        width: 68px;
+        height: 68px;
+        background: #ECFEFF;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        color: #0891B2;
+        border: 2px dashed #A5F3FC;
+        margin: 0 auto 14px;
+    }
+
+    .empty-box h3 {
+        font-size: 17px;
+        font-weight: 700;
+        color: #1A1D23;
+        margin: 0 0 6px;
+    }
+
+    .empty-box p {
+        font-size: 13px;
+        color: #8A93A6;
+        margin: 0 0 18px;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    @media(max-width:768px) {
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .inv-list-header,
+        .inv-row {
+            display: none;
+        }
+
+        .summary-card {
+            padding: 18px 20px;
+        }
+
+        .sc-divider {
+            display: none;
+        }
+    }
+
+    @media(max-width:480px) {
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
 </style>
 
 <div class="page-wrap">
-<div class="container">
+    <div class="container">
 
-  <!-- HEADER -->
-  <div class="page-header a1">
-    <div>
-      <h1><span class="icon-wrap"><i class="fas fa-file-invoice-dollar"></i></span>My Invoices</h1>
-      <p class="breadcrumb">Dashboard &rsaquo; <span>My Invoices</span></p>
-    </div>
-  </div>
-
-  <!-- SUMMARY BANNER -->
-  {% if invoices %}
-  <div class="summary-card a2">
-    <div class="sc-item">
-      <span class="label">Total Invoices</span>
-      <span class="value cyan">{{ invoices.count }}</span>
-    </div>
-    <div class="sc-divider"></div>
-    <div class="sc-item">
-      <span class="label">Paid</span>
-      <span class="value green">
-        {% for inv in invoices %}{% if inv.status == 'paid' %}{{ forloop.counter }}{% endif %}{% endfor %}
-      </span>
-    </div>
-    <div class="sc-divider"></div>
-    <div class="sc-item">
-      <span class="label">Pending</span>
-      <span class="value amber">
-        {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor %}
-      </span>
-    </div>
-    <div class="sc-divider"></div>
-    <div class="sc-item">
-      <span class="label">Total Value</span>
-      <span class="value" style="font-size:16px;">
-        ₹{% for inv in invoices %}{{ inv.amount|floatformat:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
-      </span>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- STATS -->
-  <div class="stats-row a2">
-    <div class="stat-card">
-      <div class="sc-icon" style="background:#ECFEFF;"><i class="fas fa-file-invoice" style="color:#0891B2;"></i></div>
-      <div><div class="sc-val">{{ invoices.count }}</div><div class="sc-lbl">Total Invoices</div></div>
-    </div>
-    <div class="stat-card">
-      <div class="sc-icon" style="background:#DCFCE7;"><i class="fas fa-circle-check" style="color:#16A34A;"></i></div>
-      <div>
-        <div class="sc-val" style="color:#16A34A;">
-          {% for inv in invoices %}{% if inv.status == 'paid' %}{{ forloop.counter }}{% endif %}{% endfor %}
-        </div>
-        <div class="sc-lbl">Paid</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="sc-icon" style="background:#FEF3C7;"><i class="fas fa-clock" style="color:#D97706;"></i></div>
-      <div>
-        <div class="sc-val" style="color:#D97706;">
-          {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor %}
-        </div>
-        <div class="sc-lbl">Pending</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="sc-icon" style="background:#F5F3FF;"><i class="fas fa-download" style="color:#7C3AED;"></i></div>
-      <div><div class="sc-val" style="font-size:14px;padding-top:4px;color:#7C3AED;">PDF</div><div class="sc-lbl">Download Format</div></div>
-    </div>
-  </div>
-
-  <!-- INFO -->
-  <div class="info-box a3">
-    <i class="fas fa-circle-info"></i>
-    <p>Invoices are generated automatically when you win an auction lot. You can download each invoice as a PDF for your records. For GST or business invoicing, please contact our support team.</p>
-  </div>
-
-  <!-- INVOICE LIST -->
-  <div class="a4">
-    <div class="section-bar">
-      <div class="section-hdr">
-        <div style="width:8px;height:8px;border-radius:50%;background:#0891B2;"></div>
-        <h2>Invoice Records</h2>
-      </div>
-      <div class="filter-pills">
-        <button class="pill active" onclick="filterInv('all',this)">All</button>
-        <button class="pill" onclick="filterInv('paid',this)">Paid</button>
-        <button class="pill" onclick="filterInv('pending',this)">Pending</button>
-      </div>
-    </div>
-
-    {% if invoices %}
-    <div class="inv-list">
-
-      <!-- Desktop -->
-      <div class="inv-list-header">
-        <span>Invoice #</span><span>Lot</span><span>Auction</span><span>Amount</span><span>Status</span><span class="text-right">Action</span>
-      </div>
-      <div>
-        {% for invoice in invoices %}
-        <div class="inv-row invoice-item" data-status="{{ invoice.status }}">
-          <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{ invoice.invoice_number }}</a>
-          <div>
-            <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:0 0 2px;">{{ invoice.lot.title }}</p>
-            <p style="font-size:11px;color:#8A93A6;margin:0;">{{ invoice.issued_at|date:"M d, Y" }}</p>
-          </div>
-          <div>
-            <p style="font-size:12px;color:#4B5563;margin:0;font-weight:500;">{{ invoice.lot.auction.title|truncatechars:30 }}</p>
-          </div>
-          <span style="font-size:14px;font-weight:800;color:#1A1D23;">₹{{ invoice.amount|floatformat:2 }}</span>
-          <div>
-            {% if invoice.status == 'paid' %}
-            <span class="badge-paid"><i class="fas fa-check" style="font-size:8px;"></i>Paid</span>
-            {% elif invoice.status == 'pending' %}
-            <span class="badge-pending"><i class="fas fa-clock" style="font-size:8px;"></i>Pending</span>
-            {% else %}
-            <span class="badge-other">{{ invoice.status|title }}</span>
-            {% endif %}
-          </div>
-          <div style="text-align:right;">
-            <a href="{% url 'invoice_detail' invoice.id %}" class="btn-view">
-              <i class="fas fa-eye"></i> View
-            </a>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-      <!-- Mobile cards -->
-      <div class="sm:hidden">
-        {% for invoice in invoices %}
-        <div class="inv-mobile-card invoice-item" data-status="{{ invoice.status }}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <!-- HEADER -->
+        <div class="page-header a1">
             <div>
-              <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{ invoice.invoice_number }}</a>
-              <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:4px 0 2px;">{{ invoice.lot.title }}</p>
-              <p style="font-size:11px;color:#8A93A6;margin:0;">{{ invoice.lot.auction.title|truncatechars:30 }}</p>
+                <h1><span class="icon-wrap"><i class="fas fa-file-invoice-dollar"></i></span>My Invoices</h1>
+                <p class="breadcrumb">Dashboard &rsaquo; <span>My Invoices</span></p>
             </div>
-            {% if invoice.status == 'paid' %}
-            <span class="badge-paid"><i class="fas fa-check" style="font-size:8px;"></i>Paid</span>
-            {% elif invoice.status == 'pending' %}
-            <span class="badge-pending"><i class="fas fa-clock" style="font-size:8px;"></i>Pending</span>
-            {% else %}
-            <span class="badge-other">{{ invoice.status|title }}</span>
-            {% endif %}
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
-            <div>
-              <p style="font-size:10px;color:#8A93A6;margin:0 0 2px;">{{ invoice.issued_at|date:"M d, Y" }}</p>
-              <p style="font-size:16px;font-weight:800;color:#1A1D23;margin:0;">₹{{ invoice.amount|floatformat:2 }}</p>
-            </div>
-            <a href="{% url 'invoice_detail' invoice.id %}" class="btn-view">
-              <i class="fas fa-eye"></i> View
-            </a>
-          </div>
         </div>
-        {% endfor %}
-      </div>
+
+        <!-- SUMMARY BANNER -->
+        {% if invoices %}
+        <div class="summary-card a2">
+            <div class="sc-item">
+                <span class="label">Total Invoices</span>
+                <span class="value cyan">{{ invoices.count }}</span>
+            </div>
+            <div class="sc-divider"></div>
+            <div class="sc-item">
+                <span class="label">Paid</span>
+                <span class="value green">
+                    {% for inv in invoices %}{% if inv.status == 'paid' %}{{ forloop.counter }}{% endif %}{% endfor %}
+                </span>
+            </div>
+            <div class="sc-divider"></div>
+            <div class="sc-item">
+                <span class="label">Pending</span>
+                <span class="value amber">
+                    {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor
+                    %}
+                </span>
+            </div>
+            <div class="sc-divider"></div>
+            <div class="sc-item">
+                <span class="label">Total Value</span>
+                <span class="value" style="font-size:16px;">
+                    ₹{% for inv in invoices %}{{ inv.amount|floatformat:0 }}{% if not forloop.last %}+{% endif %}{%
+                    endfor %}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- STATS -->
+        <div class="stats-row a2">
+            <div class="stat-card">
+                <div class="sc-icon" style="background:#ECFEFF;"><i class="fas fa-file-invoice"
+                        style="color:#0891B2;"></i></div>
+                <div>
+                    <div class="sc-val">{{ invoices.count }}</div>
+                    <div class="sc-lbl">Total Invoices</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon" style="background:#DCFCE7;"><i class="fas fa-circle-check"
+                        style="color:#16A34A;"></i></div>
+                <div>
+                    <div class="sc-val" style="color:#16A34A;">
+                        {% for inv in invoices %}{% if inv.status == 'paid' %}{{ forloop.counter }}{% endif %}{% endfor
+                        %}
+                    </div>
+                    <div class="sc-lbl">Paid</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon" style="background:#FEF3C7;"><i class="fas fa-clock" style="color:#D97706;"></i>
+                </div>
+                <div>
+                    <div class="sc-val" style="color:#D97706;">
+                        {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{%
+                        endfor %}
+                    </div>
+                    <div class="sc-lbl">Pending</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-icon" style="background:#F5F3FF;"><i class="fas fa-download" style="color:#7C3AED;"></i>
+                </div>
+                <div>
+                    <div class="sc-val" style="font-size:14px;padding-top:4px;color:#7C3AED;">PDF</div>
+                    <div class="sc-lbl">Download Format</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFO -->
+        <div class="info-box a3">
+            <i class="fas fa-circle-info"></i>
+            <p>Invoices are generated automatically when you win an auction lot. You can download each invoice as a PDF
+                for your records. For GST or business invoicing, please contact our support team.</p>
+        </div>
+
+        <!-- INVOICE LIST -->
+        <div class="a4">
+            <div class="section-bar">
+                <div class="section-hdr">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#0891B2;"></div>
+                    <h2>Invoice Records</h2>
+                </div>
+                <div class="filter-pills">
+                    <button class="pill active" onclick="filterInv('all',this)">All</button>
+                    <button class="pill" onclick="filterInv('paid',this)">Paid</button>
+                    <button class="pill" onclick="filterInv('pending',this)">Pending</button>
+                </div>
+            </div>
+
+            {% if invoices %}
+            <div class="inv-list">
+
+                <!-- Desktop -->
+                <div class="inv-list-header">
+                    <span>Invoice
+                        #</span><span>Lot</span><span>Auction</span><span>Amount</span><span>Status</span><span
+                        class="text-right">Action</span>
+                </div>
+                <div>
+                    {% for invoice in invoices %}
+                    <div class="inv-row invoice-item" data-status="{{ invoice.status }}">
+                        <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{ invoice.invoice_number
+                            }}</a>
+                        <div>
+                            <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:0 0 2px;">{{ invoice.lot.title
+                                }}</p>
+                            <p style="font-size:11px;color:#8A93A6;margin:0;">{{ invoice.issued_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size:12px;color:#4B5563;margin:0;font-weight:500;">{{
+                                invoice.lot.auction.title|truncatechars:30 }}</p>
+                        </div>
+                        <span style="font-size:14px;font-weight:800;color:#1A1D23;">₹{{ invoice.amount|floatformat:2
+                            }}</span>
+                        <div>
+                            {% if invoice.status == 'paid' %}
+                            <span class="badge-paid"><i class="fas fa-check" style="font-size:8px;"></i>Paid</span>
+                            {% elif invoice.status == 'pending' %}
+                            <span class="badge-pending"><i class="fas fa-clock"
+                                    style="font-size:8px;"></i>Pending</span>
+                            {% else %}
+                            <span class="badge-other">{{ invoice.status|title }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="text-align:right;">
+                            <a href="{% url 'invoice_detail' invoice.id %}" class="btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Mobile cards -->
+                <div class="sm:hidden">
+                    {% for invoice in invoices %}
+                    <div class="inv-mobile-card invoice-item" data-status="{{ invoice.status }}">
+                        <div
+                            style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                            <div>
+                                <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{
+                                    invoice.invoice_number }}</a>
+                                <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:4px 0 2px;">{{
+                                    invoice.lot.title }}</p>
+                                <p style="font-size:11px;color:#8A93A6;margin:0;">{{
+                                    invoice.lot.auction.title|truncatechars:30 }}</p>
+                            </div>
+                            {% if invoice.status == 'paid' %}
+                            <span class="badge-paid"><i class="fas fa-check" style="font-size:8px;"></i>Paid</span>
+                            {% elif invoice.status == 'pending' %}
+                            <span class="badge-pending"><i class="fas fa-clock"
+                                    style="font-size:8px;"></i>Pending</span>
+                            {% else %}
+                            <span class="badge-other">{{ invoice.status|title }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+                            <div>
+                                <p style="font-size:10px;color:#8A93A6;margin:0 0 2px;">{{ invoice.issued_at|date:"M d,
+                                    Y" }}</p>
+                                <p style="font-size:16px;font-weight:800;color:#1A1D23;margin:0;">₹{{
+                                    invoice.amount|floatformat:2 }}</p>
+                            </div>
+                            <a href="{% url 'invoice_detail' invoice.id %}" class="btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            {% else %}
+            <div class="empty-box">
+                <div class="ei"><i class="fas fa-file-invoice"></i></div>
+                <h3>No Invoices Yet</h3>
+                <p>Invoices are generated when you win an auction. Start bidding to get your first invoice!</p>
+                <a href="{% url 'auctions' %}"
+                    style="display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:#0891B2;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-transform:uppercase;text-decoration:none;">
+                    <i class="fas fa-hammer"></i> Browse Auctions
+                </a>
+            </div>
+            {% endif %}
+        </div>
 
     </div>
-
-    {% else %}
-    <div class="empty-box">
-      <div class="ei"><i class="fas fa-file-invoice"></i></div>
-      <h3>No Invoices Yet</h3>
-      <p>Invoices are generated when you win an auction. Start bidding to get your first invoice!</p>
-      <a href="{% url 'auctions' %}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:#0891B2;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-transform:uppercase;text-decoration:none;">
-        <i class="fas fa-hammer"></i> Browse Auctions
-      </a>
-    </div>
-    {% endif %}
-  </div>
-
-</div>
 </div>
 
 <script>
-function filterInv(status, btn) {
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.invoice-item').forEach(item => {
-    item.style.display = (status === 'all' || item.dataset.status === status) ? '' : 'none';
-  });
-}
+    function filterInv(status, btn) {
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.invoice-item').forEach(item => {
+            item.style.display = (status === 'all' || item.dataset.status === status) ? '' : 'none';
+        });
+    }
 </script>
 {% endblock %}

@@ -12,12 +12,27 @@ from auction_list.models import Lot, Invoice
 @login_required
 def wallet_dashboard(request):
     """Display user's wallet dashboard"""
+    from django.db.models import Sum
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     transactions = Transaction.objects.filter(wallet=wallet).order_by('-timestamp')[:50]
+    
+    # Calculate stats
+    total_deposited = Transaction.objects.filter(
+        wallet=wallet, transaction_type='deposit'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    
+    total_spent = Transaction.objects.filter(
+        wallet=wallet, amount__lt=0
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    
+    # Make spent amount positive for display
+    total_spent = abs(total_spent)
     
     context = {
         'wallet': wallet,
         'transactions': transactions,
+        'total_deposited': total_deposited,
+        'total_spent': total_spent,
     }
     return render(request, 'bids/wallet_dashboard.html', context)
 
