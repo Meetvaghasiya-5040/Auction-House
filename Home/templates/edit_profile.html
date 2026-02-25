@@ -164,8 +164,7 @@
                         <div class="grid grid-cols-4 sm:grid-cols-8 gap-3">
                             {% for value, name in profile.THEME_CHOICES %}
                             <label class="cursor-pointer group relative">
-                                <input type="radio" name="theme_color" value="{{ value }}" class="peer hidden" {% if
-                                    profile.theme_color==value %}checked{% endif %}>
+                                <input type="radio" name="theme_color" value="{{ value }}" class="peer hidden" {% if profile.theme_color==value %}checked{% endif %}>
                                 <div
                                     class="w-10 h-10 rounded-full bg-gradient-to-br from-{{ value }}-500 to-{{ value }}-600 peer-checked:ring-4 peer-checked:ring-offset-2 peer-checked:ring-{{ value }}-500 transition-all transform hover:scale-110 shadow-sm">
                                 </div>
