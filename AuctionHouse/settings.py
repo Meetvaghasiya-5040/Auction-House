@@ -282,17 +282,21 @@ MESSAGE_TAGS = {
 }
 
 MESSAGE_LEVEL = messages.DEBUG
-
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
+
+
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST = "smtp-relay.brevo.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "meetvaghasiya166@gmail.com"  # Replace with your email
-EMAIL_HOST_PASSWORD = (
-    "uycl kjms nuuh bysv"  # Replace with your password or app password
-)
+EMAIL_HOST_USER = os.environ.get("BREVO_SMTP_USER", "***REMOVED***")  # Set BREVO_SMTP_USER env var
+EMAIL_HOST_PASSWORD = os.environ.get("BREVO_SMTP_KEY")
+DEFAULT_FROM_EMAIL = "Auction House <[EMAIL_ADDRESS]>"
+
+
+
 
 # Auction Settings  
 WINNER_PAYMENT_TIMEOUT_MINUTES = 15
