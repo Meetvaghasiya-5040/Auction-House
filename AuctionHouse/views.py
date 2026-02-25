@@ -140,20 +140,20 @@ def register_view(request):
             if profile_image:
                 try:
                     profile = Profile.objects.get(user=user)
-                    from django.conf import settings
+                    # Always save base64 so image persists across Render restarts
+                    import base64 as b64
+                    image_data = profile_image.read()
+                    base64_encoded = b64.b64encode(image_data).decode('utf-8')
+                    mime_type = profile_image.content_type
+                    profile.profile_image_base64 = f"data:{mime_type};base64,{base64_encoded}"
+                    # Also upload to Cloudinary if configured
                     if hasattr(settings, 'CLOUDINARY_STORAGE') and settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+                        profile_image.seek(0)  # Reset pointer after read
                         profile.profile_image = profile_image
-                        profile.save(update_fields=['profile_image'])
-                    else:
-                        import base64
-                        image_data = profile_image.read()
-                        base64_encoded = base64.b64encode(image_data).decode('utf-8')
-                        mime_type = profile_image.content_type
-                        profile.profile_image_base64 = f"data:{mime_type};base64,{base64_encoded}"
-                        profile.save(update_fields=['profile_image_base64'])
+                    profile.save()
                 except Exception:
                     pass
-
+            
             def send_welcome_email():
                 try:
                     send_mail(
