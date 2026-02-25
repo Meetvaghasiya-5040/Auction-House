@@ -196,3 +196,4 @@ def release_seller_funds(lot):
                 amount=user_share,
                 description=f"Sale payout for '{item.title}' (Lot #{lot.id})"
             )
+
