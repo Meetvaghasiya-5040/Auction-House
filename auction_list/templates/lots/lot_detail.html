@@ -1854,7 +1854,9 @@
           } else {
             document.getElementById('winner-card').style.transform = 'scale(1)';
           }
-        } else { window.location.reload(); }
+        }
+        // Reload page after 2s so lot status, delivery code etc. all update
+        setTimeout(() => { window.location.reload(); }, 2000);
       } else {
         errorDiv.textContent = data.error || 'Payment verification failed';
         errorDiv.style.display = 'block';
@@ -2256,6 +2258,8 @@
               modal.classList.add('hidden'); modal.remove();
               window.showWinnerOverlay(currentUsername, parseFloat("{{ lot.current_bid }}"));
             }, 1000);
+            // Reload page after 2s so lot status, delivery code etc. all update
+            setTimeout(() => { window.location.reload(); }, 2000);
           } else {
             if (errorDiv) { errorDiv.textContent = data.message || 'Payment verification failed'; errorDiv.style.display = 'block'; }
             if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-check-circle" style="margin-right:8px;"></i>Confirm Payment'; }
