@@ -4,111 +4,207 @@
 {% block title %}Won Lots - Auction House{% endblock %}
 
 {% block content %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
-  .won-root { font-family: 'DM Sans', sans-serif; }
-  .serif { font-family: 'Cormorant Garamond', serif; }
-  @keyframes fadeUp {
-    from { opacity:0; transform:translateY(18px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  .anim-1 { animation: fadeUp 0.45s ease both; }
-  .anim-2 { animation: fadeUp 0.45s 0.08s ease both; }
-  .anim-3 { animation: fadeUp 0.45s 0.16s ease both; }
+* { font-family:'Poppins',sans-serif !important; box-sizing:border-box; }
+body { background:#F0F2F5; }
 
-  /* Gold shimmer on trophy icon */
-  @keyframes shimmer {
-    0%,100% { color: #c9a84c; }
-    50%      { color: #f0d080; }
-  }
-  .trophy-shimmer { animation: shimmer 2.5s ease-in-out infinite; }
+.page-wrap { min-height:100vh; background:#F0F2F5; padding:32px 0 64px; }
+.container  { max-width:1080px; margin:0 auto; padding:0 20px; }
 
-  .won-card {
-    background: #fff;
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1.5px solid #e8c97a;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 2px 12px rgba(201,168,76,0.1);
-  }
-  .won-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 40px rgba(201,168,76,0.18);
-  }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+.a1{animation:fadeUp .4s ease both;} .a2{animation:fadeUp .4s .07s ease both;}
+.a3{animation:fadeUp .4s .14s ease both;} .a4{animation:fadeUp .4s .21s ease both;}
+@keyframes shimmer{0%,100%{color:#F59E0B;}50%{color:#FCD34D;}}
+.trophy-shimmer{animation:shimmer 2.5s ease-in-out infinite;}
 
-  .status-chip {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 3px 10px;
-    border-radius: 20px;
-  }
-  .status-completed { background: #e8f5ee; color: #1a7a4a; border: 1px solid #a7d7bc; }
-  .status-pending   { background: #fef3e8; color: #d97706; border: 1px solid #fcd4a0; }
-  .status-other     { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+.page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
+.page-header h1{font-size:26px;font-weight:700;color:#1A1D23;margin:0;display:flex;align-items:center;gap:10px;}
+.icon-wrap{width:38px;height:38px;background:#D97706;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.breadcrumb{font-size:12px;color:#8A93A6;margin-top:3px;}
+.breadcrumb span{color:#D97706;}
+
+/* Hero banner */
+.winner-banner{background:#1A1D23;border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:22px;position:relative;overflow:hidden;}
+.winner-banner::before{content:'';position:absolute;top:-60px;left:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(217,119,6,.15) 0%,transparent 65%);pointer-events:none;}
+.winner-banner::after{content:'';position:absolute;bottom:-40px;right:100px;width:180px;height:180px;background:radial-gradient(circle,rgba(124,58,237,.08) 0%,transparent 65%);pointer-events:none;}
+.wb-left{display:flex;align-items:center;gap:16px;position:relative;z-index:1;}
+.wb-icon{width:52px;height:52px;background:rgba(217,119,6,.2);border:1.5px solid rgba(217,119,6,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.wb-text h2{font-size:18px;font-weight:700;color:#fff;margin:0 0 3px;}
+.wb-text p{font-size:12px;color:rgba(255,255,255,.45);margin:0;}
+.btn-gold{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:#D97706;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;transition:.2s;position:relative;z-index:1;}
+.btn-gold:hover{background:#B45309;transform:translateY(-1px);}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:#fff;border-radius:14px;padding:20px;border:1.5px solid #E8ECF4;display:flex;align-items:center;gap:14px;}
+.sc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sc-val{font-size:22px;font-weight:800;color:#1A1D23;line-height:1;margin-bottom:2px;}
+.sc-lbl{font-size:11px;font-weight:500;color:#8A93A6;}
+
+/* Won cards grid */
+.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.section-hdr h2{font-size:16px;font-weight:700;color:#1A1D23;margin:0;}
+
+.won-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.won-card{background:#fff;border-radius:16px;border:1.5px solid #FDE68A;overflow:hidden;transition:.2s;}
+.won-card:hover{box-shadow:0 8px 28px rgba(217,119,6,.15);transform:translateY(-2px);}
+
+.won-card-top{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#FFFBEB,#FEF3C7);border-bottom:1px solid #FDE68A;}
+.status-chip{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;}
+.status-completed{background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;}
+.status-pending{background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;}
+.status-other{background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0;}
+
+.won-card-body{padding:18px;}
+.won-lot-title{font-size:15px;font-weight:700;color:#1A1D23;margin-bottom:4px;line-height:1.4;}
+.won-auction{font-size:11px;color:#8A93A6;margin-bottom:14px;}
+
+/* Winning amount highlight */
+.winning-amount-box{background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border:1.5px solid #BBF7D0;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.wa-label{font-size:11px;font-weight:600;color:#15803D;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.wa-amount{font-size:22px;font-weight:800;color:#15803D;line-height:1;}
+.wa-check{width:36px;height:36px;background:#16A34A;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+
+.won-meta{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#8A93A6;margin-bottom:14px;}
+.won-meta span{display:flex;align-items:center;gap:4px;}
+
+.btn-collect{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;border-radius:9px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;background:#1A1D23;color:#fff;transition:.18s;}
+.btn-collect:hover{background:#D97706;}
+
+/* Info boxes */
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+.info-card{background:#fff;border-radius:14px;padding:18px 20px;border:1.5px solid #E8ECF4;}
+.info-card h3{font-size:13px;font-weight:700;color:#1A1D23;margin:0 0 10px;display:flex;align-items:center;gap:7px;}
+.info-card h3 i{color:#D97706;}
+.info-card ul{margin:0;padding:0;list-style:none;}
+.info-card ul li{font-size:12px;color:#4B5563;padding:5px 0;border-bottom:1px solid #F0F2F5;display:flex;align-items:flex-start;gap:7px;line-height:1.5;}
+.info-card ul li:last-child{border-bottom:none;}
+.info-card ul li i{color:#D97706;margin-top:2px;flex-shrink:0;font-size:10px;}
+
+.empty-box{background:#fff;border:1.5px solid #E8ECF4;border-radius:16px;padding:72px 24px;text-align:center;}
+.empty-box .ei{width:72px;height:72px;background:#FFFBEB;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px dashed #FDE68A;margin:0 auto 16px;}
+.empty-box h3{font-size:18px;font-weight:700;color:#1A1D23;margin:0 0 6px;}
+.empty-box p{font-size:13px;color:#8A93A6;margin:0 0 20px;max-width:320px;margin-left:auto;margin-right:auto;}
+
+@media(max-width:768px){
+  .stats-row{grid-template-columns:repeat(3,1fr);}
+  .info-row{grid-template-columns:1fr;}
+  .winner-banner{padding:20px;}
+  .wb-icon{width:42px;height:42px;font-size:18px;}
+}
+@media(max-width:480px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .won-grid{grid-template-columns:1fr;}
+}
 </style>
 
-<div class="won-root min-h-screen py-10" style="background:#f8f7f4;">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="page-wrap">
+<div class="container">
 
-    <!-- PAGE HEADER -->
-    <div class="flex flex-wrap items-end justify-between gap-4 mb-10 anim-1">
-      <div>
-        <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color:#a07830; font-family:'DM Sans',sans-serif;">Auction House · My Account</p>
-        <h1 class="serif text-4xl md:text-5xl font-bold flex items-center gap-3" style="color:#0f1318; line-height:1;">
-          <i class="fas fa-trophy trophy-shimmer"></i> Won Lots
-        </h1>
-        <p class="text-sm mt-2" style="color:#6b7585;">Your winning bids and acquired pieces</p>
-      </div>
-      {% if won_lots %}
-      <div class="rounded-xl px-5 py-3 border flex items-center gap-3" style="background:#fff; border-color:#e8c97a;">
-        <i class="fas fa-trophy text-xl" style="color:#c9a84c;"></i>
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wider" style="color:#6b7585;">Total Won</p>
-          <p class="serif text-2xl font-bold" style="color:#0f1318;">{{ won_lots|length }} Lot{{ won_lots|length|pluralize }}</p>
-        </div>
-      </div>
-      {% endif %}
+  <!-- HEADER -->
+  <div class="page-header a1">
+    <div>
+      <h1>
+        <span class="icon-wrap"><i class="fas fa-trophy trophy-shimmer"></i></span>
+        Won Lots
+      </h1>
+      <p class="breadcrumb">Dashboard &rsaquo; <span>Won Lots</span></p>
     </div>
-
-    <!-- WINNER'S BANNER -->
     {% if won_lots %}
-    <div class="rounded-2xl mb-10 px-6 py-5 flex flex-wrap items-center gap-4 anim-2"
-         style="background:linear-gradient(135deg,#0f1318 0%,#1e2530 100%); border: 1px solid #c9a84c30;">
-      <div class="flex items-center gap-4 flex-1 min-w-0">
-        <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-             style="background:rgba(201,168,76,0.15); border:1.5px solid rgba(201,168,76,0.4);">
-          <i class="fas fa-medal" style="color:#e8c97a; font-size:20px;"></i>
-        </div>
-        <div>
-          <p class="font-bold" style="color:#fefefe; font-size:15px;">Congratulations on your wins!</p>
-          <p class="text-xs mt-0.5" style="color:rgba(255,255,255,0.4);">All items listed below are officially yours. View each lot for payment & collection details.</p>
-        </div>
+    <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #FDE68A;border-radius:11px;padding:10px 16px;">
+      <i class="fas fa-trophy" style="color:#D97706;"></i>
+      <div>
+        <p style="font-size:10px;font-weight:600;color:#8A93A6;text-transform:uppercase;letter-spacing:.08em;margin:0;">Total Won</p>
+        <p style="font-size:16px;font-weight:800;color:#1A1D23;margin:0;line-height:1.1;">{{ won_lots|length }} Lot{{ won_lots|length|pluralize }}</p>
       </div>
-      <a href="{% url 'view_lots' %}"
-         class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex-shrink-0"
-         style="background:#c9a84c; color:#0f1318;">
-        <i class="fas fa-gavel"></i> Bid on More
-      </a>
     </div>
     {% endif %}
+  </div>
 
-    <!-- WON LOTS GRID -->
+  <!-- WINNER BANNER -->
+  {% if won_lots %}
+  <div class="winner-banner a2">
+    <div class="wb-left">
+      <div class="wb-icon"><i class="fas fa-medal" style="color:#FCD34D;"></i></div>
+      <div class="wb-text">
+        <h2>Congratulations on your wins!</h2>
+        <p>All won items are listed below. View each lot for payment &amp; collection details.</p>
+      </div>
+    </div>
+    <a href="{% url 'view_lots' %}" class="btn-gold">
+      <i class="fas fa-gavel"></i> Bid on More Lots
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- STATS -->
+  {% if won_lots %}
+  <div class="stats-row a2">
+    <div class="stat-card">
+      <div class="sc-icon" style="background:#FFFBEB;"><i class="fas fa-trophy" style="color:#D97706;"></i></div>
+      <div><div class="sc-val" style="color:#D97706;">{{ won_lots|length }}</div><div class="sc-lbl">Lots Won</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon" style="background:#DCFCE7;"><i class="fas fa-indian-rupee-sign" style="color:#16A34A;"></i></div>
+      <div>
+        <div class="sc-val" style="color:#16A34A; font-size:16px; padding-top:3px;">
+          ₹{% for lot in won_lots %}{{ lot.current_bid|floatformat:0 }}{% if not forloop.last %} + {% endif %}{% endfor %}
+        </div>
+        <div class="sc-lbl">Total Spent</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon" style="background:#EDE9FE;"><i class="fas fa-box-open" style="color:#7C3AED;"></i></div>
+      <div>
+        <div class="sc-val" style="font-size:14px;padding-top:4px;color:#7C3AED;">
+          {% for lot in won_lots %}{% if lot.status == 'completed' %}{{ forloop.counter }}{% endif %}{% endfor %}/{{ won_lots|length }}
+        </div>
+        <div class="sc-lbl">Collected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO CARDS -->
+  <div class="info-row a3">
+    <div class="info-card">
+      <h3><i class="fas fa-truck-fast"></i> Collection & Delivery</h3>
+      <ul>
+        <li><i class="fas fa-circle-check"></i> Collection available Mon–Sat, 10am–6pm from our auction house.</li>
+        <li><i class="fas fa-circle-check"></i> Nationwide insured delivery available — contact support to arrange.</li>
+        <li><i class="fas fa-circle-check"></i> Fragile &amp; high-value items require in-person collection with valid ID.</li>
+        <li><i class="fas fa-circle-check"></i> Items must be collected within 14 days of winning.</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3><i class="fas fa-file-invoice"></i> Payment & Invoicing</h3>
+      <ul>
+        <li><i class="fas fa-circle-check"></i> Payment is automatically deducted from your wallet balance when you win.</li>
+        <li><i class="fas fa-circle-check"></i> Official invoice generated instantly — download from My Invoices.</li>
+        <li><i class="fas fa-circle-check"></i> Need a receipt for customs or insurance? Contact our support team.</li>
+        <li><i class="fas fa-circle-check"></i> GST invoicing available on request for business buyers.</li>
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- WON LOTS GRID -->
+  <div class="a4">
+    <div class="section-hdr">
+      <div style="width:8px;height:8px;border-radius:50%;background:#D97706;"></div>
+      <h2>Your Won Items</h2>
+    </div>
+
     {% if won_lots %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 anim-3">
+    <div class="won-grid">
       {% for lot in won_lots %}
       <div class="won-card">
-
-        <!-- Gold header bar -->
-        <div class="px-4 py-3 flex items-center justify-between"
-             style="background:linear-gradient(90deg,#c9a84c,#e8c97a);">
-          <span class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider" style="color:#0f1318;">
-            <i class="fas fa-trophy"></i> Winner
-          </span>
+        <div class="won-card-top">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <i class="fas fa-trophy" style="color:#D97706;font-size:13px;"></i>
+            <span style="font-size:12px;font-weight:700;color:#92400E;">Winner</span>
+          </div>
           <span class="status-chip
             {% if lot.status == 'completed' %}status-completed
             {% elif lot.status == 'pending' %}status-pending
@@ -116,61 +212,43 @@
             {{ lot.status|upper }}
           </span>
         </div>
+        <div class="won-card-body">
+          <p class="won-lot-title">{{ lot.title }}</p>
+          <p class="won-auction"><i class="fas fa-landmark" style="margin-right:4px;color:#D97706;font-size:10px;"></i>{{ lot.auction.title|truncatechars:38 }}</p>
 
-        <!-- Card body -->
-        <div class="p-5">
-          <h3 class="serif font-bold text-xl mb-1 leading-snug" style="color:#0f1318;">{{ lot.title }}</h3>
-          <p class="text-xs mb-4" style="color:#6b7585;">{{ lot.auction.title|truncatechars:40 }}</p>
-
-          <!-- Winning bid highlight -->
-          <div class="rounded-xl p-3 mb-4 flex items-center justify-between"
-               style="background:#f8f7f4; border:1px solid #e0ddd5;">
+          <div class="winning-amount-box">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider mb-0.5" style="color:#6b7585;">Winning Bid</p>
-              <p class="serif text-2xl font-bold" style="color:#1a7a4a;">₹{{ lot.current_bid|floatformat:2 }}</p>
+              <p class="wa-label">Winning Bid</p>
+              <p class="wa-amount">₹{{ lot.current_bid|floatformat:2 }}</p>
             </div>
-            <div class="w-10 h-10 rounded-full flex items-center justify-center"
-                 style="background:#e8f5ee; border:1.5px solid #a7d7bc;">
-              <i class="fas fa-check" style="color:#1a7a4a;"></i>
-            </div>
+            <div class="wa-check"><i class="fas fa-check"></i></div>
           </div>
 
-          <!-- Meta -->
-          <div class="flex items-center justify-between text-xs mb-5" style="color:#6b7585;">
-            <span><i class="far fa-calendar mr-1"></i>{{ lot.updated_at|date:"M d, Y" }}</span>
-            <span class="font-medium" style="color:#0f1318;">Lot #{{ lot.id }}</span>
+          <div class="won-meta">
+            <span><i class="far fa-calendar"></i>{{ lot.updated_at|date:"M d, Y" }}</span>
+            <span><i class="fas fa-hashtag"></i>Lot {{ lot.id }}</span>
           </div>
 
-          <a href="{% url 'lot_detail' lot.slug %}"
-             class="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all"
-             style="background:#0f1318; color:#fefefe;"
-             onmouseover="this.style.background='#c9a84c'; this.style.color='#0f1318';"
-             onmouseout="this.style.background='#0f1318'; this.style.color='#fefefe';">
-            <i class="fas fa-arrow-right"></i> View & Collect
+          <a href="{% url 'lot_detail' lot.slug %}" class="btn-collect">
+            <i class="fas fa-arrow-right"></i> View &amp; Collect
           </a>
         </div>
-
       </div>
       {% endfor %}
     </div>
 
     {% else %}
-    <!-- EMPTY STATE -->
-    <div class="anim-2 rounded-2xl border-2 border-dashed py-20 text-center" style="border-color:#e0ddd5; background:#fff;">
-      <div class="mx-auto mb-5 flex items-center justify-center w-20 h-20 rounded-full"
-           style="background:#f8f7f4; border:2px solid #e8c97a;">
-        <i class="fas fa-trophy text-3xl" style="color:#d4b96a;"></i>
-      </div>
-      <p class="serif text-2xl font-bold mb-2" style="color:#0f1318;">No Wins Yet</p>
-      <p class="text-sm mb-6 max-w-xs mx-auto" style="color:#6b7585;">Your trophies will appear here once you win an auction. Keep bidding — your moment is coming!</p>
-      <a href="{% url 'view_lots' %}"
-         class="inline-flex items-center gap-2 px-7 py-3 rounded-lg text-sm font-bold uppercase tracking-wider"
-         style="background:#0f1318; color:#fefefe;">
+    <div class="empty-box">
+      <div class="ei"><i class="fas fa-trophy trophy-shimmer"></i></div>
+      <h3>No Wins Yet</h3>
+      <p>Your winning lots will appear here. Keep bidding — your first win is just around the corner!</p>
+      <a href="{% url 'view_lots' %}" style="display:inline-flex;align-items:center;gap:7px;padding:11px 26px;background:#1A1D23;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-transform:uppercase;text-decoration:none;">
         <i class="fas fa-gavel"></i> Browse Active Lots
       </a>
     </div>
     {% endif %}
-
   </div>
+
+</div>
 </div>
 {% endblock %}
