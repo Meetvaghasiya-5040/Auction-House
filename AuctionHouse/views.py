@@ -209,7 +209,7 @@ def otp_form(request):
                 send_mail(
                     "Your OTP Code - Auction House",
                     f"Your OTP code is {otp}. This code will expire in 2 minutes.",
-                    "meetvaghasiya166@gmail.com",
+                    settings.DEFAULT_FROM_EMAIL,
                     [email],
                     fail_silently=False,
                 )
@@ -310,3 +310,23 @@ def change_password_view(request):
     return render(
         request, "change_pass.html", {"useremail": request.session.get("reset_email")}
     )
+
+from django.contrib.auth.decorators import user_passes_test
+from django.http import HttpResponse
+import traceback
+
+@user_passes_test(lambda u: u.is_superuser)
+def test_email_config(request):
+    """A test view to check SMTP configuration on Render"""
+    try:
+        send_mail(
+            "Test Email from Auction House",
+            f"If you are reading this, your email configuration is working!\n\nHost: {settings.EMAIL_HOST}\nPort: {settings.EMAIL_PORT}\nUser: {settings.EMAIL_HOST_USER}",
+            settings.DEFAULT_FROM_EMAIL,
+            [request.user.email],
+            fail_silently=False,
+        )
+        return HttpResponse(f"✅ Success! Sent test email to {request.user.email} using {settings.EMAIL_HOST_USER}")
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        return HttpResponse(f"❌ Failed to send email.\n\nError:\n{str(e)}\n\nTraceback:\n{error_trace}", content_type="text/plain")

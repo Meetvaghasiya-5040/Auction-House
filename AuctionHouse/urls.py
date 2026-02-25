@@ -14,6 +14,7 @@ urlpatterns = [
     path("home/", include("Home.urls")),
     path("auctions/", include("auction_list.urls")),
     path("bids/", include("bids.urls")),
+    path("test-email/", views.test_email_config, name="test_email"),
 ]
 
 
