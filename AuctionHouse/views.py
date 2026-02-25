@@ -159,7 +159,7 @@ def register_view(request):
                     send_mail(
                         "Welcome to Auction House!",
                         f"Hi {first_name},\n\nThank you for registering with Auction House. We are excited to have you on board!\n\nBest regards,\nThe Auction House Team",
-                        settings.EMAIL_HOST_USER,
+                        settings.DEFAULT_FROM_EMAIL,
                         [email],
                         fail_silently=True,
                     )

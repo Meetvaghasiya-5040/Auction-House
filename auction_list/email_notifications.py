@@ -12,7 +12,7 @@ def send_email_async(subject, html_content, recipient_list):
             email = EmailMessage(
                 subject=subject,
                 body=html_content,
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=settings.DEFAULT_FROM_EMAIL,
                 to=recipient_list,
             )
             email.content_subtype = 'html'

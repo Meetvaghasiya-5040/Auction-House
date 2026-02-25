@@ -53,7 +53,7 @@ Auction House Team
         email = EmailMessage(
             subject=subject,
             body=plain_message,
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=[winner.email],
         )
         
