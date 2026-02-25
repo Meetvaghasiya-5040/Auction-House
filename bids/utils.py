@@ -5,6 +5,27 @@ from django.db import transaction
 from .models import PendingPayment, Bid
 from auction_list.models import Lot
 
+def broadcast_lot_refresh(lot):
+    """
+    Broadcasts a WebSocket event to all clients watching this lot to dynamically
+    reload the page. This keeps spectators' status badges and delivery forms 
+    up-to-date instantly.
+    """
+    try:
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+        channel_layer = get_channel_layer()
+        room_group_name = f'lot_{lot.slug}'
+        async_to_sync(channel_layer.group_send)(
+            room_group_name,
+            {
+                'type': 'status_changed_refresh', 
+                'data': {}
+            }
+        )
+    except Exception as e:
+        print(f"WebSocket Broadcast Error: {e}")
+
 def check_expired_payments(lot=None):
     """
     Check for expired pending payments and take action:
@@ -115,6 +136,7 @@ def check_expired_payments(lot=None):
                     except Exception as e:
                         print(f"Email Error: {e}")
                 send_new_winner_notification_sync(lot.id)
+                broadcast_lot_refresh(lot)
                 
             else:
                 # 4. No more bidders - Mark Unsold
@@ -126,6 +148,7 @@ def check_expired_payments(lot=None):
                 Bid.objects.filter(lot=lot).update(is_winning=False)
                 
                 print("-> No more bidders. Marked as UNSOLD.")
+                broadcast_lot_refresh(lot)
 
 
 def release_seller_funds(lot):

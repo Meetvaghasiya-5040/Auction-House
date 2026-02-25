@@ -1450,7 +1450,7 @@
             <i class="fas fa-boxes" style="color:var(--auction-accent)"></i>
             Items in Lot
           </span>
-          <span style="font-size:10px;font-weight:700;color:var(--text-muted)">{{ lot.items.count }} item{{ lot.items.count|pluralize }}</span>
+          <span style="font-size:10px;font-weight:700;color:var(--text-muted)">{{ lot.items.count }} item{{lot.items.count|pluralize }}</span>
         </div>
         <div class="ld-card-body">
           <div class="items-grid">
@@ -2336,6 +2336,10 @@
         if (bidCountEl && s.bid_count !== undefined) bidCountEl.textContent = s.bid_count;
       } else if (data.type === 'auction_ended' || data.type === 'lot_closed') {
         handleAuctionEnded(data.data || data);
+      } else if (data.type === 'status_changed_refresh') {
+        // Important state change (like payment, delivery) happened.
+        // Reload page to get fresh HTML for all status badges and OTP forms.
+        setTimeout(() => { window.location.reload(); }, Math.random() * 1000); // jitter to prevent thundering herd
       } else if (data.type === 'error') {
         showError(data.message);
       }

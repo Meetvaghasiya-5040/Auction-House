@@ -381,6 +381,10 @@ def verify_payment_pin(request):
             except Exception as e:
                 print(f"Error creating invoice: {e}")
         
+        # Tell all users watching the auction to refresh their screens
+        from bids.utils import broadcast_lot_refresh
+        broadcast_lot_refresh(lot)
+        
         return JsonResponse({
             'success': True,
             'message': 'Payment completed successfully!',
@@ -487,6 +491,9 @@ def mark_at_warehouse(request, lot_id):
         lot.status = 'at_warehouse'
         lot.save()
         
+        from bids.utils import broadcast_lot_refresh
+        broadcast_lot_refresh(lot)
+        
         messages.success(request, f"Lot #{lot.lot_number} confirmed at warehouse.")
     except Exception as e:
         messages.error(request, f"Error: {str(e)}")
@@ -510,6 +517,9 @@ def mark_shipped_to_buyer(request, lot_id):
         
         lot.status = 'shipped'
         lot.save()
+        
+        from bids.utils import broadcast_lot_refresh
+        broadcast_lot_refresh(lot)
         
         messages.success(request, f"Lot #{lot.lot_number} marked as shipped to buyer.")
     except Exception as e:
@@ -550,6 +560,9 @@ def confirm_delivery(request, lot_id):
             # Release funds to seller
             from .utils import release_seller_funds
             release_seller_funds(lot)
+            
+            from bids.utils import broadcast_lot_refresh
+            broadcast_lot_refresh(lot)
             
             messages.success(request, f"Delivery confirmed for Lot #{lot.lot_number}. Funds released to seller.")
         except Exception as e:

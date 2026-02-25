@@ -645,18 +645,25 @@ class Invoice(models.Model):
 
 
 def send_invoice_email_task(invoice_id):
-    """Background task to generate PDF and send invoice email"""
+    """Background task to generate PDF and send invoice email without blocking UI"""
+    import threading
+    from django.template.loader import render_to_string
+    from django.utils.html import strip_tags
+    from django.core.mail import EmailMultiAlternatives
+    from io import BytesIO
+    from decimal import Decimal
+
     try:
-        # Re-fetch objects to ensure thread safety
+        # 1. Fetch ALL data on the main thread (prevents Render DB drops in threads)
         invoice = Invoice.objects.select_related('user', 'lot', 'lot__auction').get(id=invoice_id)
         lot = invoice.lot
-        items = lot.items.all()
+        items = list(lot.items.all())
         winning_amount = invoice.amount
         shipping_fee = invoice.shipping_fee
         admin_commission = winning_amount * Decimal("0.10")
         total_amount = winning_amount + shipping_fee
         
-        # Prepare Email Context
+        # Prepare Context
         context = {
             'winner': invoice.user,
             'lot': lot,
@@ -671,47 +678,55 @@ def send_invoice_email_task(invoice_id):
             'delivery': getattr(lot, 'delivery', None)
         }
         
-        # Render Email HTML (Rich Design)
+        # 2. Render HTML on the main thread
         email_html = render_to_string('bids/invoice_template.html', context)
         plain_message = strip_tags(email_html)
+        pdf_html = render_to_string('bids/invoice_pdf.html', context)
         
-        # Render PDF HTML (Simple Design)
-        try:
-            from xhtml2pdf import pisa
-            pdf_html = render_to_string('bids/invoice_pdf.html', context)
-            
-            # Generate PDF
-            pdf_buffer = BytesIO()
-            pisa_status = pisa.CreatePDF(pdf_html, dest=pdf_buffer)
-            pdf_content = pdf_buffer.getvalue()
-            pdf_buffer.close()
-            pdf_error = pisa_status.err
-        except Exception as e:
-            print(f"PDF Generation Error: {e}")
-            pdf_error = True
-            pdf_content = None
+        # Extract variables needed for the background thread
+        user_email = invoice.user.email
+        invoice_num = invoice.invoice_number
+        lot_title = lot.title
+        lot_num = lot.lot_number
+        
+        # 3. Offload PDF generation and SMTP sending to a background thread
+        def bg_task():
+            try:
+                from xhtml2pdf import pisa
+                
+                # Generate PDF
+                pdf_buffer = BytesIO()
+                pisa_status = pisa.CreatePDF(pdf_html, dest=pdf_buffer)
+                pdf_content = pdf_buffer.getvalue()
+                pdf_buffer.close()
+                pdf_error = pisa_status.err
+                
+                # Send Email
+                email = EmailMultiAlternatives(
+                    subject=f"Invoice for Lot #{lot_num}: {lot_title}",
+                    body=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[user_email]
+                )
+                email.attach_alternative(email_html, "text/html")
+                
+                if not pdf_error and pdf_content:
+                    filename = f"Invoice_{invoice_num}.pdf"
+                    email.attach(filename, pdf_content, 'application/pdf')
+                else:
+                    print(f"Skipping PDF attachment due to format error")
+                    
+                email.send(fail_silently=True)
+                print(f"[Async] Invoice email sent to {user_email}")
+            except Exception as e:
+                print(f"[Async Error] Failed to send invoice email: {e}")
 
-        
-        # Send Email
-        email = EmailMultiAlternatives(
-            subject=f"Invoice for Lot #{lot.lot_number}: {lot.title}",
-            body=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[invoice.user.email]
-        )
-        email.attach_alternative(email_html, "text/html")
-        
-        if not pdf_error and pdf_content:
-            filename = f"Invoice_{invoice.invoice_number}.pdf"
-            email.attach(filename, pdf_content, 'application/pdf')
-        else:
-            print(f"Skipping PDF attachment due to error")
-            
-        email.send(fail_silently=True)
-        print(f"[Async] Invoice email sent to {invoice.user.email}")
+        # Start background thread
+        thread = threading.Thread(target=bg_task, daemon=False)
+        thread.start()
         
     except Exception as e:
-        print(f"[Async Error] Failed to send invoice email: {e}")
+        print(f"[Main Thread Error] Failed to initialize invoice email: {e}")
 
 
 class Delivery(models.Model):
