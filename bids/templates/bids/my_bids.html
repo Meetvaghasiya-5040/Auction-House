@@ -587,13 +587,10 @@
                     <div class="bid-card-body">
                         <span class="auction-tag">{{ bid.lot.auction.title|truncatechars:22 }}</span>
                         <p class="bid-lot-title">{{ bid.lot.title }}</p>
-                        <div class="bid-info-row"><span class="lbl">Your Bid</span><span class="val purple">₹{{
-                                bid.amount|floatformat:2 }}</span></div>
-                        <div class="bid-info-row"><span class="lbl">Current Highest</span><span class="val">₹{{
-                                bid.lot.current_bid|floatformat:2 }}</span></div>
+                        <div class="bid-info-row"><span class="lbl">Your Bid</span><span class="val purple">₹{{bid.amount|floatformat:2 }}</span></div>
+                        <div class="bid-info-row"><span class="lbl">Current Highest</span><span class="val">₹{{bid.lot.current_bid|floatformat:2 }}</span></div>
                         <div class="prog-wrap">
-                            <div class="prog-label"><span>Your bid vs current</span><span>{% if bid.is_winning
-                                    %}Leading{% else %}Behind{% endif %}</span></div>
+                            <div class="prog-label"><span>Your bid vs current</span><span>{% if bid.is_winning %}Leading{% else %}Behind{% endif %}</span></div>
                             <div class="prog-track">
                                 <div class="prog-fill"
                                     style="width:{% if bid.amount >= bid.lot.current_bid %}100{% else %}{% widthratio bid.amount bid.lot.current_bid 100 %}{% endif %}%;">
@@ -601,8 +598,7 @@
                             </div>
                         </div>
                         <div class="bid-info-row"><span class="lbl">Placed</span><span class="val"
-                                style="font-size:11px;font-weight:500;color:#6B7280;">{{ bid.timestamp|date:"M d, Y H:i"
-                                }}</span></div>
+                                style="font-size:11px;font-weight:500;color:#6B7280;">{{ bid.timestamp|date:"M d, Y H:i"}}</span></div>
                         <a href="{% url 'lot_detail' bid.lot.slug %}"
                             class="btn-card {% if bid.is_winning %}purple{% else %}gray{% endif %}">
                             {% if bid.is_winning %}<i class="fas fa-eye"></i> Watch Lot
@@ -646,13 +642,10 @@
                         <div>
                             <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:0 0 2px;">{{ bid.lot.title }}
                             </p>
-                            <p style="font-size:11px;color:#8A93A6;margin:0;">{{ bid.lot.auction.title|truncatechars:32
-                                }}</p>
+                            <p style="font-size:11px;color:#8A93A6;margin:0;">{{ bid.lot.auction.title|truncatechars:32}}</p>
                         </div>
-                        <span style="font-size:13px;font-weight:700;color:#7C3AED;">₹{{ bid.amount|floatformat:2
-                            }}</span>
-                        <span style="font-size:13px;font-weight:700;color:#1A1D23;">₹{{
-                            bid.lot.current_bid|floatformat:2 }}</span>
+                        <span style="font-size:13px;font-weight:700;color:#7C3AED;">₹{{ bid.amount|floatformat:2}}</span>
+                        <span style="font-size:13px;font-weight:700;color:#1A1D23;">₹{{bid.lot.current_bid|floatformat:2 }}</span>
                         <div>
                             {% if bid.lot.winning_bidder == user %}
                             <span class="chip-won"><i class="fas fa-trophy"
@@ -673,10 +666,8 @@
                         <div
                             style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                             <div>
-                                <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:0 0 2px;">{{ bid.lot.title
-                                    }}</p>
-                                <p style="font-size:11px;color:#8A93A6;margin:0;">{{
-                                    bid.lot.auction.title|truncatechars:28 }}</p>
+                                <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:0 0 2px;">{{ bid.lot.title}}</p>
+                                <p style="font-size:11px;color:#8A93A6;margin:0;">{{bid.lot.auction.title|truncatechars:28 }}</p>
                             </div>
                             {% if bid.lot.winning_bidder == user %}
                             <span class="chip-won"><i class="fas fa-trophy"

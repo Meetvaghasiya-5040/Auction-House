@@ -561,8 +561,7 @@
                     <p
                         style="font-size:10px;font-weight:600;color:#8A93A6;text-transform:uppercase;letter-spacing:.08em;margin:0;">
                         Total Won</p>
-                    <p style="font-size:16px;font-weight:800;color:#1A1D23;margin:0;line-height:1.1;">{{ won_lots|length
-                        }} Lot{{ won_lots|length|pluralize }}</p>
+                    <p style="font-size:16px;font-weight:800;color:#1A1D23;margin:0;line-height:1.1;">{{ won_lots|length}} Lot{{ won_lots|length|pluralize }}</p>
                 </div>
             </div>
             {% endif %}
@@ -600,8 +599,7 @@
                         style="color:#16A34A;"></i></div>
                 <div>
                     <div class="sc-val" style="color:#16A34A; font-size:16px; padding-top:3px;">
-                        ₹{% for lot in won_lots %}{{ lot.current_bid|floatformat:0 }}{% if not forloop.last %} + {%
-                        endif %}{% endfor %}
+                        ₹{% for lot in won_lots %}{{ lot.current_bid|floatformat:0 }}{% if not forloop.last %} + {% endif %}{% endfor %}
                     </div>
                     <div class="sc-lbl">Total Spent</div>
                 </div>
@@ -611,8 +609,7 @@
                 </div>
                 <div>
                     <div class="sc-val" style="font-size:14px;padding-top:4px;color:#7C3AED;">
-                        {% for lot in won_lots %}{% if lot.status == 'completed' %}{{ forloop.counter }}{% endif %}{%
-                        endfor %}/{{ won_lots|length }}
+                        {% for lot in won_lots %}{% if lot.status == 'completed' %}{{ forloop.counter }}{% endif %}{% endfor %}/{{ won_lots|length }}
                     </div>
                     <div class="sc-lbl">Collected</div>
                 </div>
@@ -674,8 +671,7 @@
                     <div class="won-card-body">
                         <p class="won-lot-title">{{ lot.title }}</p>
                         <p class="won-auction"><i class="fas fa-landmark"
-                                style="margin-right:4px;color:#D97706;font-size:10px;"></i>{{
-                            lot.auction.title|truncatechars:38 }}</p>
+                                style="margin-right:4px;color:#D97706;font-size:10px;"></i>{{ lot.auction.title|truncatechars:38 }}</p>
 
                         <div class="winning-amount-box">
                             <div>

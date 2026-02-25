@@ -495,16 +495,14 @@
             <div class="sc-item">
                 <span class="label">Pending</span>
                 <span class="value amber">
-                    {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor
-                    %}
+                    {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor%}
                 </span>
             </div>
             <div class="sc-divider"></div>
             <div class="sc-item">
                 <span class="label">Total Value</span>
                 <span class="value" style="font-size:16px;">
-                    ₹{% for inv in invoices %}{{ inv.amount|floatformat:0 }}{% if not forloop.last %}+{% endif %}{%
-                    endfor %}
+                    ₹{% for inv in invoices %}{{ inv.amount|floatformat:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
                 </span>
             </div>
         </div>
@@ -525,8 +523,7 @@
                         style="color:#16A34A;"></i></div>
                 <div>
                     <div class="sc-val" style="color:#16A34A;">
-                        {% for inv in invoices %}{% if inv.status == 'paid' %}{{ forloop.counter }}{% endif %}{% endfor
-                        %}
+                        {% for inv in invoices %}{% if inv.status == 'paid' %}{{ forloop.counter }}{% endif %}{% endfor%}
                     </div>
                     <div class="sc-lbl">Paid</div>
                 </div>
@@ -536,8 +533,7 @@
                 </div>
                 <div>
                     <div class="sc-val" style="color:#D97706;">
-                        {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{%
-                        endfor %}
+                        {% for inv in invoices %}{% if inv.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor %}
                     </div>
                     <div class="sc-lbl">Pending</div>
                 </div>
@@ -585,19 +581,15 @@
                 <div>
                     {% for invoice in invoices %}
                     <div class="inv-row invoice-item" data-status="{{ invoice.status }}">
-                        <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{ invoice.invoice_number
-                            }}</a>
+                        <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{ invoice.invoice_number}}</a>
                         <div>
-                            <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:0 0 2px;">{{ invoice.lot.title
-                                }}</p>
+                            <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:0 0 2px;">{{ invoice.lot.title}}</p>
                             <p style="font-size:11px;color:#8A93A6;margin:0;">{{ invoice.issued_at|date:"M d, Y" }}</p>
                         </div>
                         <div>
-                            <p style="font-size:12px;color:#4B5563;margin:0;font-weight:500;">{{
-                                invoice.lot.auction.title|truncatechars:30 }}</p>
+                            <p style="font-size:12px;color:#4B5563;margin:0;font-weight:500;">{{invoice.lot.auction.title|truncatechars:30 }}</p>
                         </div>
-                        <span style="font-size:14px;font-weight:800;color:#1A1D23;">₹{{ invoice.amount|floatformat:2
-                            }}</span>
+                        <span style="font-size:14px;font-weight:800;color:#1A1D23;">₹{{ invoice.amount|floatformat:2}}</span>
                         <div>
                             {% if invoice.status == 'paid' %}
                             <span class="badge-paid"><i class="fas fa-check" style="font-size:8px;"></i>Paid</span>
@@ -624,12 +616,9 @@
                         <div
                             style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
                             <div>
-                                <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{
-                                    invoice.invoice_number }}</a>
-                                <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:4px 0 2px;">{{
-                                    invoice.lot.title }}</p>
-                                <p style="font-size:11px;color:#8A93A6;margin:0;">{{
-                                    invoice.lot.auction.title|truncatechars:30 }}</p>
+                                <a href="{% url 'invoice_detail' invoice.id %}" class="inv-number">{{invoice.invoice_number }}</a>
+                                <p style="font-size:13px;font-weight:600;color:#1A1D23;margin:4px 0 2px;">{{invoice.lot.title }}</p>
+                                <p style="font-size:11px;color:#8A93A6;margin:0;">{{invoice.lot.auction.title|truncatechars:30 }}</p>
                             </div>
                             {% if invoice.status == 'paid' %}
                             <span class="badge-paid"><i class="fas fa-check" style="font-size:8px;"></i>Paid</span>
@@ -642,10 +631,8 @@
                         </div>
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
                             <div>
-                                <p style="font-size:10px;color:#8A93A6;margin:0 0 2px;">{{ invoice.issued_at|date:"M d,
-                                    Y" }}</p>
-                                <p style="font-size:16px;font-weight:800;color:#1A1D23;margin:0;">₹{{
-                                    invoice.amount|floatformat:2 }}</p>
+                                <p style="font-size:10px;color:#8A93A6;margin:0 0 2px;">{{ invoice.issued_at|date:"M d,Y" }}</p>
+                                <p style="font-size:16px;font-weight:800;color:#1A1D23;margin:0;">₹{{invoice.amount|floatformat:2 }}</p>
                             </div>
                             <a href="{% url 'invoice_detail' invoice.id %}" class="btn-view">
                                 <i class="fas fa-eye"></i> View

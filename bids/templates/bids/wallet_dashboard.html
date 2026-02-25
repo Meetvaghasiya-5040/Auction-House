@@ -860,8 +860,7 @@
                             {{ transaction.get_transaction_type_display }}
                         </span>
                         <p class="tx-desc">{{ transaction.description }}</p>
-                        <p class="tx-date"><i class="far fa-clock" style="margin-right:3px;"></i>{{
-                            transaction.timestamp|date:"M d, Y · H:i" }}</p>
+                        <p class="tx-date"><i class="far fa-clock" style="margin-right:3px;"></i>{{ transaction.timestamp|date:"M d, Y · H:i" }}</p>
                     </div>
 
                     <div class="tx-amt {% if transaction.amount >= 0 %}pos{% else %}neg{% endif %}">
