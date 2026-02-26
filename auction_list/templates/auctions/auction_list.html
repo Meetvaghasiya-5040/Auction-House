@@ -6,692 +6,360 @@
 {% block extra_css %}
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-
-:root{
-  --bg:       #F0F4FF;
-  --surface:  #FFFFFF;
-  --s2:       #F7F9FF;
-  --s3:       #EEF2FF;
-  --border:   #E2E8F8;
-  --border2:  #C8D4F0;
-  --ink:      #0F172A;
-  --ink2:     #1E293B;
-  --ink3:     #334155;
-  --muted:    #64748B;
-  --subtle:   #94A3B8;
-  --pri:      #3B5BDB;
-  --pri-h:    #2F4DC4;
-  --pri-l:    #EEF2FF;
-  --pri-m:    #C7D2FE;
-  --acc:      #F59E0B;
-  --acc-l:    #FEF3C7;
-  --acc-d:    #D97706;
-  --red:      #EF4444;
-  --red-l:    #FEE2E2;
-  --grn:      #10B981;
-  --grn-l:    #D1FAE5;
-  --sh:       0 4px 16px rgba(15,23,42,.09),0 2px 6px rgba(15,23,42,.05);
-  --sh-lg:    0 16px 48px rgba(15,23,42,.13),0 6px 16px rgba(15,23,42,.07);
-  --sh-xl:    0 24px 64px rgba(59,91,219,.18),0 8px 24px rgba(15,23,42,.1);
-  --sb-w:     280px;
-}
-
-body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
-
-/* ━━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.hero{
-  background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 50%,#1E293B 100%);
-  position:relative;overflow:hidden;padding:4.5rem 1.5rem 4rem;
-}
-.hero::before{
-  content:'';position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 70% 80% at 80% 20%,rgba(99,132,255,.18) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 60% at 10% 80%,rgba(245,158,11,.1) 0%,transparent 50%);
-}
-.orb{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;}
-.o1{width:480px;height:480px;top:-200px;right:-80px;background:rgba(59,91,219,.25);}
-.o2{width:280px;height:280px;bottom:-100px;left:-40px;background:rgba(245,158,11,.15);}
-
-.hero-inner{
-  max-width:1220px;margin:0 auto;position:relative;z-index:1;
-  display:grid;grid-template-columns:1fr auto;align-items:center;gap:3rem;
-}
-.hero-tag{
-  display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:100px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
-  font-size:.63rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-  color:rgba(255,255,255,.65);margin-bottom:1.1rem;
-}
-.tdot{
-  width:7px;height:7px;border-radius:50%;background:var(--acc);
-  box-shadow:0 0 0 3px rgba(245,158,11,.25);
-  animation:pdot 1.5s ease-in-out infinite;
-}
-@keyframes pdot{0%,100%{box-shadow:0 0 0 3px rgba(245,158,11,.25)}50%{box-shadow:0 0 0 7px rgba(245,158,11,.08)}}
-.hero-title{font-size:clamp(1.9rem,4vw,3.4rem);font-weight:800;line-height:1.1;color:#fff;margin-bottom:.9rem;}
-.hero-title em{font-style:normal;color:#93C5FD;}
-.hero-desc{font-size:.9rem;line-height:1.7;color:rgba(255,255,255,.5);max-width:460px;margin-bottom:1.8rem;}
-.hero-btns{display:flex;gap:.7rem;flex-wrap:wrap;}
-.btn-p{
-  display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;
-  background:var(--pri);color:#fff;font-family:'Poppins',sans-serif;font-size:.78rem;font-weight:600;
-  text-decoration:none;border:none;cursor:pointer;transition:all .2s;
-  box-shadow:0 4px 12px rgba(59,91,219,.4);
-}
-.btn-p:hover{background:var(--pri-h);transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,91,219,.5);}
-.btn-o{
-  display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;
-  background:rgba(255,255,255,.08);color:#fff;font-family:'Poppins',sans-serif;
-  font-size:.78rem;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.2);
-  cursor:pointer;transition:all .2s;
-}
-.btn-o:hover{background:rgba(255,255,255,.14);}
-
-/* Stats panel inside hero */
-.hero-panel{
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);
-  border-radius:16px;backdrop-filter:blur(12px);padding:1.4rem 1.7rem;min-width:210px;
-}
-.hp-title{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:1.1rem;}
-.hp-row{display:flex;align-items:center;gap:11px;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.06);}
-.hp-row:last-child{border-bottom:none;padding-bottom:0;}
-.hp-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.78rem;flex-shrink:0;}
-.hp-val{font-size:1.25rem;font-weight:800;color:#fff;line-height:1;}
-.hp-lbl{font-size:.63rem;color:rgba(255,255,255,.42);margin-top:2px;}
-
-/* ━━━━ TOP BAR (mobile only) ━━━━━━━━━━━━ */
-.top-bar{
-  display:none;
-  background:var(--surface);border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:150;box-shadow:var(--sh);
-}
-.top-bar-inner{
-  max-width:1220px;margin:0 auto;padding:.7rem 1rem;
-  display:flex;align-items:center;gap:.75rem;
-}
-.mob-search{
-  display:flex;align-items:center;gap:8px;flex:1;
-  background:var(--s2);border:1.5px solid var(--border);border-radius:10px;
-  padding:8px 12px;transition:border-color .18s,box-shadow .18s;
-}
-.mob-search:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px rgba(59,91,219,.1);}
-.mob-search i{color:var(--subtle);font-size:.8rem;flex-shrink:0;}
-.mob-search input{
-  border:none;outline:none;background:transparent;
-  font-family:'Poppins',sans-serif;font-size:.8rem;color:var(--ink);width:100%;
-}
-.mob-search input::placeholder{color:var(--subtle);}
-.filter-fab{
-  display:flex;align-items:center;gap:6px;
-  padding:9px 14px;border-radius:10px;
-  background:var(--pri);color:#fff;border:none;
-  font-family:'Poppins',sans-serif;font-size:.75rem;font-weight:600;
-  cursor:pointer;transition:all .18s;flex-shrink:0;
-  box-shadow:0 4px 10px rgba(59,91,219,.35);
-}
-.filter-fab:hover{background:var(--pri-h);}
-.filter-fab .fbadge{
-  background:#fff;color:var(--pri);
-  font-size:.58rem;font-weight:800;
-  min-width:18px;height:18px;border-radius:100px;
-  display:none;align-items:center;justify-content:center;padding:0 5px;
-}
-.filter-fab .fbadge.show{display:flex;}
-
-/* ━━━━ LAYOUT (sidebar + grid) ━━━━━━━━━━ */
-.page-layout{
-  max-width:1220px;margin:0 auto;
-  display:grid;grid-template-columns:var(--sb-w) 1fr;
-  gap:1.75rem;padding:1.75rem 1.5rem 4rem;
-  align-items:start;
-}
-
-/* ━━━━ SIDEBAR ━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.sidebar{
-  position:sticky;top:20px;
-  display:flex;flex-direction:column;gap:1rem;
-}
-
-.sb-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:16px;overflow:hidden;
-}
-.sb-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:.9rem 1.1rem;
-  border-bottom:1px solid var(--border);
-  cursor:pointer;user-select:none;
-}
-.sb-head-title{
-  display:flex;align-items:center;gap:8px;
-  font-size:.78rem;font-weight:700;color:var(--ink);
-}
-.sb-head-title i{color:var(--pri);font-size:.78rem;}
-.sb-chevron{color:var(--subtle);font-size:.7rem;transition:transform .2s;}
-.sb-card.collapsed .sb-chevron{transform:rotate(-90deg);}
-.sb-body{padding:.85rem 1.1rem;}
-.sb-card.collapsed .sb-body{display:none;}
-
-/* Search in sidebar */
-.sb-search{
-  display:flex;align-items:center;gap:8px;
-  background:var(--s2);border:1.5px solid var(--border);
-  border-radius:10px;padding:8px 11px;
-  transition:border-color .18s,box-shadow .18s;
-}
-.sb-search:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px rgba(59,91,219,.1);}
-.sb-search i{color:var(--subtle);font-size:.8rem;flex-shrink:0;}
-.sb-search input{
-  border:none;outline:none;background:transparent;
-  font-family:'Poppins',sans-serif;font-size:.78rem;color:var(--ink);width:100%;
-}
-.sb-search input::placeholder{color:var(--subtle);}
-
-/* Filter options */
-.fo-list{display:flex;flex-direction:column;gap:4px;}
-.fo{
-  display:flex;align-items:center;gap:9px;
-  padding:8px 10px;border-radius:9px;
-  font-size:.78rem;font-weight:500;color:var(--muted);
-  cursor:pointer;transition:all .15s;border:1.5px solid transparent;
-  background:transparent;font-family:'Poppins',sans-serif;
-  text-align:left;width:100%;
-}
-.fo:hover{background:var(--s2);color:var(--ink3);}
-.fo.on{background:var(--pri-l);color:var(--pri);font-weight:600;border-color:var(--pri-m);}
-.fo-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.fo-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;}
-.fo-count{
-  margin-left:auto;font-size:.62rem;font-weight:700;
-  background:var(--border);color:var(--muted);
-  padding:2px 8px;border-radius:100px;
-}
-.fo.on .fo-count{background:var(--pri-m);color:var(--pri);}
-
-/* Active filters summary */
-.active-filters{display:flex;flex-direction:column;gap:6px;}
-.af-chip{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:6px 10px;border-radius:8px;
-  background:var(--pri-l);border:1px solid var(--pri-m);
-  font-size:.7rem;font-weight:600;color:var(--pri);
-}
-.af-remove{
-  background:none;border:none;color:var(--pri);cursor:pointer;
-  padding:0;font-size:.65rem;opacity:.7;transition:opacity .15s;
-}
-.af-remove:hover{opacity:1;}
-.af-empty{font-size:.75rem;color:var(--subtle);text-align:center;padding:.5rem 0;}
-
-/* Clear all */
-.sb-clear{
-  width:100%;padding:9px;border-radius:9px;border:none;
-  background:rgba(239,68,68,.07);color:var(--red);
-  font-family:'Poppins',sans-serif;font-size:.75rem;font-weight:600;
-  cursor:pointer;transition:all .18s;margin-top:8px;
-  border:1.5px solid rgba(239,68,68,.15);
-}
-.sb-clear:hover{background:rgba(239,68,68,.14);}
-.sb-clear:disabled{opacity:.4;cursor:default;}
-
-/* ━━━━ DRAWER (mobile) ━━━━━━━━━━━━━━━━━ */
-.drawer-backdrop{
-  display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);
-  z-index:300;backdrop-filter:blur(3px);
-  opacity:0;transition:opacity .28s ease;
-}
-.drawer-backdrop.open{display:block;opacity:1;}
-
-.drawer{
-  position:fixed;left:0;top:0;bottom:0;width:min(var(--sb-w),85vw);
-  background:var(--surface);z-index:400;
-  transform:translateX(-100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
-  overflow-y:auto;display:flex;flex-direction:column;
-  box-shadow:var(--sh-lg);
-}
-.drawer.open{transform:translateX(0);}
-
-.drawer-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:1rem 1.1rem;border-bottom:1px solid var(--border);
-  position:sticky;top:0;background:var(--surface);z-index:1;
-}
-.drawer-title{font-size:.9rem;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;}
-.drawer-title i{color:var(--pri);}
-.drawer-close{
-  width:32px;height:32px;border-radius:8px;border:1px solid var(--border);
-  background:var(--s2);color:var(--muted);
-  display:flex;align-items:center;justify-content:center;
-  font-size:.8rem;cursor:pointer;transition:all .15s;
-}
-.drawer-close:hover{background:var(--border);color:var(--ink);}
-.drawer-body{padding:1rem;flex:1;display:flex;flex-direction:column;gap:1rem;}
-.drawer-footer{
-  padding:1rem;border-top:1px solid var(--border);
-  position:sticky;bottom:0;background:var(--surface);
-}
-.drawer-apply{
-  width:100%;padding:11px;border-radius:10px;border:none;
-  background:var(--pri);color:#fff;
-  font-family:'Poppins',sans-serif;font-size:.82rem;font-weight:700;
-  cursor:pointer;transition:background .18s;
-  box-shadow:0 4px 12px rgba(59,91,219,.35);
-}
-.drawer-apply:hover{background:var(--pri-h);}
-
-/* Section titles in drawer */
-.dsec-title{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--subtle);margin-bottom:.5rem;}
-
-/* ━━━━ MAIN CONTENT AREA ━━━━━━━━━━━━━━━ */
-.main-area{}
-
-.ch{
-  display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;
-}
-.ch-left{}
-.ch-title{font-size:1.2rem;font-weight:700;color:var(--ink);}
-.ch-title b{color:var(--pri);}
-.ch-sub{font-size:.73rem;color:var(--muted);margin-top:2px;}
-
-.ch-right{display:flex;align-items:center;gap:.5rem;}
-.view-btns{
-  display:flex;gap:3px;background:var(--s2);
-  border:1px solid var(--border);border-radius:9px;padding:3px;
-}
-.vbtn{
-  width:32px;height:32px;border-radius:7px;border:none;
-  display:flex;align-items:center;justify-content:center;
-  font-size:.78rem;color:var(--muted);background:transparent;
-  cursor:pointer;transition:all .15s;
-}
-.vbtn.on{background:var(--pri);color:#fff;}
-
-/* ━━━━ GRID ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-#aGrid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-  gap:1.1rem;
-}
-#aGrid.lv{grid-template-columns:1fr;}
-
-/* ━━━━ CARD ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.auction-card{
-  background:var(--surface);border-radius:14px;border:1px solid var(--border);
-  overflow:hidden;transition:transform .22s,box-shadow .22s;
-  animation:cIn .38s ease both;
-}
-@keyframes cIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
-.auction-card:nth-child(1){animation-delay:.04s}
-.auction-card:nth-child(2){animation-delay:.08s}
-.auction-card:nth-child(3){animation-delay:.12s}
-.auction-card:nth-child(4){animation-delay:.16s}
-.auction-card:nth-child(5){animation-delay:.20s}
-.auction-card:nth-child(6){animation-delay:.24s}
-.auction-card:hover{transform:translateY(-4px);box-shadow:var(--sh-xl);}
-
-.cimg{position:relative;height:188px;overflow:hidden;background:linear-gradient(135deg,#E8EDF8,#D1DAEF);}
-.cimg img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
-.auction-card:hover .cimg img{transform:scale(1.06);}
-.cimg-ph{
-  width:100%;height:100%;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;color:#A8BADB;
-}
-.cimg-ph i{font-size:2.2rem;}
-.cimg-ph span{font-size:.68rem;font-weight:500;}
-
-.cbadges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:4px;}
-.badge{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:3px 9px;border-radius:100px;
-  font-size:.58rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;backdrop-filter:blur(8px);
-}
-.bl{background:var(--red);color:#fff;}
-.bl-d{width:5px;height:5px;border-radius:50%;background:#fff;animation:blink .9s ease-in-out infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
-.bu{background:rgba(59,91,219,.88);color:#fff;}
-.bco{background:rgba(30,41,59,.72);color:rgba(255,255,255,.65);}
-.btype{
-  position:absolute;top:10px;right:10px;
-  padding:3px 9px;border-radius:100px;
-  font-size:.56rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  backdrop-filter:blur(8px);background:rgba(245,158,11,.88);color:#fff;
-}
-.cfav{
-  position:absolute;bottom:10px;right:10px;
-  width:30px;height:30px;border-radius:50%;
-  background:rgba(255,255,255,.92);border:none;
-  display:flex;align-items:center;justify-content:center;
-  font-size:.75rem;color:var(--subtle);cursor:pointer;
-  transition:all .18s;box-shadow:0 2px 8px rgba(0,0,0,.12);
-}
-.cfav:hover,.cfav.on{color:var(--red);transform:scale(1.15);}
-
-.cbody{padding:1.1rem 1.1rem .8rem;}
-.cmeta{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;}
-.clot{
-  font-size:.58rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--pri);background:var(--pri-l);padding:2px 8px;border-radius:100px;
-}
-.ccat{font-size:.6rem;color:var(--subtle);display:flex;align-items:center;gap:3px;}
-.ctitle{
-  font-size:.95rem;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:.4rem;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-}
-.cdesc{
-  font-size:.7rem;color:var(--muted);line-height:1.55;margin-bottom:.9rem;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-}
-.cbid{
-  display:grid;grid-template-columns:1fr 1fr;gap:.65rem;
-  padding:.8rem 1.1rem;margin:0 -1.1rem;
-  background:var(--s2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-}
-.bc-lbl{font-size:.56rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--subtle);}
-.bc-val{font-size:1.05rem;font-weight:800;color:var(--ink);line-height:1;}
-.bc-val.g{color:var(--grn);}
-.bc-val.m{font-size:.78rem;font-weight:500;color:var(--subtle);}
-.bc-sub{font-size:.6rem;color:var(--subtle);}
-
-.cfoot{padding:.8rem 1.1rem 1.1rem;display:flex;gap:.45rem;}
-.cbtn{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:9px 14px;border-radius:9px;border:none;
-  font-family:'Poppins',sans-serif;font-size:.72rem;font-weight:700;
-  text-decoration:none;cursor:pointer;transition:all .18s;
-}
-.cbtn-bid{background:var(--pri);color:#fff;box-shadow:0 4px 10px rgba(59,91,219,.28);}
-.cbtn-bid:hover{background:var(--pri-h);transform:translateY(-1px);box-shadow:0 6px 16px rgba(59,91,219,.38);}
-.cbtn-notify{background:var(--acc-l);color:var(--acc-d);}
-.cbtn-notify:hover{background:#FDE68A;}
-.cbtn-view{background:var(--s2);color:var(--ink3);border:1px solid var(--border);}
-.cbtn-view:hover{background:var(--border);}
-.cbtn-off{background:var(--s2);color:var(--subtle);border:1px solid var(--border);pointer-events:none;}
-.cicn{
-  width:38px;height:38px;border-radius:9px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--s2);border:1px solid var(--border);
-  color:var(--muted);font-size:.78rem;cursor:pointer;transition:all .18s;text-decoration:none;
-}
-.cicn:hover{background:var(--pri-l);color:var(--pri);border-color:var(--pri-m);}
-
-/* List view card */
-#aGrid.lv .auction-card{display:grid;grid-template-columns:190px 1fr;}
-#aGrid.lv .cimg{height:100%;min-height:155px;border-radius:0;}
-#aGrid.lv .cbid{margin:0;border-left:none;border-right:none;}
-
-/* ━━━━ EMPTY STATE ━━━━━━━━━━━━━━━━━━━━━ */
-.empty{
-  text-align:center;padding:4.5rem 2rem;background:var(--surface);
-  border-radius:16px;border:2px dashed var(--border2);
-}
-.empty-icon{
-  width:72px;height:72px;border-radius:18px;background:var(--pri-l);
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:1.9rem;color:var(--pri);margin-bottom:1rem;
-}
-.empty h3{font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.35rem;}
-.empty p{font-size:.78rem;color:var(--muted);margin-bottom:1.1rem;}
-.empty-btn{
-  display:inline-block;padding:9px 20px;background:var(--pri);color:#fff;
-  font-size:.73rem;font-weight:700;text-decoration:none;border-radius:10px;transition:background .18s;
-}
-.empty-btn:hover{background:var(--pri-h);}
-
-/* ━━━━ PAGINATION ━━━━━━━━━━━━━━━━━━━━━━ */
-.pages{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:2rem;flex-wrap:wrap;}
-.pa{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:36px;height:36px;padding:0 9px;border-radius:8px;
-  font-family:'Poppins',sans-serif;font-size:.73rem;font-weight:600;
-  text-decoration:none;color:var(--ink3);background:var(--surface);
-  border:1px solid var(--border);transition:all .15s;
-}
-.pa:hover{background:var(--pri-l);border-color:var(--pri-m);color:var(--pri);}
-.pa.on{background:var(--pri);color:#fff;border-color:var(--pri);}
-
-/* ━━━━ OVERLAY ━━━━━━━━━━━━━━━━━━━━━━━━━ */
-#overlay{
-  position:fixed;inset:0;background:rgba(240,244,255,.6);
-  backdrop-filter:blur(4px);z-index:9999;
-  display:none;align-items:center;justify-content:center;
-}
-#overlay.show{display:flex;}
-.sw{background:var(--surface);border-radius:14px;padding:1.8rem;box-shadow:var(--sh-lg);display:flex;flex-direction:column;align-items:center;gap:.65rem;}
-.sp{width:38px;height:38px;border-radius:50%;border:3px solid var(--pri-m);border-top-color:var(--pri);animation:spin .65s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.sl{font-size:.7rem;font-weight:600;color:var(--muted);}
-
-/* ━━━━ TOAST ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-#toasts{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9998;display:flex;flex-direction:column;gap:.4rem;}
-.toast{
-  display:flex;align-items:center;gap:9px;padding:11px 16px;
-  border-radius:11px;background:var(--ink);color:#fff;
-  font-size:.75rem;font-weight:500;box-shadow:var(--sh-lg);
-  animation:tin .28s ease;max-width:280px;
-}
-@keyframes tin{from{transform:translateX(18px);opacity:0}to{transform:none;opacity:1}}
-.toast.ok{background:var(--grn);}
-.toast.warn{background:var(--acc-d);}
-
-/* ━━━━ RESPONSIVE ━━━━━━━━━━━━━━━━━━━━━━ */
-@media(max-width:860px){
-  /* Switch to drawer layout */
-  .top-bar{display:block;}
-  .page-layout{
-    grid-template-columns:1fr;
-    padding:1.25rem 1rem 3rem;
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+        colors: {
+          bg:      '#F0F4FF',
+          surface: '#FFFFFF',
+          s2:      '#F7F9FF',
+          border:  '#E2E8F8',
+          border2: '#C8D4F0',
+          ink:     '#0F172A',
+          ink2:    '#1E293B',
+          ink3:    '#334155',
+          muted:   '#64748B',
+          subtle:  '#94A3B8',
+          pri:     '#3B5BDB',
+          'pri-h': '#2F4DC4',
+          'pri-l': '#EEF2FF',
+          'pri-m': '#C7D2FE',
+          acc:     '#F59E0B',
+          'acc-l': '#FEF3C7',
+          'acc-d': '#D97706',
+        },
+        boxShadow: {
+          card:   '0 4px 16px rgba(15,23,42,.09),0 2px 6px rgba(15,23,42,.05)',
+          lg:     '0 16px 48px rgba(15,23,42,.13),0 6px 16px rgba(15,23,42,.07)',
+          xl:     '0 24px 64px rgba(59,91,219,.18),0 8px 24px rgba(15,23,42,.1)',
+          'pri':  '0 4px 12px rgba(59,91,219,.4)',
+          'pri-lg':'0 6px 20px rgba(59,91,219,.5)',
+        },
+        keyframes: {
+          cIn:   { from:{ opacity:'0', transform:'translateY(14px) scale(.985)' }, to:{ opacity:'1', transform:'none' } },
+          blink: { '0%,100%':{ opacity:'1' }, '50%':{ opacity:'.15' } },
+          spin:  { to:{ transform:'rotate(360deg)' } },
+          pdot:  { '0%,100%':{ boxShadow:'0 0 0 3px rgba(245,158,11,.25)' }, '50%':{ boxShadow:'0 0 0 7px rgba(245,158,11,.08)' } },
+          tin:   { from:{ transform:'translateX(18px)', opacity:'0' }, to:{ transform:'none', opacity:'1' } },
+        },
+        animation: {
+          cIn:   'cIn .38s ease both',
+          blink: 'blink .9s ease-in-out infinite',
+          pdot:  'pdot 1.5s ease-in-out infinite',
+          tin:   'tin .28s ease',
+          spin:  'spin .65s linear infinite',
+        },
+      }
+    }
   }
-  .sidebar{display:none;} /* hidden — replaced by drawer */
-  #aGrid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
-  .hero-inner{grid-template-columns:1fr;}
-  .hero-panel{display:none;}
-}
-@media(max-width:540px){
-  .hero{padding:3rem 1rem 2.8rem;}
-  .hero-title{font-size:1.85rem;}
-  #aGrid{grid-template-columns:1fr;}
-  #aGrid.lv .auction-card{display:block;}
-  #aGrid.lv .cimg{height:170px;}
-  .ch{flex-direction:column;align-items:flex-start;}
-}
-::-webkit-scrollbar{width:5px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px;}
-::-webkit-scrollbar-thumb:hover{background:var(--pri);}
+</script>
+<style>
+  /* Utilities Tailwind can't express */
+  body { font-family: 'Poppins', sans-serif; -webkit-font-smoothing: antialiased; }
+
+  /* card entrance stagger */
+  .auction-card { animation: cIn .38s ease both; }
+  .auction-card:nth-child(1){ animation-delay:.04s }
+  .auction-card:nth-child(2){ animation-delay:.08s }
+  .auction-card:nth-child(3){ animation-delay:.12s }
+  .auction-card:nth-child(4){ animation-delay:.16s }
+  .auction-card:nth-child(5){ animation-delay:.20s }
+  .auction-card:nth-child(6){ animation-delay:.24s }
+
+  /* live dot */
+  .live-dot { animation: blink .9s ease-in-out infinite; }
+
+  /* pulse dot in hero tag */
+  .hero-pdot { animation: pdot 1.5s ease-in-out infinite; }
+
+  /* toast entrance */
+  .toast { animation: tin .28s ease; }
+
+  /* spinner */
+  .spinner { animation: spin .65s linear infinite; }
+
+  /* line-clamp */
+  .line-clamp-2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+
+  /* ── LIST VIEW CARD ── */
+  #aGrid.lv { grid-template-columns: 1fr !important; }
+  #aGrid.lv .auction-card { display:grid; grid-template-columns:220px 1fr; grid-auto-rows:auto; align-items:start; }
+  #aGrid.lv .auction-card>.card-img { grid-column:1; grid-row:1/-1; height:100%; min-height:220px; border-radius:0; }
+  #aGrid.lv .auction-card>*:not(.card-img) { grid-column:2; min-width:0; }
+  #aGrid.lv .cbid { grid-template-columns:repeat(4,1fr)!important; margin:0; border-left:none; border-right:none; }
+
+  @media(max-width:860px){
+    #aGrid.lv .auction-card { grid-template-columns:160px 1fr; }
+    #aGrid.lv .auction-card>.card-img { min-height:180px; }
+  }
+  @media(max-width:540px){
+    #aGrid.lv .auction-card { display:block; }
+    #aGrid.lv .auction-card>.card-img { height:170px; width:100%; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:#F0F4FF; }
+  ::-webkit-scrollbar-thumb { background:#C8D4F0; border-radius:5px; }
+  ::-webkit-scrollbar-thumb:hover { background:#3B5BDB; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div id="overlay"><div class="sw"><div class="sp"></div><span class="sl">Updating…</span></div></div>
-<div id="toasts"></div>
+
+<!-- Loading Overlay -->
+<div id="overlay" class="fixed inset-0 bg-[#F0F4FF]/60 backdrop-blur-sm z-[9999] hidden items-center justify-center">
+  <div class="bg-white rounded-2xl p-7 shadow-lg flex flex-col items-center gap-3">
+    <div class="spinner w-10 h-10 rounded-full border-[3px] border-pri-m border-t-pri"></div>
+    <span class="text-xs font-semibold text-muted">Updating…</span>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toasts" class="fixed bottom-6 right-6 z-[9998] flex flex-col gap-1.5"></div>
 
 <!-- ━━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<section class="hero">
-  <div class="orb o1"></div>
-  <div class="orb o2"></div>
-  <div class="hero-inner">
+<section class="relative overflow-hidden px-6 py-[4.5rem] pb-16"
+         style="background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 50%,#1E293B 100%)">
+  <!-- pseudo-gradient overlay -->
+  <div class="absolute inset-0 pointer-events-none"
+       style="background:radial-gradient(ellipse 70% 80% at 80% 20%,rgba(99,132,255,.18) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 10% 80%,rgba(245,158,11,.1) 0%,transparent 50%)"></div>
+  <!-- orbs -->
+  <div class="absolute -top-[200px] -right-[80px] w-[480px] h-[480px] rounded-full blur-[60px] pointer-events-none"
+       style="background:rgba(59,91,219,.25)"></div>
+  <div class="absolute -bottom-[100px] -left-[40px] w-[280px] h-[280px] rounded-full blur-[60px] pointer-events-none"
+       style="background:rgba(245,158,11,.15)"></div>
+
+  <div class="max-w-[1220px] mx-auto relative z-10 grid grid-cols-[1fr_auto] items-center gap-12 max-[860px]:grid-cols-1">
+    <!-- Left copy -->
     <div>
-      <div class="hero-tag"><span class="tdot"></span>Live Auctions · Verified Sellers · Secure Payments</div>
-      <h1 class="hero-title">Bid on the World's<br><em>Most Exclusive</em> Items</h1>
-      <p class="hero-desc">Discover curated collections, place real-time bids, and win authenticated items from trusted sellers worldwide.</p>
-      <div class="hero-btns">
-        <a href="#auctions" class="btn-p"><i class="fas fa-gavel"></i> Browse Auctions</a>
-        <a href="#" class="btn-o"><i class="fas fa-play-circle"></i> How It Works</a>
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-[1.1rem] text-[.63rem] font-semibold tracking-[.12em] uppercase text-white/65"
+           style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)">
+        <span class="hero-pdot w-[7px] h-[7px] rounded-full bg-acc" style="box-shadow:0 0 0 3px rgba(245,158,11,.25)"></span>
+        Live Auctions · Verified Sellers · Secure Payments
+      </div>
+      <h1 class="text-[clamp(1.9rem,4vw,3.4rem)] font-extrabold leading-[1.1] text-white mb-3.5 max-[540px]:text-[1.85rem]">
+        Bid on the World's<br><em class="not-italic text-[#93C5FD]">Most Exclusive</em> Items
+      </h1>
+      <p class="text-[.9rem] leading-[1.7] text-white/50 max-w-[460px] mb-7">
+        Discover curated collections, place real-time bids, and win authenticated items from trusted sellers worldwide.
+      </p>
+      <div class="flex gap-3 flex-wrap">
+        <a href="#auctions"
+           class="inline-flex items-center gap-2 px-[22px] py-2.5 rounded-[10px] bg-pri text-white text-[.78rem] font-semibold no-underline transition-all hover:-translate-y-px"
+           style="box-shadow:0 4px 12px rgba(59,91,219,.4)">
+          <i class="fas fa-gavel"></i> Browse Auctions
+        </a>
       </div>
     </div>
-    <div class="hero-panel">
-      <div class="hp-title">Platform Overview</div>
-      <div class="hp-row">
-        <div class="hp-icon" style="background:rgba(59,91,219,.18)"><i class="fas fa-layer-group" style="color:#93C5FD"></i></div>
-        <div><div class="hp-val">{{ auction.count|default:"0" }}</div><div class="hp-lbl">Total Auctions</div></div>
+
+    <!-- Stats panel -->
+    <div class="rounded-2xl backdrop-blur-xl p-[1.4rem_1.7rem] min-w-[210px] max-[860px]:hidden"
+         style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13)">
+      <div class="text-[.6rem] font-bold tracking-[.14em] uppercase text-white/40 mb-[1.1rem]">Platform Overview</div>
+      <div class="flex items-center gap-3 py-[.65rem] border-b border-white/[.06]">
+        <div class="w-[34px] h-[34px] rounded-lg flex items-center justify-center text-[.78rem] shrink-0" style="background:rgba(59,91,219,.18)">
+          <i class="fas fa-layer-group" style="color:#93C5FD"></i>
+        </div>
+        <div>
+          <div class="text-[1.25rem] font-extrabold text-white leading-none">{{ auction.count|default:"0" }}</div>
+          <div class="text-[.63rem] text-white/40 mt-0.5">Total Auctions</div>
+        </div>
       </div>
-      <div class="hp-row">
-        <div class="hp-icon" style="background:rgba(239,68,68,.18)"><i class="fas fa-circle" style="color:#FCA5A5;font-size:.55rem"></i></div>
-        <div><div class="hp-val" style="color:#6EE7B7">{{ live_auctions|default:"0" }}</div><div class="hp-lbl">Live Right Now</div></div>
+      <div class="flex items-center gap-3 py-[.65rem] border-b border-white/[.06]">
+        <div class="w-[34px] h-[34px] rounded-lg flex items-center justify-center shrink-0" style="background:rgba(239,68,68,.18)">
+          <i class="fas fa-circle text-[.55rem]" style="color:#FCA5A5"></i>
+        </div>
+        <div>
+          <div class="text-[1.25rem] font-extrabold leading-none" style="color:#6EE7B7">{{ live_auctions|default:"0" }}</div>
+          <div class="text-[.63rem] text-white/40 mt-0.5">Live Right Now</div>
+        </div>
       </div>
-      <div class="hp-row">
-        <div class="hp-icon" style="background:rgba(245,158,11,.18)"><i class="fas fa-shield-halved" style="color:#FCD34D"></i></div>
-        <div><div class="hp-val">100%</div><div class="hp-lbl">Authenticated</div></div>
+      <div class="flex items-center gap-3 pt-[.65rem]">
+        <div class="w-[34px] h-[34px] rounded-lg flex items-center justify-center text-[.78rem] shrink-0" style="background:rgba(245,158,11,.18)">
+          <i class="fas fa-shield-halved" style="color:#FCD34D"></i>
+        </div>
+        <div>
+          <div class="text-[1.25rem] font-extrabold text-white leading-none">100%</div>
+          <div class="text-[.63rem] text-white/40 mt-0.5">Authenticated</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ━━━━ MOBILE TOP BAR ━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<div class="top-bar">
-  <div class="top-bar-inner">
-    <div class="mob-search">
-      <i class="fas fa-search"></i>
-      <input type="search" id="mobSearch" placeholder="Search auctions…" autocomplete="off" value="{{ request.GET.q }}">
+<div class="hidden max-[860px]:block bg-white border-b border-border shadow-card">
+  <div class="max-w-[1220px] mx-auto px-4 py-2.5 flex items-center gap-3">
+    <div class="flex items-center gap-2 flex-1 bg-s2 border-[1.5px] border-border rounded-[10px] px-3 py-2 focus-within:border-pri focus-within:shadow-[0_0_0_3px_rgba(59,91,219,.1)] transition-all">
+      <i class="fas fa-search text-subtle text-[.8rem] shrink-0"></i>
+      <input type="search" id="mobSearch" placeholder="Search auctions…" autocomplete="off"
+             value="{{ request.GET.q }}"
+             class="border-none outline-none bg-transparent font-poppins text-[.8rem] text-ink w-full placeholder:text-subtle">
     </div>
-    <button class="filter-fab" id="drawerTrigger" aria-label="Open filters">
+    <button id="drawerTrigger" aria-label="Open filters"
+            class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] bg-pri text-white font-poppins text-[.75rem] font-semibold shrink-0 border-none cursor-pointer transition-all hover:bg-[#2F4DC4]"
+            style="box-shadow:0 4px 10px rgba(59,91,219,.35)">
       <i class="fas fa-sliders"></i>
       Filters
-      <span class="fbadge" id="filterBadge"></span>
+      <span id="filterBadge"
+            class="hidden bg-white text-pri text-[.58rem] font-extrabold min-w-[18px] h-[18px] rounded-full items-center justify-center px-1.5"
+            ></span>
     </button>
   </div>
 </div>
 
 <!-- ━━━━ DRAWER BACKDROP ━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div id="drawerBackdrop"
+     class="hidden fixed inset-0 z-[300] backdrop-blur-sm opacity-0 transition-opacity duration-300"
+     style="background:rgba(15,23,42,.45)"></div>
 
-<!-- ━━━━ DRAWER (mobile filter sidebar) ━━━━━━━━━ -->
-<div class="drawer" id="drawer" aria-label="Filter panel" role="dialog">
-  <div class="drawer-header">
-    <div class="drawer-title"><i class="fas fa-sliders"></i>Filter Auctions</div>
-    <button class="drawer-close" id="drawerClose" aria-label="Close"><i class="fas fa-times"></i></button>
+<!-- ━━━━ DRAWER (mobile) ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<div id="drawer" role="dialog" aria-label="Filter panel"
+     class="fixed left-0 top-0 bottom-0 z-[400] bg-white flex flex-col overflow-y-auto shadow-lg -translate-x-full transition-transform duration-300 ease-[cubic-bezier(.32,.72,0,1)]"
+     style="width:min(280px,85vw)">
+  <div class="flex items-center justify-between px-[1.1rem] py-4 border-b border-border sticky top-0 bg-white z-10">
+    <div class="flex items-center gap-2 text-[.9rem] font-bold text-ink">
+      <i class="fas fa-sliders text-pri"></i>Filter Auctions
+    </div>
+    <button id="drawerClose" aria-label="Close"
+            class="w-8 h-8 rounded-lg border border-border bg-s2 text-muted flex items-center justify-center text-[.8rem] cursor-pointer hover:bg-border hover:text-ink transition-all">
+      <i class="fas fa-times"></i>
+    </button>
   </div>
-  <div class="drawer-body">
-
-    <!-- Search (inside drawer too) -->
+  <div class="p-4 flex-1 flex flex-col gap-4">
     <div>
-      <div class="dsec-title">Search</div>
-      <div class="sb-search">
-        <i class="fas fa-search"></i>
-        <input type="search" id="drawerSearch" placeholder="Search auctions…" autocomplete="off" value="{{ request.GET.q }}">
+      <div class="text-[.68rem] font-bold tracking-[.12em] uppercase text-subtle mb-2">Search</div>
+      <div class="flex items-center gap-2 bg-s2 border-[1.5px] border-border rounded-[10px] px-3 py-2 focus-within:border-pri focus-within:shadow-[0_0_0_3px_rgba(59,91,219,.1)] transition-all">
+        <i class="fas fa-search text-subtle text-[.8rem] shrink-0"></i>
+        <input type="search" id="drawerSearch" placeholder="Search auctions…" autocomplete="off"
+               value="{{ request.GET.q }}"
+               class="border-none outline-none bg-transparent font-poppins text-[.78rem] text-ink w-full placeholder:text-subtle">
       </div>
     </div>
-
     <!-- Status -->
     <div>
-      <div class="dsec-title">Status</div>
-      <div class="fo-list" data-group="status">
-        <button class="fo {% if not request.GET.status %}on{% endif %}" data-val="">
-          <div class="fo-icon" style="background:#F0F4FF"><i class="fas fa-border-all" style="color:var(--pri)"></i></div>
+      <div class="text-[.68rem] font-bold tracking-[.12em] uppercase text-subtle mb-2">Status</div>
+      <div class="flex flex-col gap-1" data-group="status">
+        <button class="fo {% if not request.GET.status %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="">
+          <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-pri-l"><i class="fas fa-border-all text-pri"></i></div>
           All Auctions
         </button>
-        <button class="fo {% if request.GET.status == 'not_started' %}on{% endif %}" data-val="not_started">
-          <div class="fo-icon" style="background:#FEF3C7"><i class="fas fa-clock" style="color:#D97706"></i></div>
+        <button class="fo {% if request.GET.status == 'not_started' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="not_started">
+          <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-acc-l"><i class="fas fa-clock text-acc-d"></i></div>
           Upcoming
         </button>
-        <button class="fo {% if request.GET.status == 'live' %}on{% endif %}" data-val="live">
-          <div class="fo-icon" style="background:#FEE2E2"><i class="fas fa-circle" style="color:#EF4444;font-size:.55rem"></i></div>
+        <button class="fo {% if request.GET.status == 'live' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="live">
+          <div class="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 bg-red-100"><i class="fas fa-circle text-red-500 text-[.55rem]"></i></div>
           Live Now
         </button>
-        <button class="fo {% if request.GET.status == 'completed' %}on{% endif %}" data-val="completed">
-          <div class="fo-icon" style="background:#D1FAE5"><i class="fas fa-check" style="color:#10B981"></i></div>
+        <button class="fo {% if request.GET.status == 'completed' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="completed">
+          <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-green-100"><i class="fas fa-check text-green-500"></i></div>
           Ended
         </button>
       </div>
     </div>
-
     <!-- Type -->
     <div>
-      <div class="dsec-title">Auction Type</div>
-      <div class="fo-list" data-group="type">
-        <button class="fo {% if not request.GET.auction_type %}on{% endif %}" data-val="">
-          <div class="fo-icon" style="background:#F0F4FF"><i class="fas fa-layer-group" style="color:var(--pri)"></i></div>
+      <div class="text-[.68rem] font-bold tracking-[.12em] uppercase text-subtle mb-2">Auction Type</div>
+      <div class="flex flex-col gap-1" data-group="type">
+        <button class="fo {% if not request.GET.auction_type %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="">
+          <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-pri-l"><i class="fas fa-layer-group text-pri"></i></div>
           All Types
         </button>
-        <button class="fo {% if request.GET.auction_type == 'live' %}on{% endif %}" data-val="live">
-          <div class="fo-icon" style="background:#FEE2E2"><i class="fas fa-broadcast-tower" style="color:#EF4444"></i></div>
+        <button class="fo {% if request.GET.auction_type == 'live' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="live">
+          <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-red-100"><i class="fas fa-broadcast-tower text-red-500"></i></div>
           Live Auction
         </button>
-        <button class="fo {% if request.GET.auction_type == 'scheduled' %}on{% endif %}" data-val="scheduled">
-          <div class="fo-icon" style="background:#EEF2FF"><i class="far fa-calendar" style="color:var(--pri)"></i></div>
+        <button class="fo {% if request.GET.auction_type == 'scheduled' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="scheduled">
+          <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-pri-l"><i class="far fa-calendar text-pri"></i></div>
           Scheduled
         </button>
       </div>
     </div>
-
   </div>
-  <div class="drawer-footer">
-    <button class="drawer-apply" id="drawerApply"><i class="fas fa-check"></i> Apply Filters</button>
+  <div class="p-4 border-t border-border sticky bottom-0 bg-white">
+    <button id="drawerApply"
+            class="w-full py-3 rounded-[10px] border-none bg-pri text-white font-poppins text-[.82rem] font-bold cursor-pointer hover:bg-[#2F4DC4] transition-colors"
+            style="box-shadow:0 4px 12px rgba(59,91,219,.35)">
+      <i class="fas fa-check"></i> Apply Filters
+    </button>
   </div>
 </div>
 
 <!-- ━━━━ PAGE LAYOUT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-<div class="page-layout" id="auctions">
+<div id="auctions" class="max-w-[1220px] mx-auto grid grid-cols-[280px_1fr] gap-7 px-6 py-7 pb-16 items-start max-[860px]:grid-cols-1 max-[860px]:px-4 max-[860px]:py-5">
 
-  <!-- ━━━ SIDEBAR (desktop) ━━━━━━━━━━━━━━━━━━━━━━ -->
-  <aside class="sidebar" id="sidebar">
+  <!-- ━━━ SIDEBAR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <aside class="sticky top-5 flex flex-col gap-4 max-[860px]:hidden" id="sidebar">
 
     <!-- Search -->
-    <div class="sb-card">
-      <div class="sb-head" onclick="toggleCard(this)">
-        <span class="sb-head-title"><i class="fas fa-search"></i>Search</span>
-        <i class="fas fa-chevron-down sb-chevron"></i>
+    <div class="sb-card bg-white border border-border rounded-2xl overflow-hidden">
+      <div class="sb-head flex items-center justify-between px-[1.1rem] py-[.9rem] border-b border-border cursor-pointer select-none" onclick="toggleCard(this)">
+        <span class="flex items-center gap-2 text-[.78rem] font-bold text-ink"><i class="fas fa-search text-pri text-[.78rem]"></i>Search</span>
+        <i class="fas fa-chevron-down sb-chevron text-subtle text-[.7rem] transition-transform duration-200"></i>
       </div>
-      <div class="sb-body">
-        <div class="sb-search">
-          <i class="fas fa-search"></i>
-          <input type="search" id="sbSearch" placeholder="Search auctions…" autocomplete="off" value="{{ request.GET.q }}">
+      <div class="sb-body px-[1.1rem] py-[.85rem]">
+        <div class="flex items-center gap-2 bg-s2 border-[1.5px] border-border rounded-[10px] px-3 py-2 focus-within:border-pri focus-within:shadow-[0_0_0_3px_rgba(59,91,219,.1)] transition-all">
+          <i class="fas fa-search text-subtle text-[.8rem] shrink-0"></i>
+          <input type="search" id="sbSearch" placeholder="Search auctions…" autocomplete="off"
+                 value="{{ request.GET.q }}"
+                 class="border-none outline-none bg-transparent font-poppins text-[.78rem] text-ink w-full placeholder:text-subtle">
         </div>
       </div>
     </div>
 
-    <!-- Status Filter -->
-    <div class="sb-card">
-      <div class="sb-head" onclick="toggleCard(this)">
-        <span class="sb-head-title"><i class="fas fa-signal"></i>Status</span>
-        <i class="fas fa-chevron-down sb-chevron"></i>
+    <!-- Status -->
+    <div class="sb-card bg-white border border-border rounded-2xl overflow-hidden">
+      <div class="sb-head flex items-center justify-between px-[1.1rem] py-[.9rem] border-b border-border cursor-pointer select-none" onclick="toggleCard(this)">
+        <span class="flex items-center gap-2 text-[.78rem] font-bold text-ink"><i class="fas fa-signal text-pri text-[.78rem]"></i>Status</span>
+        <i class="fas fa-chevron-down sb-chevron text-subtle text-[.7rem] transition-transform duration-200"></i>
       </div>
-      <div class="sb-body">
-        <div class="fo-list" data-group="status">
-          <button class="fo {% if not request.GET.status %}on{% endif %}" data-val="">
-            <div class="fo-icon" style="background:#F0F4FF"><i class="fas fa-border-all" style="color:var(--pri)"></i></div>
+      <div class="sb-body px-[1.1rem] py-[.85rem]">
+        <div class="flex flex-col gap-1" data-group="status">
+          <button class="fo {% if not request.GET.status %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="">
+            <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-pri-l"><i class="fas fa-border-all text-pri"></i></div>
             All Auctions
-            <span class="fo-count">{{ auction.count|default:"0" }}</span>
+            <span class="ml-auto text-[.62rem] font-bold bg-border text-muted px-2 py-0.5 rounded-full fo-count">{{ auction.count|default:"0" }}</span>
           </button>
-          <button class="fo {% if request.GET.status == 'not_started' %}on{% endif %}" data-val="not_started">
-            <div class="fo-icon" style="background:#FEF3C7"><i class="fas fa-clock" style="color:#D97706"></i></div>
+          <button class="fo {% if request.GET.status == 'not_started' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="not_started">
+            <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-acc-l"><i class="fas fa-clock text-acc-d"></i></div>
             Upcoming
           </button>
-          <button class="fo {% if request.GET.status == 'live' %}on{% endif %}" data-val="live">
-            <div class="fo-icon" style="background:#FEE2E2"><i class="fas fa-circle" style="color:#EF4444;font-size:.55rem"></i></div>
+          <button class="fo {% if request.GET.status == 'live' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="live">
+            <div class="w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 bg-red-100"><i class="fas fa-circle text-red-500 text-[.55rem]"></i></div>
             Live Now
-            <span class="fo-count" style="background:#FEE2E2;color:#EF4444">{{ live_auctions|default:"0" }}</span>
+            <span class="ml-auto text-[.62rem] font-bold bg-red-100 text-red-500 px-2 py-0.5 rounded-full fo-count">{{ live_auctions|default:"0" }}</span>
           </button>
-          <button class="fo {% if request.GET.status == 'completed' %}on{% endif %}" data-val="completed">
-            <div class="fo-icon" style="background:#D1FAE5"><i class="fas fa-check" style="color:#10B981"></i></div>
+          <button class="fo {% if request.GET.status == 'completed' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="completed">
+            <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-green-100"><i class="fas fa-check text-green-500"></i></div>
             Ended
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Type Filter -->
-    <div class="sb-card">
-      <div class="sb-head" onclick="toggleCard(this)">
-        <span class="sb-head-title"><i class="fas fa-tag"></i>Auction Type</span>
-        <i class="fas fa-chevron-down sb-chevron"></i>
+    <!-- Type -->
+    <div class="sb-card bg-white border border-border rounded-2xl overflow-hidden">
+      <div class="sb-head flex items-center justify-between px-[1.1rem] py-[.9rem] border-b border-border cursor-pointer select-none" onclick="toggleCard(this)">
+        <span class="flex items-center gap-2 text-[.78rem] font-bold text-ink"><i class="fas fa-tag text-pri text-[.78rem]"></i>Auction Type</span>
+        <i class="fas fa-chevron-down sb-chevron text-subtle text-[.7rem] transition-transform duration-200"></i>
       </div>
-      <div class="sb-body">
-        <div class="fo-list" data-group="type">
-          <button class="fo {% if not request.GET.auction_type %}on{% endif %}" data-val="">
-            <div class="fo-icon" style="background:#F0F4FF"><i class="fas fa-layer-group" style="color:var(--pri)"></i></div>
+      <div class="sb-body px-[1.1rem] py-[.85rem]">
+        <div class="flex flex-col gap-1" data-group="type">
+          <button class="fo {% if not request.GET.auction_type %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="">
+            <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-pri-l"><i class="fas fa-layer-group text-pri"></i></div>
             All Types
           </button>
-          <button class="fo {% if request.GET.auction_type == 'live' %}on{% endif %}" data-val="live">
-            <div class="fo-icon" style="background:#FEE2E2"><i class="fas fa-broadcast-tower" style="color:#EF4444"></i></div>
+          <button class="fo {% if request.GET.auction_type == 'live' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="live">
+            <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-red-100"><i class="fas fa-broadcast-tower text-red-500"></i></div>
             Live Auction
           </button>
-          <button class="fo {% if request.GET.auction_type == 'scheduled' %}on{% endif %}" data-val="scheduled">
-            <div class="fo-icon" style="background:#EEF2FF"><i class="far fa-calendar" style="color:var(--pri)"></i></div>
+          <button class="fo {% if request.GET.auction_type == 'scheduled' %}on{% endif %} flex items-center gap-2.5 px-2.5 py-2 rounded-[9px] text-[.78rem] font-medium text-muted cursor-pointer transition-all border-[1.5px] border-transparent bg-transparent font-poppins text-left w-full hover:bg-s2 hover:text-ink3" data-val="scheduled">
+            <div class="w-7 h-7 rounded-[7px] flex items-center justify-center text-[.7rem] shrink-0 bg-pri-l"><i class="far fa-calendar text-pri"></i></div>
             Scheduled
           </button>
         </div>
@@ -699,73 +367,114 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--ink);-web
     </div>
 
     <!-- Active Filters -->
-    <div class="sb-card" id="activeCard">
-      <div class="sb-head" onclick="toggleCard(this)">
-        <span class="sb-head-title"><i class="fas fa-filter"></i>Active Filters</span>
-        <i class="fas fa-chevron-down sb-chevron"></i>
+    <div class="sb-card bg-white border border-border rounded-2xl overflow-hidden" id="activeCard">
+      <div class="sb-head flex items-center justify-between px-[1.1rem] py-[.9rem] border-b border-border cursor-pointer select-none" onclick="toggleCard(this)">
+        <span class="flex items-center gap-2 text-[.78rem] font-bold text-ink"><i class="fas fa-filter text-pri text-[.78rem]"></i>Active Filters</span>
+        <i class="fas fa-chevron-down sb-chevron text-subtle text-[.7rem] transition-transform duration-200"></i>
       </div>
-      <div class="sb-body">
-        <div class="active-filters" id="activeFilters">
-          <span class="af-empty" id="afEmpty">No filters active</span>
+      <div class="sb-body px-[1.1rem] py-[.85rem]">
+        <div id="activeFilters" class="flex flex-col gap-1.5">
+          <span id="afEmpty" class="text-[.75rem] text-subtle text-center py-2">No filters active</span>
         </div>
-        <button class="sb-clear" id="sbClear" onclick="clearAll()" disabled>
+        <button id="sbClear" onclick="clearAll()" disabled
+                class="w-full mt-2 py-2.5 rounded-[9px] border-[1.5px] font-poppins text-[.75rem] font-semibold cursor-pointer transition-all disabled:opacity-40 disabled:cursor-default"
+                style="background:rgba(239,68,68,.07);color:#EF4444;border-color:rgba(239,68,68,.15)">
           <i class="fas fa-trash-alt"></i> Clear All Filters
         </button>
       </div>
     </div>
-
   </aside>
 
   <!-- ━━━ MAIN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-  <main class="main-area">
-    <div class="ch">
-      <div class="ch-left">
-        <h2 class="ch-title"><b id="cnt">{{ auctions.count }}</b> Auctions Found</h2>
-        <p class="ch-sub" id="chSub">Showing all available auctions</p>
+  <main>
+    <!-- Header bar -->
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-5 max-[540px]:flex-col max-[540px]:items-start">
+      <div>
+        <h2 class="text-[1.2rem] font-bold text-ink"><b id="cnt" class="text-pri">{{ auctions.count }}</b> Auctions Found</h2>
+        <p id="chSub" class="text-[.73rem] text-muted mt-0.5">Showing all available auctions</p>
       </div>
-      <div class="ch-right">
-        <div class="view-btns">
-          <button class="vbtn on" id="vGrid" title="Grid view" aria-label="Grid view"><i class="fas fa-th-large"></i></button>
-          <button class="vbtn" id="vList" title="List view" aria-label="List view"><i class="fas fa-list"></i></button>
+      <div class="flex items-center gap-2">
+        <div class="flex gap-[3px] bg-s2 border border-border rounded-[9px] p-[3px]">
+          <button id="vGrid" title="Grid view" aria-label="Grid view"
+                  class="vbtn w-8 h-8 rounded-[7px] border-none flex items-center justify-center text-[.78rem] cursor-pointer transition-all">
+            <i class="fas fa-th-large"></i>
+          </button>
+          <button id="vList" title="List view" aria-label="List view"
+                  class="vbtn w-8 h-8 rounded-[7px] border-none flex items-center justify-center text-[.78rem] cursor-pointer transition-all">
+            <i class="fas fa-list"></i>
+          </button>
         </div>
       </div>
     </div>
 
-    <div id="aGrid">
+    <!-- Grid -->
+    <div id="aGrid" class="grid gap-[1.1rem]" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
       {% if not auctions %}
-      <div class="empty">
-        <div class="empty-icon"><i class="fas fa-gavel"></i></div>
-        <h3>No Auctions Found</h3>
-        <p>Try adjusting your filters or search terms.</p>
-        <a href="{% url 'auctions' %}" class="empty-btn">Clear Filters</a>
+      <div class="col-span-full text-center py-[4.5rem] px-8 bg-white rounded-2xl border-2 border-dashed border-border2">
+        <div class="w-[72px] h-[72px] rounded-[18px] bg-pri-l inline-flex items-center justify-center text-[1.9rem] text-pri mb-4">
+          <i class="fas fa-gavel"></i>
+        </div>
+        <h3 class="text-[1.1rem] font-bold text-ink mb-1.5">No Auctions Found</h3>
+        <p class="text-[.78rem] text-muted mb-4">Try adjusting your filters or search terms.</p>
+        <a href="{% url 'auctions' %}" class="inline-block py-2.5 px-5 bg-pri text-white text-[.73rem] font-bold no-underline rounded-[10px] hover:bg-[#2F4DC4] transition-colors">
+          Clear Filters
+        </a>
       </div>
       {% else %}
         {% include 'auctions/partials/auction_cards.html' %}
       {% endif %}
     </div>
 
+    <!-- Pagination -->
     {% if is_paginated %}
-    <nav class="pages" aria-label="Pagination">
+    <nav class="flex items-center justify-center gap-1.5 mt-8 flex-wrap" aria-label="Pagination">
       {% if page_obj.has_previous %}
-        <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}" class="pa">«</a>
-        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}" class="pa">‹ Prev</a>
+        <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}"
+           class="inline-flex items-center justify-center min-w-[36px] h-9 px-2.5 rounded-lg font-poppins text-[.73rem] font-semibold no-underline text-ink3 bg-white border border-border hover:bg-pri-l hover:border-pri-m hover:text-pri transition-all">«</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}"
+           class="inline-flex items-center justify-center min-w-[36px] h-9 px-2.5 rounded-lg font-poppins text-[.73rem] font-semibold no-underline text-ink3 bg-white border border-border hover:bg-pri-l hover:border-pri-m hover:text-pri transition-all">‹ Prev</a>
       {% endif %}
-      <span class="pa on">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      <span class="inline-flex items-center justify-center min-w-[36px] h-9 px-2.5 rounded-lg font-poppins text-[.73rem] font-semibold bg-pri text-white border border-pri">
+        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+      </span>
       {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}" class="pa">Next ›</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}" class="pa">»</a>
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}"
+           class="inline-flex items-center justify-center min-w-[36px] h-9 px-2.5 rounded-lg font-poppins text-[.73rem] font-semibold no-underline text-ink3 bg-white border border-border hover:bg-pri-l hover:border-pri-m hover:text-pri transition-all">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.auction_type %}&auction_type={{ request.GET.auction_type }}{% endif %}"
+           class="inline-flex items-center justify-center min-w-[36px] h-9 px-2.5 rounded-lg font-poppins text-[.73rem] font-semibold no-underline text-ink3 bg-white border border-border hover:bg-pri-l hover:border-pri-m hover:text-pri transition-all">»</a>
       {% endif %}
     </nav>
     {% endif %}
   </main>
 
 </div>
+
+<!-- ━━━━ FILTER OPTION ACTIVE STATE (Tailwind JIT needs explicit classes) ━━━━ -->
+<style>
+  .fo.on { background:#EEF2FF !important; color:#3B5BDB !important; font-weight:600; border-color:#C7D2FE !important; }
+  .fo.on .fo-count { background:#C7D2FE; color:#3B5BDB; }
+  .sb-card.collapsed .sb-chevron { transform:rotate(-90deg); }
+  .sb-card.collapsed .sb-body { display:none; }
+  /* view btn active/inactive — driven purely by JS toggling .on */
+  .vbtn { background:transparent; color:#94A3B8; }
+  .vbtn.on { background:#3B5BDB !important; color:#fff !important; }
+  /* drawer open — use IDs so selectors always match */
+  #drawer.open { transform:translateX(0) !important; }
+  #drawerBackdrop.open { display:block !important; opacity:1 !important; }
+  /* filter badge show */
+  #filterBadge.show { display:inline-flex !important; }
+  /* overlay show */
+  #overlay.show { display:flex !important; }
+  /* active filter chips */
+  .af-chip { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-radius:8px; background:#EEF2FF; border:1px solid #C7D2FE; font-size:.7rem; font-weight:600; color:#3B5BDB; }
+  .af-remove { background:none; border:none; color:#3B5BDB; cursor:pointer; padding:0; font-size:.65rem; opacity:.7; transition:opacity .15s; }
+  .af-remove:hover { opacity:1; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 (() => {
-  /* ── STATE ─────────────────────────── */
   const S = {
     status: '{{ request.GET.status|escapejs }}',
     type:   '{{ request.GET.auction_type|escapejs }}',
@@ -775,19 +484,17 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--ink);-web
   let view = localStorage.getItem('av') || 'grid';
   const isMobile = () => window.innerWidth <= 860;
 
-  /* ── BOOT ──────────────────────────── */
   applyView(view);
   renderActiveFilters();
   scheduleRefreshes();
 
-  /* ── SIDEBAR CARD TOGGLE ───────────── */
+  /* ── SIDEBAR COLLAPSE ─────────────────── */
   window.toggleCard = (head) => {
     head.closest('.sb-card').classList.toggle('collapsed');
   };
 
-  /* ── FILTER OPTION CLICKS ──────────── */
-  // All .fo-list elements (sidebar + drawer)
-  document.querySelectorAll('.fo-list').forEach(list => {
+  /* ── FILTER CLICKS ────────────────────── */
+  document.querySelectorAll('[data-group]').forEach(list => {
     list.querySelectorAll('.fo').forEach(btn => {
       btn.addEventListener('click', () => {
         list.querySelectorAll('.fo').forEach(b => b.classList.remove('on'));
@@ -795,95 +502,61 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--ink);-web
         const g = list.dataset.group;
         if (g === 'status') S.status = btn.dataset.val;
         else S.type = btn.dataset.val;
-
-        // Sync other same-group lists
-        document.querySelectorAll(`.fo-list[data-group="${g}"]`).forEach(otherList => {
-          if (otherList === list) return;
-          otherList.querySelectorAll('.fo').forEach(b => {
-            b.classList.toggle('on', b.dataset.val === btn.dataset.val);
-          });
+        document.querySelectorAll(`[data-group="${g}"]`).forEach(ol => {
+          if (ol === list) return;
+          ol.querySelectorAll('.fo').forEach(b => b.classList.toggle('on', b.dataset.val === btn.dataset.val));
         });
-
         if (!isMobile()) { renderActiveFilters(); fetch_(); }
       });
     });
   });
 
-  /* ── SEARCH INPUTS ─────────────────── */
-  // Sidebar search
-  const sbSearch = document.getElementById('sbSearch');
-  if (sbSearch) {
-    sbSearch.addEventListener('input', e => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => {
-        S.q = e.target.value;
-        syncSearchInputs(S.q);
-        renderActiveFilters();
-        fetch_();
-      }, 360);
-    });
-  }
-
-  // Mobile top-bar search
-  const mobSearch = document.getElementById('mobSearch');
-  if (mobSearch) {
-    mobSearch.addEventListener('input', e => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => {
-        S.q = e.target.value;
-        syncSearchInputs(S.q);
-        renderActiveFilters();
-        if (!isMobile()) fetch_();
-      }, 360);
-    });
-  }
-
-  // Drawer search
+  /* ── SEARCH ───────────────────────────── */
+  const sbSearch     = document.getElementById('sbSearch');
+  const mobSearch    = document.getElementById('mobSearch');
   const drawerSearch = document.getElementById('drawerSearch');
-  if (drawerSearch) {
-    drawerSearch.addEventListener('input', e => { S.q = e.target.value; syncSearchInputs(S.q); });
+
+  function onSearch(val) {
+    S.q = val;
+    syncSearchInputs(val);
+    renderActiveFilters();
+    if (!isMobile()) fetch_();
   }
+  sbSearch?.addEventListener('input', e => { clearTimeout(searchTimer); searchTimer = setTimeout(() => onSearch(e.target.value), 360); });
+  mobSearch?.addEventListener('input', e => { clearTimeout(searchTimer); searchTimer = setTimeout(() => onSearch(e.target.value), 360); });
+  drawerSearch?.addEventListener('input', e => { S.q = e.target.value; syncSearchInputs(e.target.value); });
 
   function syncSearchInputs(val) {
     [sbSearch, mobSearch, drawerSearch].forEach(el => { if (el && el !== document.activeElement) el.value = val; });
   }
 
-  /* ── CLEAR ALL ─────────────────────── */
+  /* ── CLEAR ALL ────────────────────────── */
   window.clearAll = () => {
     S.status = S.type = S.q = '';
     syncSearchInputs('');
-    document.querySelectorAll('.fo-list').forEach(list => {
-      list.querySelectorAll('.fo').forEach((b, i) => b.classList.toggle('on', i === 0));
-    });
+    document.querySelectorAll('[data-group]').forEach(list =>
+      list.querySelectorAll('.fo').forEach((b, i) => b.classList.toggle('on', i === 0))
+    );
     renderActiveFilters();
     fetch_();
     toast('Filters cleared', 'fas fa-check-circle');
   };
-
   document.getElementById('sbClear')?.addEventListener('click', clearAll);
 
-  /* ── DRAWER ────────────────────────── */
+  /* ── DRAWER ───────────────────────────── */
   const drawer   = document.getElementById('drawer');
   const backdrop = document.getElementById('drawerBackdrop');
-  const trigger  = document.getElementById('drawerTrigger');
-  const closeBtn = document.getElementById('drawerClose');
-  const applyBtn = document.getElementById('drawerApply');
-
-  function openDrawer()  { drawer.classList.add('open'); backdrop.classList.add('open'); document.body.style.overflow='hidden'; }
-  function closeDrawer() { drawer.classList.remove('open'); backdrop.classList.remove('open'); document.body.style.overflow=''; }
-
-  trigger?.addEventListener('click', openDrawer);
-  closeBtn?.addEventListener('click', closeDrawer);
+  function openDrawer()  { drawer.classList.add('open'); backdrop.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeDrawer() { drawer.classList.remove('open'); backdrop.classList.remove('open'); document.body.style.overflow = ''; }
+  document.getElementById('drawerTrigger')?.addEventListener('click', openDrawer);
+  document.getElementById('drawerClose')?.addEventListener('click', closeDrawer);
   backdrop?.addEventListener('click', closeDrawer);
-
-  applyBtn?.addEventListener('click', () => {
-    renderActiveFilters();
-    closeDrawer();
-    fetch_();
-    toast(`Filters applied`, 'fas fa-sliders', 'ok');
+  document.getElementById('drawerApply')?.addEventListener('click', () => {
+    renderActiveFilters(); closeDrawer(); fetch_();
+    toast('Filters applied', 'fas fa-sliders', 'ok');
   });
 
-  /* ── ACTIVE FILTERS PANEL ──────────── */
+  /* ── ACTIVE FILTERS ───────────────────── */
   function renderActiveFilters() {
     const container = document.getElementById('activeFilters');
     const emptyMsg  = document.getElementById('afEmpty');
@@ -892,109 +565,83 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--ink);-web
     if (!container) return;
 
     const chips = [];
-    if (S.status) {
-      const labels = {not_started:'Upcoming', live:'Live Now', completed:'Ended'};
-      chips.push({ label: labels[S.status] || S.status, key: 'status' });
-    }
-    if (S.type) {
-      const labels = {live:'Live Auction', scheduled:'Scheduled'};
-      chips.push({ label: labels[S.type] || S.type, key: 'type' });
-    }
-    if (S.q) chips.push({ label: `"${S.q}"`, key: 'q' });
+    if (S.status) { const m = {not_started:'Upcoming',live:'Live Now',completed:'Ended'}; chips.push({label:m[S.status]||S.status,key:'status'}); }
+    if (S.type)   { const m = {live:'Live Auction',scheduled:'Scheduled'}; chips.push({label:m[S.type]||S.type,key:'type'}); }
+    if (S.q)      chips.push({label:`"${S.q}"`,key:'q'});
 
-    // Remove old chips but keep emptyMsg & clearBtn
     container.querySelectorAll('.af-chip').forEach(c => c.remove());
 
     if (chips.length === 0) {
       emptyMsg.style.display = 'block';
       if (clearBtn) clearBtn.disabled = true;
-      if (badge)  { badge.textContent=''; badge.classList.remove('show'); }
+      if (badge) { badge.textContent = ''; badge.classList.remove('show'); }
     } else {
       emptyMsg.style.display = 'none';
       if (clearBtn) clearBtn.disabled = false;
-      if (badge)  { badge.textContent = chips.length; badge.classList.add('show'); }
+      if (badge) { badge.textContent = chips.length; badge.classList.add('show'); }
       chips.forEach(chip => {
         const el = document.createElement('div');
         el.className = 'af-chip';
-        el.innerHTML = `<span>${chip.label}</span><button class="af-remove" data-key="${chip.key}" title="Remove"><i class="fas fa-times"></i></button>`;
+        el.innerHTML = `<span>${chip.label}</span><button class="af-remove" title="Remove"><i class="fas fa-times"></i></button>`;
         el.querySelector('.af-remove').addEventListener('click', () => {
-          if (chip.key === 'status') {
-            S.status = '';
-            document.querySelectorAll('.fo-list[data-group="status"] .fo').forEach((b,i) => b.classList.toggle('on',i===0));
-          } else if (chip.key === 'type') {
-            S.type = '';
-            document.querySelectorAll('.fo-list[data-group="type"] .fo').forEach((b,i) => b.classList.toggle('on',i===0));
-          } else {
-            S.q = ''; syncSearchInputs('');
-          }
-          renderActiveFilters();
-          fetch_();
+          if (chip.key === 'status') { S.status = ''; document.querySelectorAll('[data-group="status"] .fo').forEach((b,i)=>b.classList.toggle('on',i===0)); }
+          else if (chip.key === 'type') { S.type = ''; document.querySelectorAll('[data-group="type"] .fo').forEach((b,i)=>b.classList.toggle('on',i===0)); }
+          else { S.q = ''; syncSearchInputs(''); }
+          renderActiveFilters(); fetch_();
         });
         container.insertBefore(el, emptyMsg);
       });
     }
-
-    // Update subtitle
     const sub = document.getElementById('chSub');
-    if (sub) {
-      if (chips.length === 0) sub.textContent = 'Showing all available auctions';
-      else sub.textContent = `Filtered by: ${chips.map(c=>c.label).join(', ')}`;
-    }
+    if (sub) sub.textContent = chips.length === 0 ? 'Showing all available auctions' : `Filtered by: ${chips.map(c=>c.label).join(', ')}`;
   }
 
-  /* ── VIEW TOGGLE ───────────────────── */
+  /* ── VIEW TOGGLE ──────────────────────── */
   document.getElementById('vGrid')?.addEventListener('click', () => setView('grid'));
   document.getElementById('vList')?.addEventListener('click', () => setView('list'));
-  function setView(v) { view=v; localStorage.setItem('av',v); applyView(v); }
+  function setView(v) { view = v; localStorage.setItem('av', v); applyView(v); }
   function applyView(v) {
-    const g=document.getElementById('aGrid');
-    document.getElementById('vGrid')?.classList.toggle('on',v==='grid');
-    document.getElementById('vList')?.classList.toggle('on',v==='list');
-    if(g) g.classList.toggle('lv',v==='list');
+    const g = document.getElementById('aGrid');
+    document.getElementById('vGrid')?.classList.toggle('on', v === 'grid');
+    document.getElementById('vList')?.classList.toggle('on', v === 'list');
+    if (g) g.classList.toggle('lv', v === 'list');
   }
 
-  /* ── FETCH ─────────────────────────── */
+  /* ── FETCH ────────────────────────────── */
   async function fetch_() {
     const ov = document.getElementById('overlay');
     const g  = document.getElementById('aGrid');
     ov.classList.add('show');
-
     const p = new URLSearchParams();
     if (S.status) p.set('status', S.status);
     if (S.type)   p.set('auction_type', S.type);
     if (S.q)      p.set('q', S.q);
-
     try {
-      const r = await fetch(`${location.pathname}?${p}`, { headers:{'X-Requested-With':'XMLHttpRequest'} });
+      const r = await fetch(`${location.pathname}?${p}`, { headers: {'X-Requested-With':'XMLHttpRequest'} });
       if (!r.ok) throw new Error();
       const html = await r.text();
-
       g.style.cssText = 'opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s';
       await new Promise(res => setTimeout(res, 90));
       g.innerHTML = html;
-      if (view==='list') g.classList.add('lv');
-
-      g.querySelectorAll('.auction-card').forEach((c,i)=>{
-        c.style.animationDelay=`${i*.045}s`;c.style.animation='none';
-        void c.offsetHeight;c.style.animation='';
+      if (view === 'list') g.classList.add('lv');
+      g.querySelectorAll('.auction-card').forEach((c, i) => {
+        c.style.animationDelay = `${i * .045}s`; c.style.animation = 'none';
+        void c.offsetHeight; c.style.animation = '';
       });
-      g.style.cssText='opacity:1;transform:none;transition:opacity .2s,transform .2s';
-      setTimeout(()=>{ g.style.cssText=''; },260);
-
-      const count = g.querySelectorAll('.auction-card').length;
+      g.style.cssText = 'opacity:1;transform:none;transition:opacity .2s,transform .2s';
+      setTimeout(() => { g.style.cssText = ''; }, 260);
       const cntEl = document.getElementById('cnt');
-      if (cntEl) cntEl.textContent = count;
-
-      history.replaceState({},''`${location.pathname}${p.toString()?'?'+p:''}`);
+      if (cntEl) cntEl.textContent = g.querySelectorAll('.auction-card').length;
+      history.replaceState({}, '', `${location.pathname}${p.toString() ? '?' + p : ''}`);
       scheduleRefreshes();
     } catch(e) {
-      toast('Could not load auctions','fas fa-exclamation-triangle','warn');
+      toast('Could not load auctions', 'fas fa-exclamation-triangle', 'warn');
     } finally {
       ov.classList.remove('show');
     }
   }
 
-  /* ── FAVORITES ─────────────────────── */
+  /* ── FAVOURITES ───────────────────────── */
   document.addEventListener('click', e => {
     const b = e.target.closest('.cfav');
     if (!b) return;
@@ -1002,28 +649,30 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--ink);-web
     b.classList.toggle('on');
     const on = b.classList.contains('on');
     b.innerHTML = `<i class="fa${on?'s':'r'} fa-heart"></i>`;
-    toast(on?'Added to watchlist':'Removed from watchlist', on?'fas fa-heart':'far fa-heart', on?'ok':'');
+    toast(on ? 'Added to watchlist' : 'Removed from watchlist', on ? 'fas fa-heart' : 'far fa-heart', on ? 'ok' : '');
   });
 
-  /* ── TOAST ─────────────────────────── */
-  function toast(msg, icon='fas fa-info-circle', cls='') {
+  /* ── TOAST ────────────────────────────── */
+  function toast(msg, icon = 'fas fa-info-circle', cls = '') {
+    const bg = cls === 'ok' ? '#10B981' : cls === 'warn' ? '#D97706' : '#0F172A';
     const el = document.createElement('div');
-    el.className=`toast ${cls}`;
-    el.innerHTML=`<i class="${icon}"></i><span>${msg}</span>`;
+    el.className = 'toast flex items-center gap-2.5 px-4 py-3 rounded-xl text-white text-[.75rem] font-medium shadow-lg max-w-[280px]';
+    el.style.background = bg;
+    el.innerHTML = `<i class="${icon}"></i><span>${msg}</span>`;
     document.getElementById('toasts').appendChild(el);
-    setTimeout(()=>{
-      el.style.cssText='opacity:0;transform:translateX(18px);transition:.28s';
-      setTimeout(()=>el.remove(),300);
-    },2700);
+    setTimeout(() => {
+      el.style.cssText = 'opacity:0;transform:translateX(18px);transition:.28s';
+      setTimeout(() => el.remove(), 300);
+    }, 2700);
   }
 
-  /* ── SMART REFRESH ─────────────────── */
+  /* ── SMART REFRESH ────────────────────── */
   function scheduleRefreshes() {
-    const now=Date.now();
-    document.querySelectorAll('.auction-card').forEach(c=>{
-      [c.dataset.start,c.dataset.end].filter(Boolean).forEach(s=>{
-        const d=new Date(s).getTime()-now;
-        if(d>0&&d<2147483647) setTimeout(()=>fetch_(),d+2000);
+    const now = Date.now();
+    document.querySelectorAll('.auction-card').forEach(c => {
+      [c.dataset.start, c.dataset.end].filter(Boolean).forEach(s => {
+        const d = new Date(s).getTime() - now;
+        if (d > 0 && d < 2147483647) setTimeout(() => fetch_(), d + 2000);
       });
     });
   }
