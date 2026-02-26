@@ -399,8 +399,7 @@
             </div>
             {% if sold_lot and item.status == 'Sold' %}
             <div class="val-compare">
-              <div class="vc-row"><span class="vc-lbl">Estimated</span><span class="vc-val">&#8377;{{
-                  item.estimated_value|floatformat:0 }}</span></div>
+              <div class="vc-row"><span class="vc-lbl">Estimated</span><span class="vc-val">&#8377;{{item.estimated_value|floatformat:0 }}</span></div>
               <div class="vc-bar-wrap">
                 <div class="vc-bar" style="width:100%;"></div>
               </div>
