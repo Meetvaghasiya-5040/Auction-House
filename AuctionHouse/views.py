@@ -10,6 +10,7 @@ from random import randint
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
+from auction_list.models import Auction,Item
 from django.contrib.auth import get_user_model
 import threading
 
@@ -26,6 +27,8 @@ def is_valid_email(email):
 
 
 def login_view(request):
+    User = get_user_model()
+
     if request.method == "POST":
         username_or_email = request.POST.get("username")
         password = request.POST.get("password")
@@ -38,7 +41,6 @@ def login_view(request):
 
         if "@" in username_or_email:
             try:
-                User = get_user_model()
                 user_obj = User.objects.get(email=username_or_email)
                 user = authenticate(
                     request, username=user_obj.username, password=password
@@ -65,8 +67,12 @@ def login_view(request):
                 request, "Invalid username/email or password. Please try again."
             )
             return render(request, "login.html")
-
-    return render(request, "login.html")
+    data ={
+            "count":User.objects.count(),
+            "auctions":Auction.objects.all(),
+            "sold_item":Item.objects.filter(status="sold").count()
+        }
+    return render(request, "login.html",data)
 
 
 def register_view(request):
@@ -179,8 +185,12 @@ def register_view(request):
         except Exception as e:
             messages.error(request, f"An error occurred during registration: {str(e)}")
             return render(request, "register.html")
-
-    return render(request, "register.html")
+    data ={
+            "count":User.objects.count(),
+            "auctions":Auction.objects.all(),
+            "sold_item":Item.objects.filter(status="sold").count()
+        }
+    return render(request, "register.html",data)
 
 
 def otp_form(request):
