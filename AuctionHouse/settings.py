@@ -154,14 +154,24 @@ WSGI_APPLICATION = "AuctionHouse.wsgi.application"
 ASGI_APPLICATION = "AuctionHouse.asgi.application"
 
 # Channels Layer (for WebSocket)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+if os.environ.get('REDIS_URL'):
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.environ.get('REDIS_URL')],
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
+
+# Environment flag provided by Render
+IS_PRODUCTION = os.environ.get("RENDER", False)
 
 # Database — uses DATABASE_URL on Render (PostgreSQL), falls back to SQLite for local dev
 _DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -310,15 +320,20 @@ CSRF_TRUSTED_ORIGINS = [
     "https://auction-house-5.onrender.com",
 ]
 
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+if IS_PRODUCTION:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
 
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 # Required for WebSockets behind proxy
 USE_X_FORWARDED_HOST = True
-SECURE_SSL_REDIRECT = True
 LOGIN_REDIRECT_URL = 'home'

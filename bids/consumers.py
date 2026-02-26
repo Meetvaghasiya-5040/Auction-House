@@ -302,3 +302,27 @@ class BiddingConsumer(AsyncWebsocketConsumer):
             time_rem = lot.get_time_remaining().total_seconds() if lot.get_time_remaining() else None
             return {'current_bid': float(lot.current_bid), 'minimum_bid': float(lot.get_minimum_bid()), 'status': lot.status, 'time_remaining': time_rem, 'bid_count': lot.bids.count()}
         except: return {'error': 'Not found'}
+
+class GlobalStatusConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_group_name = 'global_status'
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+
+    async def status_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'status_update',
+            'data': event['data']
+        }))

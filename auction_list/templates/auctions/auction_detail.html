@@ -71,8 +71,9 @@
                         {% if auction.status == 'live' %}bg-green-500 text-white animate-pulse
                         {% elif auction.status == 'scheduled' %}bg-blue-500 text-white
                         {% elif auction.status == 'completed' %}bg-slate-500 text-white
-                        {% else %}bg-yellow-400 text-slate-900{% endif %}">
-                        {{ auction.get_status_display }}
+                        {% else %}bg-yellow-400 text-slate-900{% endif %}" data-status-model="auction"
+                        data-status-id="{{ auction.id }}">
+                        <span class="status-text">{{ auction.get_status_display }}</span>
                     </span>
                 </div>
                 <div class="overflow-hidden mb-4">
@@ -139,7 +140,8 @@
                 <div class="timer-card bg-white border-4 border-yellow-400 p-6">
                     <div class="text-center">
                         <div class="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3">
-                            {% if auction.status == 'live' %}Auction Ends In{% elif auction.status ==  'scheduled'%}Auction Starts In{% else %}Auction Timeline{% endif %}
+                            {% if auction.status == 'live' %}Auction Ends In{% elif auction.status ==
+                            'scheduled'%}Auction Starts In{% else %}Auction Timeline{% endif %}
                         </div>
                         <div class="countdown-timer grid grid-cols-4 gap-3 mb-5">
                             <div class="timer-unit">
@@ -173,7 +175,8 @@
                             <div class="flex justify-between items-center">
                                 <span class="text-xs uppercase tracking-wider font-semibold text-slate-500">Buyer's
                                     Premium</span>
-                                <span class="text-base font-black text-blue-600">{{auction.buyer_premium_percentage}}%</span>
+                                <span
+                                    class="text-base font-black text-blue-600">{{auction.buyer_premium_percentage}}%</span>
                             </div>
                             {% endif %}
                         </div>
@@ -335,8 +338,9 @@
                                 <span class="status-badge-sm inline-block px-2 py-1 text-xs font-bold uppercase tracking-wider border-2
                                     {% if lot.status == 'active' %}border-green-500 bg-green-500 text-white
                                     {% elif lot.status == 'sold' %}border-slate-500 bg-slate-500 text-white
-                                    {% else %}border-slate-300 text-slate-600{% endif %}">
-                                    {{ lot.status }}
+                                    {% else %}border-slate-300 text-slate-600{% endif %}" data-status-model="lot"
+                                    data-status-id="{{ lot.id }}">
+                                    <span class="status-text">{{ lot.status }}</span>
                                 </span>
                             </div>
                             {% if lot.is_timed %}
@@ -412,7 +416,8 @@
                                         </div>
                                     </div>
                                     <div class="flex-1">
-                                        <div class="flex items-center gap-2 mb-0.5">
+                                        <div class="flex items-center gap-2 mb-0.5" data-status-model="lot"
+                                            data-status-id="{{ lot.id }}">
                                             <span class="font-mono text-xs text-slate-400">LOT
                                                 #{{lot.lot_number}}</span>
                                             <span class="status-dot w-1.5 h-1.5 rounded-full
@@ -420,7 +425,7 @@
                                                 {% elif lot.status == 'sold' %}bg-slate-500
                                                 {% else %}bg-slate-300{% endif %}"></span>
                                             <span
-                                                class="text-xs font-semibold uppercase text-slate-500">{{lot.status}}</span>
+                                                class="text-xs font-semibold uppercase text-slate-500 status-text">{{lot.status}}</span>
                                         </div>
                                         <h3
                                             class="font-bold text-slate-900 uppercase text-sm mb-0.5 group-hover:text-blue-600 transition-colors">

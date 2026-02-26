@@ -495,7 +495,8 @@
                   class="bg-white {% if bid.is_winning %}ring-2 ring-green-500{% endif %} rounded-xl p-4 hover:shadow-lg transition-shadow shadow-md">
                   <div class="flex justify-between items-start mb-3">
                     <div class="flex-1 min-w-0">
-                      <h4 class="text-sm font-bold text-slate-900 mb-1 uppercase tracking-wide truncate">{{bid.lot.title}}</h4>
+                      <h4 class="text-sm font-bold text-slate-900 mb-1 uppercase tracking-wide truncate">
+                        {{bid.lot.title}}</h4>
                       <p class="text-xs text-slate-500 truncate">{{ bid.lot.auction.title }}</p>
                     </div>
                     {% if bid.is_winning %}
@@ -590,7 +591,8 @@
                 <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                   <div>
                     <p class="text-sm text-slate-700">
-                      Showing <span class="font-bold">{{ bids.start_index }}</span> to <span class="font-bold">{{ bids.end_index }}</span> of <span class="font-bold">{{ bids.paginator.count }}</span> results
+                      Showing <span class="font-bold">{{ bids.start_index }}</span> to <span class="font-bold">{{
+                        bids.end_index }}</span> of <span class="font-bold">{{ bids.paginator.count }}</span> results
                     </p>
                   </div>
                   <div>
@@ -680,7 +682,8 @@
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-semibold text-slate-900 mb-1 uppercase tracking-wide truncate">
                         {{transaction.description }}</p>
-                      <p class="text-xs text-slate-500">{{ transaction.timestamp|date:"M d, Y" }} at {{transaction.timestamp|time:"H:i" }}</p>
+                      <p class="text-xs text-slate-500">{{ transaction.timestamp|date:"M d, Y" }} at
+                        {{transaction.timestamp|time:"H:i" }}</p>
                     </div>
                     <span class="px-2 py-1 inline-flex text-[10px] leading-5 font-bold ml-2 flex-shrink-0 rounded-full uppercase tracking-wide whitespace-nowrap
                       {% if transaction.transaction_type == 'deposit' %}bg-green-100 text-green-800
@@ -765,7 +768,8 @@
                   <div>
                     <p class="text-sm text-slate-700">
                       Showing <span class="font-bold">{{ transactions.start_index }}</span> to <span
-                        class="font-bold">{{transactions.end_index }}</span> of <span class="font-bold">{{transactions.paginator.count}}</span> results
+                        class="font-bold">{{transactions.end_index }}</span> of <span
+                        class="font-bold">{{transactions.paginator.count}}</span> results
                     </p>
                   </div>
                   <div>
@@ -950,9 +954,10 @@
                     <div class="flex flex-col items-end gap-1">
                       {% if item.status %}
                       <span
-                        class="inline-flex items-center gap-1 px-2 py-1 text-[10px] leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap">
+                        class="inline-flex items-center gap-1 px-2 py-1 text-[10px] leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap"
+                        data-status-model="item" data-status-id="{{ item.id }}">
                         <i class="fas fa-check-circle"></i>
-                        <span>{{ item.status }}</span>
+                        <span class="status-text">{{ item.status }}</span>
                       </span>
                       {% endif %}
 
@@ -964,9 +969,10 @@
                             {% elif item.pickup_status == 'at_warehouse' %}bg-green-100 text-green-800
                             {% elif item.pickup_status == 'delivered' %}bg-emerald-100 text-emerald-800
                             {% else %}bg-gray-100 text-gray-800{% endif %}
-                            rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap">
+                            rounded-full ml-2 flex-shrink-0 uppercase tracking-wide whitespace-nowrap"
+                        data-status-model="item_pickup" data-status-id="{{ item.id }}">
                         <i class="fas fa-truck-loading"></i>
-                        <span>{{ item.get_pickup_status_display }}</span>
+                        <span class="status-text">{{ item.get_pickup_status_display }}</span>
                       </span>
                       {% endif %}
                     </div>
@@ -986,31 +992,34 @@
                   {% endif %}
 
                   <div class="flex gap-2 pt-3 border-t border-slate-200">
-                    {% if item.status == 'Lotted' or item.status == 'Sold' %}
-                    <div
-                      class="flex-1 text-center text-slate-400 font-bold text-xs py-2 rounded-lg bg-slate-50 uppercase tracking-wide cursor-not-allowed opacity-50"
-                      title="Cannot edit items that are lotted or sold">
-                      <i class="fas fa-edit mr-1"></i>EDIT
-                    </div>
-                    <div
-                      class="flex-1 text-center text-slate-400 font-bold text-xs py-2 rounded-lg bg-slate-50 uppercase tracking-wide cursor-not-allowed opacity-50"
-                      title="Cannot delete items that are lotted or sold">
-                      <i class="fas fa-trash mr-1"></i>DELETE
-                    </div>
-                    {% else %}
-                    <a href="{% url 'edit_item' item.slug %}"
-                      class="flex-1 text-center text-violet-600 hover:text-violet-900 font-bold transition-colors text-xs py-2 rounded-lg hover:bg-violet-50 uppercase tracking-wide">
-                      <i class="fas fa-edit mr-1"></i>EDIT
-                    </a>
-                    <form action="{% url 'delete_item' item.slug %}" method="POST" class="flex-1"
-                      onsubmit="return confirm('Are you sure you want to delete this item?');">
-                      {% csrf_token %}
-                      <button type="submit"
-                        class="w-full text-red-600 hover:text-red-900 font-bold transition-colors text-xs py-2 rounded-lg hover:bg-red-50 uppercase tracking-wide">
+                    <div data-visibility-model="item" data-visibility-id="{{ item.id }}" data-show-on="lotted,sold"
+                      class="flex w-full gap-2 {% if item.status != 'Lotted' and item.status != 'Sold' %}hidden{% endif %}">
+                      <div
+                        class="flex-1 text-center text-slate-400 font-bold text-xs py-2 rounded-lg bg-slate-50 uppercase tracking-wide cursor-not-allowed opacity-50"
+                        title="Cannot edit items that are lotted or sold">
+                        <i class="fas fa-edit mr-1"></i>EDIT
+                      </div>
+                      <div
+                        class="flex-1 text-center text-slate-400 font-bold text-xs py-2 rounded-lg bg-slate-50 uppercase tracking-wide cursor-not-allowed opacity-50"
+                        title="Cannot delete items that are lotted or sold">
                         <i class="fas fa-trash mr-1"></i>DELETE
-                      </button>
-                    </form>
-                    {% endif %}
+                      </div>
+                    </div>
+                    <div data-visibility-model="item" data-visibility-id="{{ item.id }}" data-hide-on="lotted,sold"
+                      class="flex w-full gap-2 {% if item.status == 'Lotted' or item.status == 'Sold' %}hidden{% endif %}">
+                      <a href="{% url 'edit_item' item.slug %}"
+                        class="flex-1 text-center text-violet-600 hover:text-violet-900 font-bold transition-colors text-xs py-2 rounded-lg hover:bg-violet-50 uppercase tracking-wide">
+                        <i class="fas fa-edit mr-1"></i>EDIT
+                      </a>
+                      <form action="{% url 'delete_item' item.slug %}" method="POST" class="flex-1"
+                        onsubmit="return confirm('Are you sure you want to delete this item?');">
+                        {% csrf_token %}
+                        <button type="submit"
+                          class="w-full text-red-600 hover:text-red-900 font-bold transition-colors text-xs py-2 rounded-lg hover:bg-red-50 uppercase tracking-wide">
+                          <i class="fas fa-trash mr-1"></i>DELETE
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </div>
                 {% endfor %}
@@ -1052,9 +1061,10 @@
                         <div class="flex flex-col gap-1">
                           {% if item.status %}
                           <span
-                            class="inline-flex items-center gap-1 px-3 py-1 text-xs leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full w-fit uppercase tracking-wide">
+                            class="inline-flex items-center gap-1 px-3 py-1 text-xs leading-5 font-bold bg-emerald-100 text-emerald-800 rounded-full w-fit uppercase tracking-wide"
+                            data-status-model="item" data-status-id="{{ item.id }}">
                             <i class="fas fa-check-circle"></i>
-                            <span>{{ item.status }}</span>
+                            <span class="status-text">{{ item.status }}</span>
                           </span>
                           {% else %}
                           <span
@@ -1068,8 +1078,9 @@
                         {% if item.pickup_status == 'pending' %}
                         <div class="flex flex-col gap-1">
                           <span
-                            class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-yellow-100 text-yellow-800 rounded-full w-fit uppercase tracking-wide">
-                            PENDING PICKUP
+                            class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-yellow-100 text-yellow-800 rounded-full w-fit uppercase tracking-wide"
+                            data-status-model="item_pickup" data-status-id="{{ item.id }}">
+                            <span class="status-text">PENDING PICKUP</span>
                           </span>
                           {% if item.pickup_otp %}
                           <div class="text-xs font-mono font-bold text-slate-700">
@@ -1079,18 +1090,21 @@
                         </div>
                         {% elif item.pickup_status == 'picked_up' %}
                         <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded-full w-fit uppercase tracking-wide">
-                          PICKED UP
+                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded-full w-fit uppercase tracking-wide"
+                          data-status-model="item_pickup" data-status-id="{{ item.id }}">
+                          <span class="status-text">PICKED UP</span>
                         </span>
                         {% elif item.pickup_status == 'at_warehouse' %}
                         <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-800 rounded-full w-fit uppercase tracking-wide">
-                          AT WAREHOUSE
+                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-green-100 text-green-800 rounded-full w-fit uppercase tracking-wide"
+                          data-status-model="item_pickup" data-status-id="{{ item.id }}">
+                          <span class="status-text">AT WAREHOUSE</span>
                         </span>
                         {% elif item.pickup_status == 'delivered' %}
                         <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full w-fit uppercase tracking-wide">
-                          DELIVERED
+                          class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full w-fit uppercase tracking-wide"
+                          data-status-model="item_pickup" data-status-id="{{ item.id }}">
+                          <span class="status-text">DELIVERED</span>
                         </span>
                         {% else %}
                         <span class="text-xs text-slate-400">-</span>
@@ -1098,29 +1112,34 @@
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex items-center justify-end gap-3">
-                          {% if item.status == 'Lotted' or item.status == 'Sold' %}
-                          <span class="text-slate-400 font-bold uppercase tracking-wide cursor-not-allowed opacity-50"
-                            title="Cannot edit items that are lotted or sold">
-                            <i class="fas fa-edit mr-1"></i>EDIT
-                          </span>
-                          <span class="text-slate-400 font-bold uppercase tracking-wide cursor-not-allowed opacity-50"
-                            title="Cannot delete items that are lotted or sold">
-                            <i class="fas fa-trash mr-1"></i>DELETE
-                          </span>
-                          {% else %}
-                          <a href="{% url 'edit_item' item.slug %}"
-                            class="text-violet-600 hover:text-violet-900 font-bold transition-colors uppercase tracking-wide">
-                            <i class="fas fa-edit mr-1"></i>EDIT
-                          </a>
-                          <form action="{% url 'delete_item' item.slug %}" method="POST"
-                            onsubmit="return confirm('Are you sure you want to delete this item?');">
-                            {% csrf_token %}
-                            <button type="submit"
-                              class="text-red-600 hover:text-red-900 font-bold transition-colors uppercase tracking-wide">
+                          <div data-visibility-model="item" data-visibility-id="{{ item.id }}"
+                            data-show-on="lotted,sold"
+                            class="flex items-center gap-3 {% if item.status != 'Lotted' and item.status != 'Sold' %}hidden{% endif %}">
+                            <span class="text-slate-400 font-bold uppercase tracking-wide cursor-not-allowed opacity-50"
+                              title="Cannot edit items that are lotted or sold">
+                              <i class="fas fa-edit mr-1"></i>EDIT
+                            </span>
+                            <span class="text-slate-400 font-bold uppercase tracking-wide cursor-not-allowed opacity-50"
+                              title="Cannot delete items that are lotted or sold">
                               <i class="fas fa-trash mr-1"></i>DELETE
-                            </button>
-                          </form>
-                          {% endif %}
+                            </span>
+                          </div>
+                          <div data-visibility-model="item" data-visibility-id="{{ item.id }}"
+                            data-hide-on="lotted,sold"
+                            class="flex items-center gap-3 {% if item.status == 'Lotted' or item.status == 'Sold' %}hidden{% endif %}">
+                            <a href="{% url 'edit_item' item.slug %}"
+                              class="text-violet-600 hover:text-violet-900 font-bold transition-colors uppercase tracking-wide">
+                              <i class="fas fa-edit mr-1"></i>EDIT
+                            </a>
+                            <form action="{% url 'delete_item' item.slug %}" method="POST"
+                              onsubmit="return confirm('Are you sure you want to delete this item?');">
+                              {% csrf_token %}
+                              <button type="submit"
+                                class="text-red-600 hover:text-red-900 font-bold transition-colors uppercase tracking-wide">
+                                <i class="fas fa-trash mr-1"></i>DELETE
+                              </button>
+                            </form>
+                          </div>
                         </div>
                       </td>
                     </tr>

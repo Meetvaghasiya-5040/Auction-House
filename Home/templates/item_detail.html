@@ -1,701 +1,677 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+  rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/item_details.css' %}">
 
-<style>
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -1000px 0;
-    }
-
-    100% {
-      background-position: 1000px 0;
-    }
-  }
-
-  .animate-in {
-    animation: fadeInUp 0.5s ease-out forwards;
-  }
-
-  .slide-in {
-    animation: slideIn 0.5s ease-out forwards;
-  }
-
-  .delay-1 {
-    animation-delay: 0.1s;
-  }
-
-  .delay-2 {
-    animation-delay: 0.2s;
-  }
-
-  .delay-3 {
-    animation-delay: 0.3s;
-  }
-
-  .card {
-    background: white;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .card:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.875rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 9999px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* Image Gallery Styles */
-  .gallery-container {
-    display: grid;
-    grid-template-columns: 100px 1fr;
-    gap: 1rem;
-    min-height: 400px;
-  }
-
-  .thumbnail-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 500px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
-
-  .thumbnail-sidebar::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .thumbnail-sidebar::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-  }
-
-  .thumbnail-sidebar::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-
-  .thumbnail-sidebar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-
-  .thumbnail {
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-    background: #f8fafc;
-    flex-shrink: 0;
-  }
-
-  .thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.2s ease;
-  }
-
-  .thumbnail:hover {
-    border-color: #ec4899;
-    transform: scale(1.05);
-  }
-
-  .thumbnail:hover img {
-    transform: scale(1.1);
-  }
-
-  .thumbnail.active {
-    border-color: #ec4899;
-    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
-  }
-
-  .main-image-container {
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    cursor: zoom-in;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    max-height: 500px;
-  }
-
-  .main-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-  }
-
-  .main-image-container:hover .main-image {
-    transform: scale(1.02);
-  }
-
-  .no-image-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border-radius: 12px;
-  }
-
-  /* Lightbox */
-  .lightbox {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .lightbox.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-  }
-
-  .lightbox-content {
-    max-width: 90vw;
-    max-height: 90vh;
-    position: relative;
-  }
-
-  .lightbox img {
-    max-width: 100%;
-    max-height: 90vh;
-    object-fit: contain;
-  }
-
-  .lightbox-close {
-    position: absolute;
-    top: -50px;
-    right: 0;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    background: rgba(236, 72, 153, 0.5);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-  }
-
-  .lightbox-close:hover {
-    background: #ec4899;
-    transform: rotate(90deg);
-  }
-
-  .lightbox-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(236, 72, 153, 0.5);
-    color: white;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-  }
-
-  .lightbox-nav:hover {
-    background: #ec4899;
-    transform: translateY(-50%) scale(1.1);
-  }
-
-  .lightbox-prev {
-    left: 20px;
-  }
-
-  .lightbox-next {
-    right: 20px;
-  }
-
-  .image-counter {
-    position: absolute;
-    bottom: -45px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    font-weight: 600;
-    background: rgba(236, 72, 153, 0.7);
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-  }
-
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .info-row:last-child {
-    border-bottom: none;
-  }
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #f1f5f9;
-  }
-
-  .spec-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .spec-card {
-    background: #f8fafc;
-    padding: 0.875rem;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-  }
-
-  @media (max-width: 768px) {
-    .gallery-container {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-
-    .thumbnail-sidebar {
-      flex-direction: row;
-      overflow-x: auto;
-      overflow-y: hidden;
-      max-height: none;
-      padding-right: 0;
-      padding-bottom: 4px;
-    }
-
-    .thumbnail {
-      width: 80px;
-      height: 80px;
-    }
-
-    .main-image-container {
-      min-height: 300px;
-      max-height: 400px;
-    }
-  }
-</style>
 
 {% if item %}
-<div class="bg-gradient-to-br from-slate-50 via-white to-pink-50 min-h-screen">
-  <div class="max-w-7xl mx-auto px-4 py-6">
+<div class="pw">
+  <div class="con">
 
-    <!-- Header -->
-    <div class="mb-4 animate-in">
-      <a href=""
-        class="inline-flex items-center gap-2 text-slate-600 hover:text-pink-600 font-semibold mb-3 transition-colors">
-        <i class="fas fa-arrow-left"></i>
-        <span>Back to Items</span>
-      </a>
-
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-800">
-              {{ item.title }}
-            </h1>
-            {% if item.status == 'Available' %}
-            <span class="badge bg-emerald-500 text-white">
-              <i class="fas fa-check-circle text-xs"></i>Available
-            </span>
-            {% elif item.status == 'Lotted' %}
-            <span class="badge bg-blue-500 text-white">
-              <i class="fas fa-box text-xs"></i>Lotted
-            </span>
-            {% elif item.status == 'Sold' %}
-            <span class="badge bg-slate-500 text-white">
-              <i class="fas fa-check-double text-xs"></i>Sold
-            </span>
-            {% endif %}
-          </div>
-          <p class="text-sm text-slate-600">
-            <i class="fas fa-user text-pink-600 mr-1"></i>
-            {{ item.owner.get_full_name|default:item.owner.username }}
-          </p>
+    <!-- ══ TOP NAV BAR ══ -->
+    <div class="top-bar a1">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <a href="javascript:history.back()" class="btn-back">
+          <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <div class="breadcrumb-bar">
+          <a href="#">Dashboard</a><span class="sep">/</span>
+          <a href="#">Items</a><span class="sep">/</span>
+          <span class="cur">{{ item.title|truncatechars:28 }}</span>
         </div>
-        <div class="flex flex-col md:flex-row gap-6 text-right">
-          <div>
-            <p class="text-xs text-slate-500 font-semibold uppercase">Estimated Value</p>
-            <p class="text-3xl font-bold text-pink-600">₹{{ item.estimated_value|floatformat:0 }}</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button
+          style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:600;background:#fff;border:1.5px solid #E8ECF4;color:#374151;cursor:pointer;transition:.2s;"
+          onmouseover="this.style.borderColor='#EC4899';this.style.color='#EC4899';"
+          onmouseout="this.style.borderColor='#E8ECF4';this.style.color='#374151';">
+          <i class="fas fa-print"></i> Print
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ TITLE HERO STRIP ══ -->
+    <div class="title-hero a1">
+      <div class="th-left">
+        <div class="th-badges">
+          {% if item.status == 'Available' %}
+          <span class="badge bg-green-100 text-green-800 ring-1 ring-green-300" data-status-model="item"
+            data-status-id="{{ item.id }}"><i class="fas fa-circle-check"></i> <span
+              class="status-text">Available</span></span>
+          {% elif item.status == 'Lotted' %}
+          <span class="badge bg-blue-100 text-blue-800 ring-1 ring-blue-300" data-status-model="item"
+            data-status-id="{{ item.id }}"><i class="fas fa-box"></i> <span class="status-text">Lotted</span></span>
+          {% elif item.status == 'Sold' %}
+          <span class="badge bg-slate-100 text-slate-700 ring-1 ring-slate-300" data-status-model="item"
+            data-status-id="{{ item.id }}"><i class="fas fa-check-double"></i> <span
+              class="status-text">Sold</span></span>
+          {% else %}
+          <span class="badge bg-slate-100 text-slate-800 ring-1 ring-slate-500/30" data-status-model="item"
+            data-status-id="{{ item.id }}"><i class="fas fa-info-circle"></i> <span class="status-text">{{ item.status
+              }}</span></span>
+          {% endif %}
+          {% if item.item_catagory %}
+          <span class="badge badge-cat"><i class="fas fa-tag"></i>{{ item.item_catagory.name }}</span>
+          {% endif %}
+          {% if item.condition == 'Excellent' or item.condition == 'New' %}
+          <span class="badge badge-new"><i class="fas fa-star"></i>{{ item.condition }}</span>
+          {% endif %}
+        </div>
+        <h1 class="th-title">{{ item.title }}</h1>
+        <div class="th-meta">
+          <div class="th-meta-item">
+            <i class="fas fa-user"></i>
+            <span>{{ item.owner.get_full_name|default:item.owner.username }}</span>
           </div>
-          {% if sold_lot and item.status == 'Sold' %}
-          <div>
-            <p class="text-xs text-slate-500 font-semibold uppercase">Selling Price</p>
-            <p class="text-3xl font-bold text-emerald-600">₹{{ sold_lot.current_bid|floatformat:0 }}</p>
+          {% if item.item_catagory %}
+          <div class="th-meta-item">
+            <i class="fas fa-folder"></i>
+            <span>{{ item.item_catagory.name }}</span>
+          </div>
+          {% endif %}
+          <div class="th-meta-item">
+            <i class="fas fa-calendar"></i>
+            <span>Added {{ item.created_at|date:"M d, Y" }}</span>
+          </div>
+          {% if item.get_image_urls %}
+          <div class="th-meta-item">
+            <i class="fas fa-images"></i>
+            <span>{{ item.get_image_urls|length }} photos</span>
           </div>
           {% endif %}
         </div>
       </div>
+      <div class="th-right">
+        <div class="price-pill pink">
+          <p class="pp-lbl">Estimated Value</p>
+          <p class="pp-val">&#8377;{{ item.estimated_value|floatformat:0 }}</p>
+          <p class="pp-sub">Expert valuation</p>
+        </div>
+        {% if sold_lot and item.status == 'Sold' %}
+        <div class="price-pill green">
+          <p class="pp-lbl">Sold For</p>
+          <p class="pp-val">&#8377;{{ sold_lot.current_bid|floatformat:0 }}</p>
+          <p class="pp-sub">Final hammer price</p>
+        </div>
+        {% endif %}
+      </div>
     </div>
 
-    <!-- Main Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <!-- ══ STATS STRIP ══ -->
+    <div class="stats-strip a2">
+      <div class="ss-card">
+        <div class="ss-icon" style="background:#FFF5F9;"><i class="fas fa-images" style="color:#EC4899;"></i></div>
+        <div class="ss-val">{{ item.get_image_urls|length|default:0 }}</div>
+        <div class="ss-lbl">Photos</div>
+      </div>
+      <div class="ss-card {% if item.status != 'Available' %}hidden{% endif %}" data-visibility-model="item"
+        data-visibility-id="{{ item.id }}" data-show-on="available">
+        <div class="ss-icon" style="background:#DCFCE7;">
+          <i class="fas fa-circle-check" style="color:#16A34A;"></i>
+        </div>
+        <div class="ss-val" style="font-size:13px;padding-top:3px;color:#16A34A;">Available</div>
+        <div class="ss-lbl">Status</div>
+      </div>
+      <div class="ss-card {% if item.status != 'Lotted' %}hidden{% endif %}" data-visibility-model="item"
+        data-visibility-id="{{ item.id }}" data-show-on="lotted">
+        <div class="ss-icon" style="background:#DBEAFE;">
+          <i class="fas fa-box" style="color:#1D4ED8;"></i>
+        </div>
+        <div class="ss-val" style="font-size:13px;padding-top:3px;color:#1D4ED8;">Lotted</div>
+        <div class="ss-lbl">Status</div>
+      </div>
+      <div class="ss-card {% if item.status == 'Available' or item.status == 'Lotted' %}hidden{% endif %}"
+        data-visibility-model="item" data-visibility-id="{{ item.id }}" data-hide-on="available,lotted">
+        <div class="ss-icon" style="background:#F1F5F9;">
+          <i class="fas fa-check-double" style="color:#475569;"></i>
+        </div>
+        <div class="ss-val" style="font-size:13px;padding-top:3px;color:#475569;" data-text-status-model="item"
+          data-text-status-id="{{ item.id }}">{{ item.status }}</div>
+        <div class="ss-lbl">Status</div>
+      </div>
+      <div class="ss-card">
+        <div class="ss-icon" style="background:#FEF3C7;"><i class="fas fa-indian-rupee-sign" style="color:#D97706;"></i>
+        </div>
+        <div class="ss-val" style="font-size:14px;padding-top:2px;color:#D97706;">
+          &#8377;{{item.estimated_value|floatformat:0 }}</div>
+        <div class="ss-lbl">Est. Value</div>
+      </div>
+    </div>
 
-      <!-- Left Column: Images -->
-      <div class="lg:col-span-2 space-y-4">
+    <!-- ══ BODY GRID ══ -->
+    <div class="body-grid">
 
-        <!-- Image Gallery -->
-        <div class="card p-4 slide-in">
+      <!-- ╔══════════════════════
+         LEFT COLUMN
+    ══════════════════════╗ -->
+      <div>
+
+        <!-- ★ IMAGE GALLERY ★ -->
+        <div class="card gallery-card a2">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#FFF5F9;"><i class="fas fa-images"
+                style="color:#EC4899;font-size:13px;"></i></div>
+            <h3>Photo Gallery</h3>
+            {% if item.get_image_urls %}
+            <span class="ch-badge">{{ item.get_image_urls|length }} of {{ item.get_image_urls|length }}</span>
+            {% endif %}
+            {% if item.get_image_urls %}
+            <button onclick="openLB(0)"
+              style="margin-left:4px;display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;background:#FFF5F9;border:1.5px solid #FBCFE8;color:#EC4899;cursor:pointer;transition:.18s;"
+              onmouseover="this.style.background='#EC4899';this.style.color='#fff';"
+              onmouseout="this.style.background='#FFF5F9';this.style.color='#EC4899';">
+              <i class="fas fa-expand"></i> Full Screen
+            </button>
+            {% endif %}
+          </div>
+
           {% if item.get_image_urls %}
-          <div class="gallery-container">
-            <!-- Thumbnail Sidebar -->
-            <div class="thumbnail-sidebar">
-              {% for url in item.get_image_urls %}
-              <div class="thumbnail {% if forloop.first %}active{% endif %}"
-                onclick="changeMainImage('{{ url }}', this)" data-index="{{ forloop.counter0 }}">
-                <img src="{{ url }}" alt="Thumbnail {{ forloop.counter }}">
-              </div>
-              {% endfor %}
+          <!-- Main featured image -->
+          <div class="main-img-box" id="mainImgBox" onclick="openLB(currentThumbIdx)">
+            <img id="mainImg" src="{{ item.get_image_urls.0 }}" alt="{{ item.title }}">
+
+            <!-- Overlay info -->
+            <div class="img-overlay-tl">
+              <span class="ov-chip green {% if item.status != 'Available' %}hidden{% endif %}"
+                data-visibility-model="item" data-visibility-id="{{ item.id }}" data-show-on="available"><i
+                  class="fas fa-circle-check"></i>Available</span>
+              <span class="ov-chip dark {% if item.status == 'Available' %}hidden{% endif %}"
+                data-visibility-model="item" data-visibility-id="{{ item.id }}" data-hide-on="available"><i
+                  class="fas fa-gavel"></i><span data-text-status-model="item" data-text-status-id="{{ item.id }}">{{item.status }}</span></span>
+            </div>
+            <div class="img-overlay-tr">
+              <span class="ov-chip dark"><i class="fas fa-magnifying-glass-plus"></i>Zoom</span>
+            </div>
+            <div class="img-overlay-br">
+              <span class="ov-chip pink" id="imgIndexChip">1 / {{ item.get_image_urls|length }}</span>
             </div>
 
-            <!-- Main Image -->
-            <div class="main-image-container" onclick="openLightbox(0)">
-              <img id="mainImage" src="{{ item.get_image_urls.0 }}" alt="{{ item.title }}" class="main-image">
-              <div
-                class="absolute top-3 right-3 bg-black bg-opacity-60 text-white px-3 py-1.5 rounded-full text-xs font-semibold">
-                <i class="fas fa-search-plus mr-1"></i>Click to Zoom
-              </div>
-            </div>
+            {% if item.get_image_urls|length > 1 %}
+            <div class="img-arr img-arr-l" onclick="thumbNav(-1,event)"><i class="fas fa-chevron-left"></i></div>
+            <div class="img-arr img-arr-r" onclick="thumbNav(1,event)"><i class="fas fa-chevron-right"></i></div>
+            {% endif %}
           </div>
+
+          <!-- Horizontal thumbnail strip -->
+          <div class="thumb-strip" id="thumbStrip">
+            {% for url in item.get_image_urls %}
+            <div class="th {% if forloop.first %}active{% endif %}"
+              onclick="setThumb('{{ url }}',{{ forloop.counter0 }},this)" data-index="{{ forloop.counter0 }}"
+              data-url="{{ url }}">
+              <img src="{{ url }}" alt="Photo {{ forloop.counter }}" loading="lazy">
+              <span class="th-number">{{ forloop.counter }}</span>
+            </div>
+            {% endfor %}
+          </div>
+
           {% else %}
-          <div class="no-image-placeholder">
-            <i class="fas fa-image text-slate-300 text-5xl mb-3"></i>
-            <p class="text-slate-500 font-semibold">No Images Available</p>
+          <div class="no-img">
+            <i class="fas fa-image"></i>
+            <p>No Images Available</p>
+            <p style="font-size:11px;color:#C4CDD9;margin-top:4px;">Images will appear here once added</p>
           </div>
           {% endif %}
         </div>
 
-        <!-- Description -->
-        <div class="card p-4 slide-in delay-1">
-          <div class="section-header">
-            <i class="fas fa-info-circle text-pink-600"></i>
-            <h3 class="text-lg font-bold text-slate-800">Description</h3>
+        <!-- DESCRIPTION -->
+        <div class="card a3">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#FFF5F9;"><i class="fas fa-align-left"
+                style="color:#EC4899;font-size:12px;"></i></div>
+            <h3>Description</h3>
           </div>
-          {% if item.description %}
-          <p class="text-slate-700 leading-relaxed whitespace-pre-line">{{ item.description }}</p>
-          {% else %}
-          <p class="text-slate-500 italic">No description provided</p>
-          {% endif %}
-        </div>
+          <div class="cb">
+            {% if item.description %}
+            <p class="desc-body">{{ item.description }}</p>
+            {% else %}
+            <p style="font-size:13px;color:#9CA3AF;font-style:italic;padding:10px 0;">No description has been provided
+              for this item.</p>
+            {% endif %}
 
-        <!-- Specifications -->
-        <div class="card p-4 slide-in delay-2">
-          <div class="section-header">
-            <i class="fas fa-ruler-combined text-pink-600"></i>
-            <h3 class="text-lg font-bold text-slate-800">Specifications</h3>
-          </div>
-          <div class="spec-grid">
-            {% if item.condition %}
-            <div class="spec-card">
-              <p class="text-xs font-semibold text-slate-500 uppercase mb-1">Condition</p>
-              <p class="text-base font-bold text-slate-900">{{ item.condition }}</p>
+            <!-- Tag chips from category/condition -->
+            <div class="desc-tags">
+              {% if item.item_catagory %}<span class="desc-tag"><i class="fas fa-tag"
+                  style="color:#EC4899;margin-right:4px;"></i>{{ item.item_catagory.name }}</span>{% endif %}
+              {% if item.condition %}<span class="desc-tag"><i class="fas fa-star"
+                  style="color:#D97706;margin-right:4px;"></i>{{ item.condition }}</span>{% endif %}
+              {% if item.weight %}<span class="desc-tag"><i class="fas fa-weight-hanging"
+                  style="color:#6B7280;margin-right:4px;"></i>{{ item.weight }} kg</span>{% endif %}
+              {% if item.dimensions %}<span class="desc-tag"><i class="fas fa-ruler-combined"
+                  style="color:#6B7280;margin-right:4px;"></i>{{ item.dimensions }}</span>{% endif %}
+              <span class="desc-tag"><i class="fas fa-calendar" style="color:#6B7280;margin-right:4px;"></i>{{item.created_at|date:"Y" }}</span>
             </div>
-            {% endif %}
-            {% if item.dimensions %}
-            <div class="spec-card">
-              <p class="text-xs font-semibold text-slate-500 uppercase mb-1">Dimensions</p>
-              <p class="text-base font-bold text-slate-900">{{ item.dimensions }}</p>
-            </div>
-            {% endif %}
-            {% if item.weight %}
-            <div class="spec-card">
-              <p class="text-xs font-semibold text-slate-500 uppercase mb-1">Weight</p>
-              <p class="text-base font-bold text-slate-900">{{ item.weight }} kg</p>
-            </div>
-            {% endif %}
-            {% if item.item_catagory %}
-            <div class="spec-card bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
-              <p class="text-xs font-semibold text-indigo-600 uppercase mb-1">Category</p>
-              <p class="text-base font-bold text-indigo-900">{{ item.item_catagory.name }}</p>
-            </div>
-            {% endif %}
           </div>
         </div>
 
-        <!-- Current Lot -->
+        <!-- SPECIFICATIONS -->
+        <div class="card a3">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#FFF5F9;"><i class="fas fa-ruler-combined"
+                style="color:#EC4899;font-size:12px;"></i></div>
+            <h3>Specifications &amp; Details</h3>
+          </div>
+          <div class="cb">
+            <div class="spec-grid">
+              {% if item.condition %}
+              <div class="spec-card">
+                <div class="sico"><i class="fas fa-star" style="color:#D97706;"></i></div>
+                <div class="slbl">Condition</div>
+                <div class="sval">{{ item.condition }}</div>
+                <!-- Condition meter -->
+                <div class="cond-meter" style="margin-top:8px;">
+                  {% if item.condition == 'Excellent' or item.condition == 'New' %}
+                  <div class="cond-bar filled-excellent"></div>
+                  <div class="cond-bar filled-excellent"></div>
+                  <div class="cond-bar filled-excellent"></div>
+                  <div class="cond-bar filled-excellent"></div>
+                  <div class="cond-bar filled-excellent"></div>
+                  {% elif item.condition == 'Good' %}
+                  <div class="cond-bar filled-good"></div>
+                  <div class="cond-bar filled-good"></div>
+                  <div class="cond-bar filled-good"></div>
+                  <div class="cond-bar filled-good"></div>
+                  <div class="cond-bar"></div>
+                  {% elif item.condition == 'Fair' %}
+                  <div class="cond-bar filled-fair"></div>
+                  <div class="cond-bar filled-fair"></div>
+                  <div class="cond-bar filled-fair"></div>
+                  <div class="cond-bar"></div>
+                  <div class="cond-bar"></div>
+                  {% else %}
+                  <div class="cond-bar filled-poor"></div>
+                  <div class="cond-bar filled-poor"></div>
+                  <div class="cond-bar"></div>
+                  <div class="cond-bar"></div>
+                  <div class="cond-bar"></div>
+                  {% endif %}
+                </div>
+              </div>
+              {% endif %}
+              {% if item.dimensions %}
+              <div class="spec-card">
+                <div class="sico"><i class="fas fa-ruler" style="color:#0891B2;"></i></div>
+                <div class="slbl">Dimensions</div>
+                <div class="sval">{{ item.dimensions }}</div>
+              </div>
+              {% endif %}
+              {% if item.weight %}
+              <div class="spec-card">
+                <div class="sico"><i class="fas fa-weight-hanging" style="color:#7C3AED;"></i></div>
+                <div class="slbl">Weight</div>
+                <div class="sval">{{ item.weight }} kg</div>
+              </div>
+              {% endif %}
+              {% if item.item_catagory %}
+              <div class="spec-card" style="background:#F5F3FF;border-color:#DDD6FE;">
+                <div class="sico"><i class="fas fa-tag" style="color:#7C3AED;"></i></div>
+                <div class="slbl" style="color:#7C3AED;">Category</div>
+                <div class="sval" style="color:#4C1D95;">{{ item.item_catagory.name }}</div>
+              </div>
+              {% endif %}
+              <!-- Static spec cards for visual richness -->
+              <div class="spec-card">
+                <div class="sico"><i class="fas fa-shield-halved" style="color:#16A34A;"></i></div>
+                <div class="slbl">Authenticity</div>
+                <div class="sval" style="color:#16A34A;">Verified</div>
+              </div>
+              <div class="spec-card">
+                <div class="sico"><i class="fas fa-user" style="color:#EC4899;"></i></div>
+                <div class="slbl">Consignor</div>
+                <div class="sval" style="font-size:12px;">{{ item.owner.username }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOT ASSIGNMENT (if applicable) -->
         {% if item.current_lot %}
-        <div class="card p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 slide-in delay-3">
-          <div class="section-header border-blue-200">
-            <i class="fas fa-box text-blue-600"></i>
-            <h3 class="text-lg font-bold text-blue-900">Current Lot Assignment</h3>
+        <div class="card a4">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#EEF2FF;"><i class="fas fa-box"
+                style="color:#4F46E5;font-size:12px;"></i></div>
+            <h3>Current Lot Assignment</h3>
+            <span class="ch-badge" style="color:#4F46E5;background:#EEF2FF;border-color:#C7D2FE;">Active</span>
           </div>
-          <div class="space-y-2">
-            <div class="info-row border-blue-100">
-              <span class="text-sm font-semibold text-blue-700">Lot Number</span>
-              <span class="text-base font-bold text-blue-900">#{{ item.current_lot.lot_number }}</span>
-            </div>
-            <div class="info-row border-blue-100">
-              <span class="text-sm font-semibold text-blue-700">Lot Title</span>
-              <span class="text-sm font-bold text-blue-900">{{ item.current_lot.title }}</span>
-            </div>
-            <div class="pt-2">
-              <a href="{% url 'lot_detail' item.current_lot.slug %}"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-all">
-                <i class="fas fa-external-link-alt"></i>View Lot Details
+          <div class="cb">
+            <div class="lot-banner">
+              <p class="lb-eyebrow"><i class="fas fa-hashtag" style="margin-right:4px;"></i>Currently Assigned To</p>
+              <p class="lb-num">Lot #{{ item.current_lot.lot_number }}</p>
+              <p class="lb-title">{{ item.current_lot.title }}</p>
+              <a href="{% url 'lot_detail' item.current_lot.slug %}" class="btn-lot">
+                <i class="fas fa-external-link-alt"></i> View Lot Details
               </a>
             </div>
           </div>
         </div>
         {% endif %}
+
       </div>
+      <!-- /left col -->
 
-      <!-- Right Column: Details -->
-      <div class="space-y-4">
+      <!-- ╔══════════════════════
+         RIGHT COLUMN
+    ══════════════════════╗ -->
+      <div>
 
-        <!-- Item Details -->
-        <div class="card p-4 slide-in">
-          <div class="section-header">
-            <i class="fas fa-tag text-pink-600"></i>
-            <h3 class="text-base font-bold text-slate-800">Item Details</h3>
+        <!-- QUICK ACTIONS -->
+        <div class="card a2">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#FFF5F9;"><i class="fas fa-bolt"
+                style="color:#EC4899;font-size:12px;"></i></div>
+            <h3>Quick Actions</h3>
           </div>
-          <div>
-            <div class="info-row">
-              <span class="text-xs text-slate-500 font-semibold uppercase">Status</span>
-              <span class="text-sm font-bold text-slate-900 capitalize">{{ item.status }}</span>
+          <div class="cb">
+            <div class="qa-grid">
+              {% if item.current_lot %}
+              <a href="{% url 'lot_detail' item.current_lot.slug %}" class="qa-btn qa-primary">
+                <i class="fas fa-gavel"></i> View Lot &amp; Bid
+              </a>
+              {% else %}
+              <button class="qa-btn qa-primary" style="opacity:.5;cursor:not-allowed;">
+                <i class="fas fa-gavel"></i> Not in Auction Yet
+              </button>
+              {% endif %}
+              <button onclick="openLB(0)" class="qa-btn qa-secondary">
+                <i class="fas fa-images"></i> Gallery
+              </button>
+              <button onclick="window.print()" class="qa-btn qa-secondary">
+                <i class="fas fa-print"></i> Print
+              </button>
             </div>
-            <div class="info-row">
-              <span class="text-xs text-slate-500 font-semibold uppercase">Owner</span>
-              <span class="text-sm font-bold text-slate-900">{{ item.owner.username }}</span>
+          </div>
+        </div>
+
+        <!-- VALUATION -->
+        <div class="card a2">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#FFF5F9;"><i class="fas fa-chart-line"
+                style="color:#EC4899;font-size:12px;"></i></div>
+            <h3>Valuation</h3>
+          </div>
+          <div class="cb" style="padding-top:10px;">
+            <div class="val-hero">
+              <p class="val-lbl">Expert Estimated Value</p>
+              <p class="val-amount">&#8377;{{ item.estimated_value|floatformat:0 }}</p>
+              <span class="val-tag"><i class="fas fa-check-circle"></i> Auction House Certified</span>
             </div>
-            {% if item.item_catagory %}
-            <div class="info-row">
-              <span class="text-xs text-slate-500 font-semibold uppercase">Category</span>
-              <span class="text-sm font-bold text-slate-900">{{ item.item_catagory.name }}</span>
+            {% if sold_lot and item.status == 'Sold' %}
+            <div class="val-compare">
+              <div class="vc-row"><span class="vc-lbl">Estimated</span><span class="vc-val">&#8377;{{
+                  item.estimated_value|floatformat:0 }}</span></div>
+              <div class="vc-bar-wrap">
+                <div class="vc-bar" style="width:100%;"></div>
+              </div>
+              <div class="vc-row"><span class="vc-lbl">Sold For</span><span class="vc-val"
+                  style="color:#16A34A;">&#8377;{{ sold_lot.current_bid|floatformat:0 }}</span></div>
+              <div class="vc-bar-wrap">
+                <div class="vc-bar"
+                  style="width:{% widthratio sold_lot.current_bid item.estimated_value 100 %}%;background:linear-gradient(90deg,#16A34A,#4ADE80);">
+                </div>
+              </div>
+              <p class="vc-note">Sold at {% widthratio sold_lot.current_bid item.estimated_value 100 %}% of estimate</p>
+            </div>
+            {% else %}
+            <div
+              style="background:#F8F9FC;border:1.5px solid #E8ECF4;border-radius:12px;padding:14px;margin-top:14px;text-align:center;"
+              data-visibility-model="item" data-visibility-id="{{ item.id }}" data-hide-on="sold"
+              class="{% if item.status == 'Sold' %}hidden{% endif %}">
+              <i class="fas fa-gavel" style="color:#EC4899;font-size:20px;margin-bottom:6px;"></i>
+              <p style="font-size:12px;font-weight:600;color:#6B7280;">This item has not been sold yet.</p>
+              <p style="font-size:11px;color:#9CA3AF;margin-top:3px;">Final price will appear here post-auction.</p>
             </div>
             {% endif %}
-            <div class="info-row">
-              <span class="text-xs text-slate-500 font-semibold uppercase">Images</span>
-              <span class="text-sm font-bold text-pink-600">{{ item.images|length|default:0 }}</span>
+          </div>
+        </div>
+
+        <!-- ITEM DETAILS -->
+        <div class="card a3">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#FFF5F9;"><i class="fas fa-circle-info"
+                style="color:#EC4899;font-size:12px;"></i></div>
+            <h3>Item Details</h3>
+          </div>
+          <div class="cb" style="padding-top:8px;">
+            <div class="det-table">
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-toggle-on"></i>Status</span>
+                <span class="det-val" style="color:#64748B;" data-text-status-model="item"
+                  data-text-status-id="{{ item.id }}">{{ item.status }}</span>
+              </div>
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-user"></i>Owner</span>
+                <span class="det-val">{{ item.owner.username }}</span>
+              </div>
+              {% if item.item_catagory %}
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-tag"></i>Category</span>
+                <span class="det-val">{{ item.item_catagory.name }}</span>
+              </div>
+              {% endif %}
+              {% if item.condition %}
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-star"></i>Condition</span>
+                <span class="det-val">{{ item.condition }}</span>
+              </div>
+              {% endif %}
+              {% if item.weight %}
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-weight-hanging"></i>Weight</span>
+                <span class="det-val">{{ item.weight }} kg</span>
+              </div>
+              {% endif %}
+              {% if item.dimensions %}
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-ruler"></i>Dimensions</span>
+                <span class="det-val">{{ item.dimensions }}</span>
+              </div>
+              {% endif %}
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-images"></i>Photos</span>
+                <span class="det-val" style="color:#EC4899;">{{ item.get_image_urls|length|default:0 }}</span>
+              </div>
+              {% if item.current_lot %}
+              <div class="det-row">
+                <span class="det-key"><i class="fas fa-box"></i>Lot</span>
+                <span class="det-val" style="color:#4F46E5;">#{{ item.current_lot.lot_number }}</span>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>
 
-        <!-- Timeline -->
-        <div class="card p-4 slide-in delay-1">
-          <div class="section-header">
-            <i class="fas fa-clock text-pink-600"></i>
-            <h3 class="text-base font-bold text-slate-800">Timeline</h3>
+        <!-- ACTIVITY / TIMELINE -->
+        <div class="card a3">
+          <div class="card-hd">
+            <div class="hd-icon" style="background:#FFF5F9;"><i class="fas fa-clock-rotate-left"
+                style="color:#EC4899;font-size:12px;"></i></div>
+            <h3>Activity Timeline</h3>
           </div>
-          <div class="space-y-3">
-            <div>
-              <p class="text-xs font-semibold text-slate-500 uppercase mb-0.5">Added</p>
-              <p class="text-sm font-bold text-slate-900">{{ item.created_at|date:"M d, Y" }}</p>
-              <p class="text-xs text-slate-500">{{ item.created_at|date:"h:i A" }}</p>
-            </div>
-            <div class="pt-2 border-t border-slate-100">
-              <p class="text-xs font-semibold text-slate-500 uppercase mb-0.5">Last Updated</p>
-              <p class="text-sm font-bold text-slate-900">{{ item.updated_at|date:"M d, Y" }}</p>
-              <p class="text-xs text-slate-500">{{ item.updated_at|date:"h:i A" }}</p>
+          <div class="cb" style="padding-top:10px;">
+            <div class="act-feed">
+              <div class="act-item">
+                <div class="act-dot" style="background:#DCFCE7;"><i class="fas fa-plus"
+                    style="color:#16A34A;font-size:11px;"></i></div>
+                <div class="act-content">
+                  <p class="act-title">Item Registered</p>
+                  <p class="act-sub">Added by {{ item.owner.username }}</p>
+                  <p class="act-time">{{ item.created_at|date:"M d, Y · h:i A" }}</p>
+                </div>
+              </div>
+              {% if item.item_catagory %}
+              <div class="act-item">
+                <div class="act-dot" style="background:#EDE9FE;"><i class="fas fa-tag"
+                    style="color:#7C3AED;font-size:11px;"></i></div>
+                <div class="act-content">
+                  <p class="act-title">Category Assigned</p>
+                  <p class="act-sub">{{ item.item_catagory.name }}</p>
+                  <p class="act-time">{{ item.created_at|date:"M d, Y" }}</p>
+                </div>
+              </div>
+              {% endif %}
+              {% if item.status == 'Lotted' or item.current_lot %}
+              <div class="act-item">
+                <div class="act-dot" style="background:#DBEAFE;"><i class="fas fa-box"
+                    style="color:#1D4ED8;font-size:11px;"></i></div>
+                <div class="act-content">
+                  <p class="act-title">Added to Lot</p>
+                  <p class="act-sub">{% if item.current_lot %}Lot #{{ item.current_lot.lot_number }}{% else %}Assigned
+                    to auction lot{% endif %}</p>
+                  <p class="act-time">{{ item.updated_at|date:"M d, Y · h:i A" }}</p>
+                </div>
+              </div>
+              {% endif %}
+              {% if item.status == 'Sold' and sold_lot %}
+              <div class="act-item">
+                <div class="act-dot" style="background:#FEF3C7;"><i class="fas fa-gavel"
+                    style="color:#D97706;font-size:11px;"></i></div>
+                <div class="act-content">
+                  <p class="act-title">Sold at Auction</p>
+                  <p class="act-sub">&#8377;{{ sold_lot.current_bid|floatformat:0 }} · Lot #{{ sold_lot.lot_number }}
+                  </p>
+                  <p class="act-time">{{ item.updated_at|date:"M d, Y · h:i A" }}</p>
+                </div>
+              </div>
+              {% endif %}
+              <div class="act-item">
+                <div class="act-dot" style="background:#FFF5F9;"><i class="fas fa-pen"
+                    style="color:#EC4899;font-size:11px;"></i></div>
+                <div class="act-content">
+                  <p class="act-title">Last Updated</p>
+                  <p class="act-sub">Record updated</p>
+                  <p class="act-time">{{ item.updated_at|date:"M d, Y · h:i A" }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Statistics -->
-        <div class="card p-4 slide-in delay-2">
-          <div class="section-header">
-            <i class="fas fa-chart-bar text-pink-600"></i>
-            <h3 class="text-base font-bold text-slate-800">Statistics</h3>
-          </div>
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-100 flex items-center justify-center rounded-lg">
-                  <i class="fas fa-images text-blue-600 text-xs"></i>
-                </div>
-                <span class="text-xs text-slate-500 font-semibold uppercase">Total Images</span>
-              </div>
-              <span class="text-lg font-bold text-blue-600">{{ item.images|length|default:0 }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-emerald-100 flex items-center justify-center rounded-lg">
-                  <i class="fas fa-eye text-emerald-600 text-xs"></i>
-                </div>
-                <span class="text-xs text-slate-500 font-semibold uppercase">Status</span>
-              </div>
-              <span class="text-sm font-bold text-emerald-600">{{ item.get_status_display }}</span>
-            </div>
-          </div>
-        </div>
 
       </div>
+      <!-- /right col -->
+
     </div>
+    <!-- /body-grid -->
 
   </div>
 </div>
+<!-- /page wrap -->
 
-<!-- Lightbox -->
-<div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
-  <div class="lightbox-content">
-    <div class="lightbox-close" onclick="closeLightbox(event)">
-      <i class="fas fa-times"></i>
+<!-- ══ LIGHTBOX OVERLAY ══ -->
+<div id="lbOverlay" class="lb-overlay" onclick="lbBgClose(event)">
+  <button class="lb-close-btn" onclick="closeLB()"><i class="fas fa-times"></i></button>
+
+  <div class="lb-main">
+    <img id="lbMainImg" src="" alt="Full size view">
+  </div>
+
+  <div class="lb-strip" id="lbStrip">
+    {% for url in item.get_image_urls %}
+    <div class="lb-th {% if forloop.first %}active{% endif %}"
+      onclick="lbSetImg({{ forloop.counter0 }},'{{ url }}',this)" data-index="{{ forloop.counter0 }}">
+      <img src="{{ url }}" alt="" loading="lazy">
     </div>
-    <img id="lightboxImage" src="" alt="Full size image">
-    <div class="image-counter">
-      <span id="currentImageIndex">1</span> / <span id="totalImages">{{ item.images|length }}</span>
-    </div>
-    {% if item.images|length > 1 %}
-    <div class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1, event)">
-      <i class="fas fa-chevron-left"></i>
-    </div>
-    <div class="lightbox-nav lightbox-next" onclick="navigateLightbox(1, event)">
-      <i class="fas fa-chevron-right"></i>
-    </div>
-    {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if item.get_image_urls|length > 1 %}
+  <div class="lb-arr lb-arr-l" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></div>
+  <div class="lb-arr lb-arr-r" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></div>
+  {% endif %}
+
+  <div class="lb-info">
+    <span class="lb-title">{{ item.title }}</span>
+    <span class="lb-counter" id="lbCounter">1 / {{ item.get_image_urls|length }}</span>
   </div>
 </div>
-{{ item.get_image_urls|json_script:"item-images-data" }}
-{% endif %}
+
+{{ item.get_image_urls|json_script:"img-json" }}
 
 <script>
-  let currentLightboxIndex = 0;
-  const images = JSON.parse(document.getElementById("item-images-data").textContent) || [];
-  // get_image_urls already returns full URLs (Cloudinary or /media/path)
-  const imageUrls = images;
+  const ALL_IMGS = JSON.parse(document.getElementById('img-json').textContent) || [];
+  let currentThumbIdx = 0;
+  let lbIdx = 0;
 
-  function changeMainImage(imageSrc, thumbnailElement) {
-    const mainImage = document.getElementById("mainImage");
-    mainImage.src = imageSrc;
+  /* ── Main gallery controls ── */
+  function setThumb(url, idx, el) {
+    currentThumbIdx = idx;
+    const mi = document.getElementById('mainImg');
+    mi.style.opacity = '0';
+    setTimeout(() => { mi.src = url; mi.style.opacity = '1'; }, 120);
+    mi.style.transition = 'opacity .12s';
+    document.querySelectorAll('.th').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('imgIndexChip').textContent = (idx + 1) + ' / ' + ALL_IMGS.length;
+    // Scroll thumb into view
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
 
-    document.querySelectorAll(".thumbnail").forEach(thumb => {
-      thumb.classList.remove("active");
+  function thumbNav(dir, e) {
+    e.stopPropagation();
+    const next = (currentThumbIdx + dir + ALL_IMGS.length) % ALL_IMGS.length;
+    const el = document.querySelector('.th[data-index="' + next + '"]');
+    if (el) setThumb(ALL_IMGS[next], next, el);
+  }
+
+  /* ── Lightbox controls ── */
+  function openLB(idx) {
+    if (!ALL_IMGS.length) return;
+    lbIdx = idx;
+    const ov = document.getElementById('lbOverlay');
+    document.getElementById('lbMainImg').src = ALL_IMGS[lbIdx];
+    document.getElementById('lbCounter').textContent = (lbIdx + 1) + ' / ' + ALL_IMGS.length;
+    syncLbStrip();
+    ov.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLB() {
+    document.getElementById('lbOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function lbBgClose(e) {
+    if (e.target === document.getElementById('lbOverlay')) closeLB();
+  }
+
+  function lbNav(dir) {
+    lbIdx = (lbIdx + dir + ALL_IMGS.length) % ALL_IMGS.length;
+    const img = document.getElementById('lbMainImg');
+    img.style.opacity = '0';
+    setTimeout(() => { img.src = ALL_IMGS[lbIdx]; img.style.opacity = '1'; }, 100);
+    img.style.transition = 'opacity .1s';
+    document.getElementById('lbCounter').textContent = (lbIdx + 1) + ' / ' + ALL_IMGS.length;
+    syncLbStrip();
+  }
+
+  function lbSetImg(idx, url, el) {
+    lbIdx = idx;
+    const img = document.getElementById('lbMainImg');
+    img.style.opacity = '0';
+    setTimeout(() => { img.src = url; img.style.opacity = '1'; }, 100);
+    img.style.transition = 'opacity .1s';
+    document.getElementById('lbCounter').textContent = (idx + 1) + ' / ' + ALL_IMGS.length;
+    syncLbStrip();
+  }
+
+  function syncLbStrip() {
+    document.querySelectorAll('.lb-th').forEach((t, i) => {
+      t.classList.toggle('active', i === lbIdx);
+      if (i === lbIdx) t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     });
-    thumbnailElement.classList.add("active");
-    currentLightboxIndex = parseInt(thumbnailElement.dataset.index);
   }
 
-  function openLightbox(index) {
-    if (!imageUrls || imageUrls.length === 0) return;
-
-    currentLightboxIndex = index;
-    const lightbox = document.getElementById("lightbox");
-    const lightboxImage = document.getElementById("lightboxImage");
-    const currentIndexSpan = document.getElementById("currentImageIndex");
-
-    lightboxImage.src = imageUrls[currentLightboxIndex];
-    currentIndexSpan.textContent = currentLightboxIndex + 1;
-
-    lightbox.classList.add("active");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeLightbox(event) {
-    if (event.target.id === "lightbox" ||
-      event.target.classList.contains("lightbox-close") ||
-      event.target.parentElement.classList.contains("lightbox-close")) {
-      const lightbox = document.getElementById("lightbox");
-      lightbox.classList.remove("active");
-      document.body.style.overflow = "auto";
-    }
-  }
-
-  function navigateLightbox(direction, event) {
-    event.stopPropagation();
-
-    currentLightboxIndex += direction;
-
-    if (currentLightboxIndex < 0) {
-      currentLightboxIndex = imageUrls.length - 1;
-    } else if (currentLightboxIndex >= imageUrls.length) {
-      currentLightboxIndex = 0;
-    }
-
-    const lightboxImage = document.getElementById("lightboxImage");
-    const currentIndexSpan = document.getElementById("currentImageIndex");
-
-    lightboxImage.src = imageUrls[currentLightboxIndex];
-    currentIndexSpan.textContent = currentLightboxIndex + 1;
-
-    const mainImage = document.getElementById("mainImage");
-    mainImage.src = imageUrls[currentLightboxIndex];
-
-    document.querySelectorAll(".thumbnail").forEach((thumb, index) => {
-      if (index === currentLightboxIndex) {
-        thumb.classList.add("active");
-      } else {
-        thumb.classList.remove("active");
-      }
-    });
-  }
-
-  document.addEventListener("keydown", (e) => {
-    const lightbox = document.getElementById("lightbox");
-    if (lightbox.classList.contains("active")) {
-      if (e.key === "Escape") {
-        lightbox.classList.remove("active");
-        document.body.style.overflow = "auto";
-      } else if (e.key === "ArrowLeft") {
-        navigateLightbox(-1, { stopPropagation: () => { } });
-      } else if (e.key === "ArrowRight") {
-        navigateLightbox(1, { stopPropagation: () => { } });
-      }
-    }
+  /* Keyboard nav */
+  document.addEventListener('keydown', e => {
+    const ov = document.getElementById('lbOverlay');
+    if (!ov.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLB();
+    if (e.key === 'ArrowLeft') lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
   });
 </script>
 
+{% endif %}
 {% endblock %}

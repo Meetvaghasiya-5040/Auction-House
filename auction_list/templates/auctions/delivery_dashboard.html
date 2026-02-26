@@ -146,7 +146,8 @@
                         </div>
                         {% if request.GET.search_pickup %}
                         <p class="text-xs mt-1.5" style="color: rgba(107, 114, 128, 1);">
-                            Filtering: <span class="font-bold" style="color: rgba(234, 88, 12, 1);">"{{request.GET.search_pickup }}"</span>
+                            Filtering: <span class="font-bold"
+                                style="color: rgba(234, 88, 12, 1);">"{{request.GET.search_pickup }}"</span>
                         </p>
                         {% endif %}
                     </form>
@@ -216,10 +217,10 @@
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
                                     <span class="inline-flex items-center px-3 py-2 text-xs font-bold whitespace-nowrap"
-                                        {% if item.pickup_status == 'pending' %}style="background: linear-gradient(90deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%); color: white;"
-                                        {% elif item.pickup_status == 'picked_up' %}style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;"
-                                        {% elif item.pickup_status == 'at_warehouse' %}style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;"
-                                        {% endif %}>
+                                        {% if item.pickup_status == 'pending'%}style="background: linear-gradient(90deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%); color: white;"
+                                        {% elif item.pickup_status == 'picked_up'%}style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;"
+                                        {% elif item.pickup_status == 'at_warehouse'%}style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;"
+                                        {% endif %} data-status-model="item_pickup" data-status-id="{{ item.id }}">
                                         {% if item.pickup_status == 'pending' %}
                                         <i class="fas fa-clock mr-1"></i>
                                         {% elif item.pickup_status == 'picked_up' %}
@@ -227,13 +228,14 @@
                                         {% elif item.pickup_status == 'at_warehouse' %}
                                         <i class="fas fa-check-circle mr-1"></i>
                                         {% endif %}
-                                        {{ item.get_pickup_status_display }}
+                                        <span class="status-text">{{ item.get_pickup_status_display }}</span>
                                     </span>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
-                                    {% if item.pickup_status == 'pending' %}
-                                    <form method="post" action="{% url 'verify_pickup_otp' item.id %}"
-                                        class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                    <form data-visibility-model="item_pickup" data-visibility-id="{{ item.id }}"
+                                        data-show-on="pending" method="post"
+                                        action="{% url 'verify_pickup_otp' item.id %}"
+                                        class="flex flex-col sm:flex-row gap-2 items-start sm:items-center {% if item.pickup_status != 'pending' %}hidden{% endif %}">
                                         {% csrf_token %}
                                         <div class="relative w-full sm:w-auto">
                                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2"
@@ -267,8 +269,11 @@
                                             <i class="fas fa-hand-holding-box mr-2"></i>Pickup
                                         </button>
                                     </form>
-                                    {% elif item.pickup_status == 'picked_up' %}
-                                    <form method="post" action="{% url 'admin_mark_at_warehouse' item.id %}">
+
+                                    <form data-visibility-model="item_pickup" data-visibility-id="{{ item.id }}"
+                                        data-show-on="picked_up" method="post"
+                                        action="{% url 'admin_mark_at_warehouse' item.id %}"
+                                        class="{% if item.pickup_status != 'picked_up' %}hidden{% endif %}">
                                         {% csrf_token %}
                                         <button type="submit"
                                             class="w-full sm:w-auto px-4 py-2 text-sm font-semibold transition-all duration-200 flex items-center justify-center"
@@ -278,12 +283,13 @@
                                             <i class="fas fa-warehouse mr-2"></i>Mark Arrived
                                         </button>
                                     </form>
-                                    {% else %}
-                                    <span class="inline-flex items-center font-semibold text-sm"
+
+                                    <span data-visibility-model="item_pickup" data-visibility-id="{{ item.id }}"
+                                        data-hide-on="pending,picked_up"
+                                        class="inline-flex items-center font-semibold text-sm {% if item.pickup_status == 'pending' or item.pickup_status == 'picked_up' %}hidden{% endif %}"
                                         style="color: rgba(22, 163, 74, 1);">
                                         <i class="fas fa-check-double mr-2"></i>Completed
                                     </span>
-                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -347,7 +353,8 @@
                         </div>
                         {% if request.GET.search_delivery %}
                         <p class="text-xs mt-1.5" style="color: rgba(107, 114, 128, 1);">
-                            Filtering: <span class="font-bold" style="color: rgba(37, 99, 235, 1);">"{{request.GET.search_delivery }}"</span>
+                            Filtering: <span class="font-bold"
+                                style="color: rgba(37, 99, 235, 1);">"{{request.GET.search_delivery }}"</span>
                         </p>
                         {% endif %}
                     </form>
@@ -419,10 +426,10 @@
                                 <td class="px-4 md:px-6 py-4">
                                     {% if lot.delivery %}
                                     <span class="inline-flex items-center px-3 py-2 text-xs font-bold whitespace-nowrap"
-                                        {% if lot.delivery.status == 'pending' %}style="background: linear-gradient(90deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%); color: white;"
-                                        {% elif lot.delivery.status == 'shipped' %}style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;"
-                                        {% elif lot.delivery.status == 'delivered' %}style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;"
-                                        {% endif %}>
+                                        {% if lot.delivery.status == 'pending'%}style="background: linear-gradient(90deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%); color: white;"
+                                        {% elif lot.delivery.status == 'shipped'%}style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;"
+                                        {% elif lot.delivery.status == 'delivered'%}style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;"
+                                        {% endif %} data-status-model="delivery" data-status-id="{{ lot.delivery.id }}">
                                         {% if lot.delivery.status == 'pending' %}
                                         <i class="fas fa-hourglass-half mr-1"></i>
                                         {% elif lot.delivery.status == 'shipped' %}
@@ -430,20 +437,23 @@
                                         {% elif lot.delivery.status == 'delivered' %}
                                         <i class="fas fa-check-circle mr-1"></i>
                                         {% endif %}
-                                        {{ lot.delivery.get_status_display }}
+                                        <span class="status-text">{{ lot.delivery.get_status_display }}</span>
                                     </span>
                                     {% else %}
                                     <span class="inline-flex items-center px-3 py-2 text-xs font-bold whitespace-nowrap"
-                                        style="background: rgba(156, 163, 175, 0.9); color: white;">
-                                        <i class="fas fa-question-circle mr-1"></i>{{ lot.status }}
+                                        style="background: rgba(156, 163, 175, 0.9); color: white;"
+                                        data-status-model="lot" data-status-id="{{ lot.id }}">
+                                        <i class="fas fa-question-circle mr-1"></i><span class="status-text">{{
+                                            lot.status }}</span>
                                     </span>
                                     {% endif %}
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
                                     {% if lot.delivery %}
-                                    {% if lot.delivery.status != 'delivered' %}
-                                    <form method="post" action="{% url 'verify_delivery_otp' lot.id %}"
-                                        class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                    <form data-visibility-model="delivery" data-visibility-id="{{ lot.delivery.id }}"
+                                        data-hide-on="delivered" method="post"
+                                        action="{% url 'verify_delivery_otp' lot.id %}"
+                                        class="flex flex-col sm:flex-row gap-2 items-start sm:items-center {% if lot.delivery.status == 'delivered' %}hidden{% endif %}">
                                         {% csrf_token %}
                                         <div class="relative w-full sm:w-auto">
                                             <span class="absolute left-3 top-1/2 transform -translate-y-1/2"
@@ -478,12 +488,13 @@
                                             <i class="fas fa-truck-loading mr-2"></i>Deliver
                                         </button>
                                     </form>
-                                    {% else %}
-                                    <div class="inline-flex items-center font-semibold px-4 py-2 text-sm"
+
+                                    <div data-visibility-model="delivery" data-visibility-id="{{ lot.delivery.id }}"
+                                        data-show-on="delivered"
+                                        class="inline-flex items-center font-semibold px-4 py-2 text-sm {% if lot.delivery.status != 'delivered' %}hidden{% endif %}"
                                         style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
                                         <i class="fas fa-check-double mr-2"></i>Delivered
                                     </div>
-                                    {% endif %}
                                     {% else %}
                                     <div class="inline-flex items-center font-medium px-3 py-2 text-sm"
                                         style="background: rgba(239, 68, 68, 0.1); color: rgba(220, 38, 38, 1);">

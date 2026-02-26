@@ -715,6 +715,118 @@
     </script>
     {% endif %}
 
+    <!-- Global Status WebSocket Handler -->
+    <script>
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const globalStatusWS = new WebSocket(wsProtocol + window.location.host + '/ws/status/');
+
+        globalStatusWS.onmessage = function (e) {
+            const parsedData = JSON.parse(e.data);
+            if (parsedData.type === 'status_update') {
+                const data = parsedData.data;
+                const model = data.model;
+                const objId = data.id;
+                const newStatus = data.status;
+                const newStatusDisplay = data.status_display;
+
+                // Find all badges that track this specific model and ID
+                const selector = `[data-status-model="${model}"][data-status-id="${objId}"]`;
+                const badges = document.querySelectorAll(selector);
+
+                badges.forEach(badge => {
+                    // Update text inside the badge
+
+                    // If the badge has a specific child element for the text (like a span), update that
+                    const textSpan = badge.querySelector('.status-text') || badge;
+
+                    if (badge.querySelector('.status-text')) {
+                        badge.querySelector('.status-text').innerText = newStatusDisplay;
+                    } else {
+                        // Just replace text but preserve icons if they exist at the beginning
+                        const html = badge.innerHTML;
+                        const iconMatch = html.match(/(<i[^>]+><\/i>|&bull;)/i);
+                        if (iconMatch) {
+                            badge.innerHTML = iconMatch[0] + ' ' + newStatusDisplay;
+                        } else {
+                            badge.innerText = newStatusDisplay;
+                        }
+                    }
+
+                    // For colors, we can define a generic color map or let the templates pass data attributes
+                    const colors = {
+                        // Example dynamic mappings based on typical values
+                        'pending': 'bg-amber-100 text-amber-800 ring-amber-500/30',
+                        'approved': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30',
+                        'live': 'bg-rose-100 text-rose-800 ring-rose-500/30 anime-pulse',
+                        'completed': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                        'cancelled': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                        'draft': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                        'active': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30',
+                        'sold': 'bg-blue-100 text-blue-800 ring-blue-500/30',
+                        'unsold': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                        'shipped_to_warehouse': 'bg-violet-100 text-violet-800 ring-violet-500/30',
+                        'at_warehouse': 'bg-fuchsia-100 text-fuchsia-800 ring-fuchsia-500/30',
+                        'shipped': 'bg-blue-100 text-blue-800 ring-blue-500/30',
+                        'delivered': 'bg-green-100 text-green-800 ring-green-500/30',
+                        'picked_up': 'bg-indigo-100 text-indigo-800 ring-indigo-500/30',
+                        'paid': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30'
+                    };
+
+                    const rawStatus = String(newStatus).toLowerCase();
+                    const newClasses = colors[rawStatus] || 'bg-slate-100 text-slate-800 ring-slate-500/30';
+
+                    // Remove all existing color classes (simple approximation: remove all bg-, text-, ring-)
+                    badge.className = badge.className.replace(/\bbg-[a-z]+-\d+\b/g, '')
+                        .replace(/\btext-[a-z]+-\d+\b/g, '')
+                        .replace(/\bring-[a-z]+-\d+(\/\d+)?\b/g, '');
+
+                    badge.className += ' ' + newClasses;
+
+                    // Add a tiny animation to highlight the change
+                    badge.classList.remove('pulse-animation');
+                    void badge.offsetWidth; // trigger reflow
+                    badge.classList.add('pulse-animation');
+                    setTimeout(() => badge.classList.remove('pulse-animation'), 2000);
+                });
+
+                // Generic visibility toggle API based on status
+                const visibilityElements = document.querySelectorAll(`[data-visibility-model="${model}"][data-visibility-id="${objId}"]`);
+                visibilityElements.forEach(el => {
+                    const rawStatusStr = String(newStatus).toLowerCase();
+                    const showOnStr = el.getAttribute('data-show-on');
+                    const hideOnStr = el.getAttribute('data-hide-on');
+
+                    let shouldShow = !el.classList.contains('hidden');
+
+                    if (showOnStr) {
+                        const showList = showOnStr.split(',').map(s => s.trim().toLowerCase());
+                        shouldShow = showList.includes(rawStatusStr);
+                    } else if (hideOnStr) {
+                        const hideList = hideOnStr.split(',').map(s => s.trim().toLowerCase());
+                        shouldShow = !hideList.includes(rawStatusStr);
+                    }
+
+                    if (shouldShow) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                });
+
+                // Text-only status update API
+                const textElements = document.querySelectorAll(`[data-text-status-model="${model}"][data-text-status-id="${objId}"]`);
+                textElements.forEach(el => {
+                    el.innerText = newStatusDisplay;
+                });
+            }
+        };
+
+        globalStatusWS.onclose = function (e) {
+            console.error('Global Status socket closed unexpectedly');
+            // could attempt reconnect here
+        };
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 

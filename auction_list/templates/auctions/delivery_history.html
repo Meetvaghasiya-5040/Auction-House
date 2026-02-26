@@ -5,9 +5,10 @@
 
 {% block content %}
 <!-- Main Container with soft gradient background -->
-<div class="min-h-screen" style="background: linear-gradient(135deg, rgba(240, 242, 245, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(245, 240, 255, 0.3) 100%);">
+<div class="min-h-screen"
+    style="background: linear-gradient(135deg, rgba(240, 242, 245, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(245, 240, 255, 0.3) 100%);">
     <div class="container mx-auto px-4 py-8">
-        
+
         <!-- Header Section -->
         <div class="mb-8">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -15,7 +16,8 @@
                     <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color: rgba(55, 65, 81, 1);">
                         Delivery History
                     </h1>
-                    <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">Archive of completed pickups and deliveries</p>
+                    <p class="text-sm md:text-base" style="color: rgba(107, 114, 128, 1);">Archive of completed pickups
+                        and deliveries</p>
                 </div>
                 <a href="{% url 'delivery_dashboard' %}"
                     class="inline-flex items-center justify-center font-semibold py-3 px-6 transition-all duration-200 text-sm md:text-base"
@@ -29,11 +31,12 @@
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
             <!-- Total Deliveries Card -->
-            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200" 
-                 style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.85) 0%, rgba(22, 163, 74, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.85) 0%, rgba(22, 163, 74, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Total Deliveries</p>
+                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Total Deliveries
+                        </p>
                         <h3 class="text-3xl font-bold">{{ completed_deliveries|length }}</h3>
                     </div>
                     <div class="p-4" style="background: rgba(255, 255, 255, 0.2);">
@@ -43,8 +46,8 @@
             </div>
 
             <!-- Total Pickups Card -->
-            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200" 
-                 style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Total Pickups</p>
@@ -57,11 +60,12 @@
             </div>
 
             <!-- Total Transactions Card -->
-            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200" 
-                 style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.85) 0%, rgba(147, 51, 234, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.85) 0%, rgba(147, 51, 234, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Total Transactions</p>
+                        <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Total Transactions
+                        </p>
                         <h3 class="text-3xl font-bold">
                             {% widthratio completed_deliveries|length 1 1 as delivery_count %}
                             {% widthratio completed_pickups|length 1 1 as pickup_count %}
@@ -75,8 +79,8 @@
             </div>
 
             <!-- Completed Status Card -->
-            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200" 
-                 style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.85) 0%, rgba(249, 115, 22, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div class="p-6 text-white transform hover:scale-105 transition-transform duration-200"
+                style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.85) 0%, rgba(249, 115, 22, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium mb-1" style="color: rgba(255, 255, 255, 0.9);">Status</p>
@@ -90,15 +94,18 @@
         </div>
 
         <!-- Completed Deliveries Section -->
-        <div class="bg-white overflow-hidden mb-8" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
+        <div class="bg-white overflow-hidden mb-8"
+            style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
             <!-- Section Header -->
-            <div class="px-4 md:px-6 py-4" style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.15) 100%); border-bottom: 2px solid rgba(34, 197, 94, 0.3);">
+            <div class="px-4 md:px-6 py-4"
+                style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.15) 100%); border-bottom: 2px solid rgba(34, 197, 94, 0.3);">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                     <div class="p-3" style="background: rgba(34, 197, 94, 0.2);">
                         <i class="fas fa-check-circle text-xl" style="color: rgba(22, 163, 74, 1);"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg md:text-xl font-bold" style="color: rgba(55, 65, 81, 1);">Completed Deliveries</h2>
+                        <h2 class="text-lg md:text-xl font-bold" style="color: rgba(55, 65, 81, 1);">Completed
+                            Deliveries</h2>
                         <p class="text-xs md:text-sm" style="color: rgba(107, 114, 128, 1);">Warehouse → Buyers</p>
                     </div>
                 </div>
@@ -109,38 +116,48 @@
                 <div class="overflow-x-auto custom-scrollbar" style="max-width: 100%;">
                     <table class="min-w-full" style="min-width: 900px;">
                         <thead>
-                            <tr style="border-bottom: 2px solid rgba(229, 231, 235, 1); background: rgba(249, 250, 251, 0.5);">
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                            <tr
+                                style="border-bottom: 2px solid rgba(229, 231, 235, 1); background: rgba(249, 250, 251, 0.5);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-hashtag mr-2"></i>Lot #
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-user mr-2"></i>Buyer
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-map-marker-alt mr-2"></i>Location
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-calendar-check mr-2"></i>Delivered At
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-rupee-sign mr-2"></i>Fee
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-info-circle mr-2"></i>Status
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for lot in completed_deliveries %}
-                            <tr class="transition-colors duration-150" style="border-bottom: 1px solid rgba(243, 244, 246, 1);">
+                            <tr class="transition-colors duration-150"
+                                style="border-bottom: 1px solid rgba(243, 244, 246, 1);">
                                 <td class="px-4 md:px-6 py-4">
                                     <div class="flex items-center">
                                         <div class="p-3 mr-3" style="background: rgba(34, 197, 94, 0.1);">
                                             <i class="fas fa-gavel" style="color: rgba(22, 163, 74, 1);"></i>
                                         </div>
                                         <div>
-                                            <p class="font-bold text-sm md:text-base" style="color: rgba(31, 41, 55, 1);">#{{ lot.lot_number }}</p>
-                                            <p class="text-xs truncate max-w-[150px]" style="color: rgba(107, 114, 128, 1);" title="{{ lot.title }}">{{ lot.title }}</p>
+                                            <p class="font-bold text-sm md:text-base"
+                                                style="color: rgba(31, 41, 55, 1);">#{{ lot.lot_number }}</p>
+                                            <p class="text-xs truncate max-w-[150px]"
+                                                style="color: rgba(107, 114, 128, 1);" title="{{ lot.title }}">{{lot.title }}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -150,43 +167,50 @@
                                             <i class="fas fa-crown text-xs" style="color: rgba(147, 51, 234, 1);"></i>
                                         </div>
                                         <div>
-                                            <p class="text-sm font-medium" style="color: rgba(55, 65, 81, 1);">{{ lot.winning_bidder.username }}</p>
-                                            <p class="text-xs" style="color: rgba(107, 114, 128, 1);">{{ lot.winning_bidder.email }}</p>
+                                            <p class="text-sm font-medium" style="color: rgba(55, 65, 81, 1);">{{lot.winning_bidder.username }}</p>
+                                            <p class="text-xs" style="color: rgba(107, 114, 128, 1);">{{lot.winning_bidder.email }}</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
                                     <div class="flex items-start">
-                                        <i class="fas fa-location-dot mr-2 mt-1 text-xs" style="color: rgba(239, 68, 68, 1);"></i>
+                                        <i class="fas fa-location-dot mr-2 mt-1 text-xs"
+                                            style="color: rgba(239, 68, 68, 1);"></i>
                                         <span class="text-sm" style="color: rgba(75, 85, 99, 1);">
-                                            {{ lot.winning_bidder.profile.city }}, {{ lot.winning_bidder.profile.state }}
+                                            {{ lot.winning_bidder.profile.city }}, {{ lot.winning_bidder.profile.state}}
                                         </span>
                                     </div>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
                                     <div class="flex items-center">
                                         <i class="fas fa-clock mr-2 text-xs" style="color: rgba(107, 114, 128, 1);"></i>
-                                        <span class="text-sm" style="color: rgba(75, 85, 99, 1);">{{ lot.delivery.delivered_at|default:"N/A" }}</span>
+                                        <span class="text-sm" style="color: rgba(75, 85, 99, 1);">{{lot.delivery.delivered_at|default:"N/A" }}</span>
                                     </div>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
-                                    <span class="inline-flex items-center px-3 py-1 text-sm font-semibold font-mono" style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
+                                    <span class="inline-flex items-center px-3 py-1 text-sm font-semibold font-mono"
+                                        style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
                                         <i class="fas fa-rupee-sign mr-1 text-xs"></i>{{ lot.shipping_fee }}
                                     </span>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
-                                    <span class="inline-flex items-center px-3 py-2 text-xs font-bold" style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;">
-                                        <i class="fas fa-check-double mr-1"></i>{{ lot.get_status_display }}
+                                    <span class="inline-flex items-center px-3 py-2 text-xs font-bold"
+                                        style="background: linear-gradient(90deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 163, 74, 0.9) 100%); color: white;"
+                                        data-status-model="delivery" data-status-id="{{ lot.delivery.id }}">
+                                        <i class="fas fa-check-double mr-1"></i><span class="status-text">{{lot.get_status_display }}</span>
                                     </span>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
                                 <td colspan="6" class="p-8 md:p-12 text-center">
-                                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-4" style="background: rgba(34, 197, 94, 0.1);">
-                                        <i class="fas fa-truck text-4xl md:text-5xl" style="color: rgba(22, 163, 74, 0.4);"></i>
+                                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-4"
+                                        style="background: rgba(34, 197, 94, 0.1);">
+                                        <i class="fas fa-truck text-4xl md:text-5xl"
+                                            style="color: rgba(22, 163, 74, 0.4);"></i>
                                     </div>
-                                    <p class="text-sm md:text-base italic" style="color: rgba(156, 163, 175, 1);">No completed deliveries found.</p>
+                                    <p class="text-sm md:text-base italic" style="color: rgba(156, 163, 175, 1);">No
+                                        completed deliveries found.</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -197,15 +221,18 @@
         </div>
 
         <!-- Completed Pickups Section -->
-        <div class="bg-white overflow-hidden" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
+        <div class="bg-white overflow-hidden"
+            style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid rgba(229, 231, 235, 1);">
             <!-- Section Header -->
-            <div class="px-4 md:px-6 py-4" style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%); border-bottom: 2px solid rgba(59, 130, 246, 0.3);">
+            <div class="px-4 md:px-6 py-4"
+                style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%); border-bottom: 2px solid rgba(59, 130, 246, 0.3);">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                     <div class="p-3" style="background: rgba(59, 130, 246, 0.2);">
                         <i class="fas fa-box text-xl" style="color: rgba(37, 99, 235, 1);"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg md:text-xl font-bold" style="color: rgba(55, 65, 81, 1);">Completed Pickups</h2>
+                        <h2 class="text-lg md:text-xl font-bold" style="color: rgba(55, 65, 81, 1);">Completed Pickups
+                        </h2>
                         <p class="text-xs md:text-sm" style="color: rgba(107, 114, 128, 1);">Seller → Warehouse</p>
                     </div>
                 </div>
@@ -216,35 +243,44 @@
                 <div class="overflow-x-auto custom-scrollbar" style="max-width: 100%;">
                     <table class="min-w-full" style="min-width: 700px;">
                         <thead>
-                            <tr style="border-bottom: 2px solid rgba(229, 231, 235, 1); background: rgba(249, 250, 251, 0.5);">
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                            <tr
+                                style="border-bottom: 2px solid rgba(229, 231, 235, 1); background: rgba(249, 250, 251, 0.5);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-tag mr-2"></i>Item
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-user mr-2"></i>Seller
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-map-marker-alt mr-2"></i>Origin
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-rupee-sign mr-2"></i>Fee
                                 </th>
-                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider" style="color: rgba(75, 85, 99, 1);">
+                                <th class="px-4 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                    style="color: rgba(75, 85, 99, 1);">
                                     <i class="fas fa-info-circle mr-2"></i>Status
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for item in completed_pickups %}
-                            <tr class="transition-colors duration-150" style="border-bottom: 1px solid rgba(243, 244, 246, 1);">
+                            <tr class="transition-colors duration-150"
+                                style="border-bottom: 1px solid rgba(243, 244, 246, 1);">
                                 <td class="px-4 md:px-6 py-4">
                                     <div class="flex items-center">
                                         <div class="p-3 mr-3" style="background: rgba(59, 130, 246, 0.1);">
                                             <i class="fas fa-cube" style="color: rgba(37, 99, 235, 1);"></i>
                                         </div>
                                         <div>
-                                            <p class="font-semibold text-sm md:text-base" style="color: rgba(31, 41, 55, 1);">{{ item.title }}</p>
-                                            <p class="text-xs" style="color: rgba(107, 114, 128, 1);">ID: {{ item.id }}</p>
+                                            <p class="font-semibold text-sm md:text-base"
+                                                style="color: rgba(31, 41, 55, 1);">{{ item.title }}</p>
+                                            <p class="text-xs" style="color: rgba(107, 114, 128, 1);">ID: {{ item.id }}
+                                            </p>
                                         </div>
                                     </div>
                                 </td>
@@ -253,35 +289,42 @@
                                         <div class="p-2 mr-2" style="background: rgba(59, 130, 246, 0.1);">
                                             <i class="fas fa-user text-xs" style="color: rgba(37, 99, 235, 1);"></i>
                                         </div>
-                                        <span class="text-sm font-medium" style="color: rgba(55, 65, 81, 1);">{{ item.owner.username }}</span>
+                                        <span class="text-sm font-medium" style="color: rgba(55, 65, 81, 1);">{{item.owner.username }}</span>
                                     </div>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
                                     <div class="flex items-start">
-                                        <i class="fas fa-location-dot mr-2 mt-1 text-xs" style="color: rgba(239, 68, 68, 1);"></i>
+                                        <i class="fas fa-location-dot mr-2 mt-1 text-xs"
+                                            style="color: rgba(239, 68, 68, 1);"></i>
                                         <span class="text-sm" style="color: rgba(75, 85, 99, 1);">
                                             {{ item.owner.profile.city }}, {{ item.owner.profile.state }}
                                         </span>
                                     </div>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
-                                    <span class="inline-flex items-center px-3 py-1 text-sm font-semibold font-mono" style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
+                                    <span class="inline-flex items-center px-3 py-1 text-sm font-semibold font-mono"
+                                        style="background: rgba(34, 197, 94, 0.1); color: rgba(22, 163, 74, 1);">
                                         <i class="fas fa-rupee-sign mr-1 text-xs"></i>{{ item.shipping_fee }}
                                     </span>
                                 </td>
                                 <td class="px-4 md:px-6 py-4">
-                                    <span class="inline-flex items-center px-3 py-2 text-xs font-bold" style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;">
-                                        <i class="fas fa-check-circle mr-1"></i>{{ item.get_pickup_status_display }}
+                                    <span class="inline-flex items-center px-3 py-2 text-xs font-bold"
+                                        style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%); color: white;"
+                                        data-status-model="item_pickup" data-status-id="{{ item.id }}">
+                                        <i class="fas fa-check-circle mr-1"></i><span class="status-text">{{item.get_pickup_status_display }}</span>
                                     </span>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
                                 <td colspan="5" class="p-8 md:p-12 text-center">
-                                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-4" style="background: rgba(59, 130, 246, 0.1);">
-                                        <i class="fas fa-box text-4xl md:text-5xl" style="color: rgba(37, 99, 235, 0.4);"></i>
+                                    <div class="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-4"
+                                        style="background: rgba(59, 130, 246, 0.1);">
+                                        <i class="fas fa-box text-4xl md:text-5xl"
+                                            style="color: rgba(37, 99, 235, 0.4);"></i>
                                     </div>
-                                    <p class="text-sm md:text-base italic" style="color: rgba(156, 163, 175, 1);">No completed pickups found.</p>
+                                    <p class="text-sm md:text-base italic" style="color: rgba(156, 163, 175, 1);">No
+                                        completed pickups found.</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -292,7 +335,8 @@
         </div>
 
         <!-- Summary Info Section -->
-        <div class="mt-8 p-6 text-white" style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div class="mt-8 p-6 text-white"
+            style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
             <div class="flex flex-col md:flex-row md:items-start gap-4">
                 <div class="p-3 flex-shrink-0" style="background: rgba(255, 255, 255, 0.2);">
                     <i class="fas fa-info-circle text-2xl"></i>
@@ -302,19 +346,23 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         <div class="flex items-start">
                             <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
-                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">All deliveries shown here have been successfully completed and delivered to buyers.</p>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">All deliveries shown
+                                here have been successfully completed and delivered to buyers.</p>
                         </div>
                         <div class="flex items-start">
                             <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
-                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">All pickups shown here have been collected from sellers and are at the warehouse.</p>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">All pickups shown
+                                here have been collected from sellers and are at the warehouse.</p>
                         </div>
                         <div class="flex items-start">
                             <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
-                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">This archive is maintained for record-keeping and audit purposes.</p>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">This archive is
+                                maintained for record-keeping and audit purposes.</p>
                         </div>
                         <div class="flex items-start">
                             <i class="fas fa-check-circle mr-3 mt-1 flex-shrink-0"></i>
-                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">For active deliveries and pickups, please visit the main dashboard.</p>
+                            <p class="text-xs md:text-sm" style="color: rgba(255, 255, 255, 0.95);">For active
+                                deliveries and pickups, please visit the main dashboard.</p>
                         </div>
                     </div>
                 </div>
@@ -372,7 +420,7 @@
 <!-- Optional: Smooth fade-in animation -->
 <script>
     // Smooth fade-in on page load
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         const elements = document.querySelectorAll('.bg-white, [class*="p-6"]');
         elements.forEach((el, index) => {
             el.style.opacity = '0';
@@ -385,7 +433,7 @@
 
     // Add tooltip for truncated text
     document.querySelectorAll('[title]').forEach(el => {
-        el.addEventListener('mouseenter', function() {
+        el.addEventListener('mouseenter', function () {
             this.style.cursor = 'help';
         });
     });

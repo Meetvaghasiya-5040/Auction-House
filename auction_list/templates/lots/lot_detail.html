@@ -1431,8 +1431,8 @@
       {% elif lot.status == 'shipped_to_warehouse' or lot.status == 'at_warehouse' %}status-warehouse
       {% elif lot.status == 'shipped' %}status-shipped
       {% elif lot.status == 'sold' %}status-sold
-      {% else %}status-draft{% endif %}">
-      <span class="dot"></span>{{ lot.get_status_display }}
+      {% else %}status-draft{% endif %}" data-status-model="lot" data-status-id="{{ lot.id }}">
+      <span class="dot"></span><span class="status-text">{{ lot.get_status_display }}</span>
     </span>
   </div>
 
@@ -1506,9 +1506,9 @@
               <span class="meta-label">Category</span>
               <span class="meta-value">{{ lot.lot_catagory.name|default:"Uncategorized" }}</span>
             </div>
-            <div class="meta-row">
+            <div class="meta-row" data-status-model="lot" data-status-id="{{ lot.id }}">
               <span class="meta-label">Status</span>
-              <span class="meta-value">{{ lot.get_status_display }}</span>
+              <span class="meta-value status-text">{{ lot.get_status_display }}</span>
             </div>
           </div>
         </div>
@@ -1533,7 +1533,8 @@
               <p
                 style="font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">
                 Current Status</p>
-              <p style="font-size:13px;font-weight:800;color:var(--text-primary);">{{ lot.get_status_display }}</p>
+              <p style="font-size:13px;font-weight:800;color:var(--text-primary);" data-status-model="delivery"
+                data-status-id="{{ lot.delivery.id }}" class="status-text">{{ lot.get_status_display }}</p>
             </div>
           </div>
 
