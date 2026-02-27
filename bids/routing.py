@@ -5,4 +5,5 @@ websocket_urlpatterns = [
     path('ws/lot/<slug:slug>/', consumers.BiddingConsumer.as_asgi()),
     path('ws/auction/<int:auction_id>/', consumers.BiddingConsumer.as_asgi()),
     path('ws/status/', consumers.GlobalStatusConsumer.as_asgi()),
+    path('ws/admin/verification/', consumers.AdminVerificationConsumer.as_asgi()),
 ]

@@ -18,6 +18,7 @@ class Catagory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, blank=True, help_text="FontAwesome icon class")
+    requires_document = models.BooleanField(default=False, help_text="Does this category require document proofs (e.g. real estate)?")
     
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -42,8 +43,9 @@ class Item(models.Model):
     title = models.CharField(max_length=200)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     item_catagory = models.ForeignKey('Catagory', on_delete=models.CASCADE, null=True, blank=True)
-    estimated_value = models.DecimalField(max_digits=10, decimal_places=2)
+    estimated_value = models.DecimalField(max_digits=14, decimal_places=2)
     images = models.JSONField(default=list, blank=True, help_text="List of image file paths")
+    document_proofs = models.JSONField(default=list, blank=True, help_text="List of document proofs like ID, property papers etc.")
     slug = models.SlugField(blank=True,unique=True)
 
     # Detailed description
@@ -54,6 +56,7 @@ class Item(models.Model):
     
     # Status tracking
     STATUS_CHOICES = [
+        ('Pending Approval', 'Pending Verification'),
         ('Available', 'In Warehouse'),
         ('Lotted', 'Assigned to Auction'),
         ('Sold', 'Sold'),
@@ -409,10 +412,10 @@ class Lot(models.Model):
     items = models.ManyToManyField('Item', related_name='lots', blank=True)
     
     # Pricing
-    starting_bid = models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
-    reserve_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, 
+    starting_bid = models.DecimalField(max_digits=14, decimal_places=2,default=0.00)
+    reserve_price = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, 
                                        help_text="Minimum price for sale (optional)")
-    current_bid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    current_bid = models.DecimalField(max_digits=14, decimal_places=2, default=0.00)
     
     # Status & Winner
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
@@ -569,6 +572,13 @@ class Lot(models.Model):
                 highest_bid.is_winning = True
                 highest_bid.save()
                 
+                # Check for 5% token amount if > 5,00,000
+                from decimal import Decimal
+                if self.current_bid > Decimal('500000'):
+                    amount_to_pay = self.current_bid * Decimal('0.05')
+                else:
+                    amount_to_pay = self.current_bid
+
                 # Create pending payment with centralized timeout
                 expires_at = timezone.now() + timedelta(minutes=settings.WINNER_PAYMENT_TIMEOUT_MINUTES)
                 
@@ -576,6 +586,7 @@ class Lot(models.Model):
                     lot=self,
                     user=highest_bid.user,
                     amount=self.current_bid,
+                    amount_to_pay=amount_to_pay,
                     expires_at=expires_at,
                     attempt_number=1,
                     status='pending'
@@ -583,7 +594,7 @@ class Lot(models.Model):
                 
                 # Keep lot as active until payment is verified
                 # Status will be updated to 'sold' when PIN is verified
-                print(f"Pending payment created for Lot #{self.lot_number}. Winner: {highest_bid.user.username}, Expires at: {expires_at}")
+                print(f"Pending payment created for Lot #{self.lot_number}. Winner: {highest_bid.user.username}, Expires at: {expires_at}, Amount to Pay: {amount_to_pay}")
                 
             else:
                 # No bids, mark as unsold

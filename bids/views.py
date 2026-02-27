@@ -1,3 +1,5 @@
+import razorpay
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -5,75 +7,162 @@ from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from decimal import Decimal
-from .models import Wallet, Bid, Transaction, PendingPayment
+from .models import Wallet, Bid, Transaction, PendingPayment, SecurityDeposit
 from auction_list.models import Lot, Invoice
+
+razorpay_client = razorpay.Client(
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+)
 
 
 @login_required
 def wallet_dashboard(request):
-    """Display user's wallet dashboard"""
+    """Display user's wallet and deposit dashboard"""
     from django.db.models import Sum
+    
+    # Wallet & Transactions
     wallet, created = Wallet.objects.get_or_create(user=request.user)
-    transactions = Transaction.objects.filter(wallet=wallet).order_by('-timestamp')[:50]
-    
-    # Calculate stats
-    total_deposited = Transaction.objects.filter(
-        wallet=wallet, transaction_type='deposit'
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-    
+    transactions = Transaction.objects.filter(wallet=wallet).order_by('-timestamp')[:5]
     total_spent = Transaction.objects.filter(
-        wallet=wallet, amount__lt=0
+        wallet=wallet, 
+        amount__lt=0
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
     
     # Make spent amount positive for display
     total_spent = abs(total_spent)
     
+    # Security Deposit
+    deposit, created = SecurityDeposit.objects.get_or_create(user=request.user)
+    
     context = {
         'wallet': wallet,
         'transactions': transactions,
-        'total_deposited': total_deposited,
         'total_spent': total_spent,
+        'deposit': deposit,
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
     }
     return render(request, 'bids/wallet_dashboard.html', context)
+
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def create_deposit_order(request):
+    """Create Razorpay order for Security Deposit"""
+    deposit, created = SecurityDeposit.objects.get_or_create(user=request.user)
+    if deposit.status == 'active':
+        return JsonResponse({'success': False, 'error': 'Deposit already active.'})
+        
+    amount = int(deposit.amount) * 100 # amount in paise
+    currency = "INR"
+    
+    try:
+        razorpay_order = razorpay_client.order.create(dict(amount=amount, currency=currency, receipt=f"deposit_{deposit.id}"))
+        deposit.razorpay_order_id = razorpay_order['id']
+        deposit.status = 'pending'
+        deposit.save()
+        return JsonResponse({
+            'success': True,
+            'razorpay_order_id': razorpay_order['id'],
+            'amount': amount,
+            'currency': currency,
+            'key': settings.RAZORPAY_KEY_ID,
+            'user_name': request.user.get_full_name() or request.user.username,
+            'user_email': request.user.email
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@login_required
+@require_POST
+def verify_deposit(request):
+    import json
+    data = json.loads(request.body)
+    razorpay_payment_id = data.get('razorpay_payment_id')
+    razorpay_order_id = data.get('razorpay_order_id')
+    razorpay_signature = data.get('razorpay_signature')
+    
+    try:
+        razorpay_client.utility.verify_payment_signature({
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        })
+        
+        deposit = SecurityDeposit.objects.get(user=request.user, razorpay_order_id=razorpay_order_id)
+        deposit.razorpay_payment_id = razorpay_payment_id
+        deposit.status = 'active'
+        deposit.save()
+        
+        return JsonResponse({'success': True, 'message': 'Security deposit active! You can now bid.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': 'Payment verification failed.'})
 
 
 @login_required
 def add_funds(request):
-    """Add funds to user's wallet"""
+    """Add funds to user's wallet (Now handled mostly via Razorpay, but keep rendering the page)"""
     if request.method == 'POST':
-        amount = request.POST.get('amount')
-        pin = request.POST.get('pin')
-        
-        # Verify PIN
-        try:
-            if not hasattr(request.user, 'profile') or not request.user.profile.transaction_pin:
-                messages.error(request, 'Please set a transaction PIN first')
-                return redirect('profile')
-            
-            if not check_password(pin, request.user.profile.transaction_pin):
-                messages.error(request, 'Incorrect Transaction PIN')
-                return redirect('profile')
-        except Exception as e:
-            messages.error(request, 'Error verifying PIN')
-            return redirect('profile')
-        
-        try:
-            amount = Decimal(amount)
-            if amount <= 0:
-                messages.error(request, 'Amount must be positive')
-                return redirect('profile')
-            
-            wallet, created = Wallet.objects.get_or_create(user=request.user)
-            wallet.add_funds(amount, description=f"Funds added via wallet dashboard")
-            
-            messages.success(request, f'Successfully added ₹{amount} to your wallet')
-            return redirect('profile')
-            
-        except (ValueError, TypeError):
-            messages.error(request, 'Invalid amount')
-            return redirect('profile')
+        # Verify PIN (Removed for Razorpay flow)
+        pass
     
     return render(request, 'bids/add_funds.html')
+
+@login_required
+@require_POST
+def create_wallet_add_funds_order(request):
+    """Create Razorpay order for adding funds to Wallet"""
+    import json
+    data = json.loads(request.body)
+    amount = int(Decimal(str(data.get('amount', 0))) * 100) # strictly convert to paise
+    
+    if amount <= 0:
+        return JsonResponse({'success': False, 'error': 'Invalid amount.'})
+        
+    currency = "INR"
+    
+    try:
+        razorpay_order = razorpay_client.order.create(dict(amount=amount, currency=currency, receipt=f"addfunds_{request.user.id}"))
+        return JsonResponse({
+            'success': True,
+            'razorpay_order_id': razorpay_order['id'],
+            'amount': amount,
+            'currency': currency,
+            'key': settings.RAZORPAY_KEY_ID,
+            'user_name': request.user.get_full_name() or request.user.username,
+            'user_email': request.user.email
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@login_required
+@require_POST
+def verify_wallet_add_funds(request):
+    import json
+    data = json.loads(request.body)
+    razorpay_payment_id = data.get('razorpay_payment_id')
+    razorpay_order_id = data.get('razorpay_order_id')
+    razorpay_signature = data.get('razorpay_signature')
+    amount_paise = data.get('amount') # we need to know how much to add
+    
+    try:
+        razorpay_client.utility.verify_payment_signature({
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        })
+        
+        # Valid signature, add funds to wallet
+        wallet, created = Wallet.objects.get_or_create(user=request.user)
+        amount_inr = Decimal(str(amount_paise)) / Decimal('100')
+        wallet.add_funds(amount_inr, description=f"Funds added via Razorpay (Order: {razorpay_order_id})")
+        
+        return JsonResponse({'success': True, 'message': f'Successfully added ₹{amount_inr} to your wallet!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': 'Payment verification failed.'})
 
 
 @login_required
@@ -113,8 +202,8 @@ def place_bid_api(request, slug):
         lot = get_object_or_404(Lot, slug=slug)
         amount = Decimal(request.POST.get('amount', 0))
         
-        # Get or create wallet
-        wallet, created = Wallet.objects.get_or_create(user=request.user)
+        # Get security deposit
+        deposit = SecurityDeposit.objects.filter(user=request.user, status='active').exists()
         
         # Validate
         if lot.items.filter(owner=request.user).exists():
@@ -135,8 +224,8 @@ def place_bid_api(request, slug):
         if amount < minimum_bid:
             return JsonResponse({'success': False, 'error': f'Minimum bid is ₹{minimum_bid}'})
         
-        if not wallet.has_sufficient_balance(amount):
-            return JsonResponse({'success': False, 'error': f'Insufficient balance. Your balance: ₹{wallet.balance}'})
+        if not deposit:
+            return JsonResponse({'success': False, 'error': 'You must pay the ₹10,000 security deposit before placing a bid.'})
         
         # Create bid
         bid = Bid.objects.create(
@@ -187,7 +276,6 @@ def place_bid_api(request, slug):
             },
             'current_bid': float(lot.current_bid),
             'minimum_bid': float(lot.get_minimum_bid()),
-            'wallet_balance': float(request.user.wallet.balance),
         })
         
     except Exception as e:
@@ -303,14 +391,18 @@ from django.db import transaction as db_transaction
 @login_required
 @require_POST
 def verify_payment_pin(request):
-    """Verify PIN and complete payment for won lot"""
-    lot_id = request.POST.get('lot_id')
-    pin = request.POST.get('pin')
+    """Verify Razorpay payment signature for won lot"""
+    import json
+    data = json.loads(request.body)
+    lot_id = data.get('lot_id')
+    razorpay_payment_id = data.get('razorpay_payment_id')
+    razorpay_order_id = data.get('razorpay_order_id')
+    razorpay_signature = data.get('razorpay_signature')
     
-    if not lot_id or not pin:
+    if not lot_id or not razorpay_payment_id:
         return JsonResponse({
             'success': False,
-            'error': 'Lot ID and PIN are required'
+            'error': 'Missing required payment details'
         }, status=400)
     
     try:
@@ -328,26 +420,23 @@ def verify_payment_pin(request):
                 'error': 'No pending payment found for this lot'
             }, status=404)
         
-        # Check if payment has expired
         if pending_payment.is_expired():
             return JsonResponse({
                 'success': False,
                 'error': 'Payment deadline has expired'
             }, status=400)
         
-        # Verify PIN
+        # Verify Razorpay signature
         try:
-            profile = request.user.profile
-        except:
-            return JsonResponse({
+            razorpay_client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+        except razorpay.errors.SignatureVerificationError:
+             return JsonResponse({
                 'success': False,
-                'error': 'Profile not found'
-            }, status=400)
-        
-        if not check_password(pin, profile.transaction_pin):
-            return JsonResponse({
-                'success': False,
-                'error': 'Incorrect PIN'
+                'error': 'Invalid payment signature'
             }, status=400)
         
         # Process payment
@@ -368,7 +457,7 @@ def verify_payment_pin(request):
             delivery.status = 'pending'
             delivery.save()
             
-            # Mark all items as sold (but payout happens later)
+            # Mark all items as sold
             items = lot.items.all()
             for item in items:
                 item.status = 'Sold'
@@ -376,7 +465,7 @@ def verify_payment_pin(request):
                 
             winning_amount = Decimal(str(lot.current_bid))
             shipping_fee = Decimal(str(lot.shipping_fee))
-            total_charge = winning_amount + shipping_fee
+            total_charge = pending_payment.amount_to_pay + shipping_fee
             
             # Generate invoice
             try:
@@ -385,7 +474,7 @@ def verify_payment_pin(request):
                 invoice = Invoice.objects.create(
                     user=request.user,
                     lot=lot,
-                    amount=winning_amount,
+                    amount=winning_amount,  # Actual bid amount
                     shipping_fee=shipping_fee,
                     invoice_number=f"INV-{lot.id}-{uuid.uuid4().hex[:8].upper()}",
                     status='paid'
@@ -396,7 +485,6 @@ def verify_payment_pin(request):
             except Exception as e:
                 print(f"Error creating invoice: {e}")
         
-        # Tell all users watching the auction to refresh their screens
         from bids.utils import broadcast_lot_refresh
         broadcast_lot_refresh(lot)
         
@@ -404,7 +492,7 @@ def verify_payment_pin(request):
             'success': True,
             'message': 'Payment completed successfully!',
             'lot_id': lot.id,
-            'amount': float(winning_amount),
+            'amount': float(pending_payment.amount_to_pay),
             'shipping_fee': float(shipping_fee),
             'total_amount': float(total_charge)
         })
@@ -420,54 +508,12 @@ def verify_payment_pin(request):
 @login_required
 def payment_modal_fragment(request, slug):
     """
-    GET: Returns the HTML fragment for the payment PIN modal.
-    POST: Verifies PIN and completes payment for won auction.
+    GET: Creates a Razorpay Order and returns HTML to render the Razorpay Checkout flow instead of a Modal.
     """
     lot = get_object_or_404(Lot, slug=slug)
     
-    # Handle POST request - PIN verification
-    if request.method == 'POST':
-        try:
-            import json
-            data = json.loads(request.body)
-            pin = data.get('pin', '').strip()
-            
-            # Verify user is the winner
-            if lot.winning_bidder != request.user:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'You are not the winner of this auction'
-                })
-            
-            # Verify PIN
-            wallet = request.user.wallet
-            if not wallet.verify_transaction_pin(pin):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Invalid PIN. Please try again.'
-                })
-            
-            # PIN is correct - payment already deducted when bid was placed
-            # Just mark the lot as sold
-            lot.status = 'sold'
-            lot.save()
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Payment confirmed successfully!'
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'An error occurred: {str(e)}'
-            })
-    
-    # Handle GET request - return HTML fragment
-    # Show modal if user is the winning bidder and has a pending payment
-    # (Status might still be 'active' while awaiting payment)
     if lot.winning_bidder != request.user:
-        return JsonResponse({'html': ''}) # Return empty if not the winner
+        return JsonResponse({'html': ''})
         
     pending_payment = PendingPayment.objects.filter(
         lot=lot,
@@ -475,17 +521,32 @@ def payment_modal_fragment(request, slug):
         status='pending'
     ).first()
     
-    # If no pending payment exists, don't show modal
     if not pending_payment:
         return JsonResponse({'html': ''})
+        
+    total_amount = pending_payment.amount_to_pay + lot.shipping_fee
+    amount_in_paise = int(total_amount * 100)
     
-    context = {
-        'lot': lot,
-        'pending_payment': pending_payment,
-    }
-    
-    # Render just the partial
-    return render(request, 'lots/partials/payment_modal.html', context)
+    # Create razorpay order
+    try:
+        razorpay_order = razorpay_client.order.create({
+            'amount': amount_in_paise,
+            'currency': 'INR',
+            'receipt': f'lot_{lot.id}_{pending_payment.id}'
+        })
+        
+        context = {
+            'lot': lot,
+            'pending_payment': pending_payment,
+            'total_amount': total_amount,
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+            'amount_in_paise': amount_in_paise
+        }
+        
+        return render(request, 'lots/partials/payment_modal.html', context)
+    except Exception as e:
+        return JsonResponse({'html': f'<div class="alert alert-danger">Error initializing payment gateway: {str(e)}</div>'})
 
 
 

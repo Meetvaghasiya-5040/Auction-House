@@ -1,5 +1,5 @@
 from django.urls import path, include
-from . import views, views_delivery
+from . import views, views_delivery, views_verification
 
 
 urlpatterns = [
@@ -33,5 +33,11 @@ urlpatterns = [
     path("admin/delivery/pickup/mark-warehouse/<int:item_id>/", views_delivery.admin_mark_at_warehouse, name="admin_mark_at_warehouse"),
     path("admin/delivery/verify/<int:lot_id>/", views_delivery.verify_delivery_otp, name="verify_delivery_otp"),
     path("delivery/track/<int:lot_id>/", views_delivery.user_delivery_tracking, name="user_delivery_tracking"),
+    
+    # Document Verification System
+    path("verification/", views_verification.verification_dashboard, name="verification_dashboard"),
+    path("admin/verification/approve/<int:item_id>/", views_verification.approve_item, name="admin_approve_item"),
+    path("admin/verification/reject/<int:item_id>/", views_verification.reject_item, name="admin_reject_item"),
+    path("admin/verification/api/pending-items/", views.fetch_new_pending_items, name="api_pending_items"),
 ]
 

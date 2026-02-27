@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Document Verification Dashboard - Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            {% csrf_token %}
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 flex items-center gap-3">
+                    <i class="fas fa-file-signature text-indigo-600"></i>
+                    Document Verification
+                </h1>
+                <p class="text-slate-500 mt-1">Review and approve items that require ownership proofs</p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="flex gap-4">
+                <div class="bg-white px-6 py-3 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Pending Approval</p>
+                    <p class="text-2xl font-black text-orange-600">{{ total_pending }}</p>
+                </div>
+                <div class="bg-white px-6 py-3 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Approved</p>
+                    <p class="text-2xl font-black text-green-600">{{ total_approved }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content (Always render the containers for WebSocket injection) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative">
+
+            <!-- Empty State Placeholder (Initially hidden if items exist) -->
+            <div id="emptyPlaceholder"
+                class="{% if page_obj %}hidden{% endif %} p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+                <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-check-double text-2xl text-green-500"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">All Caught Up!</h3>
+                <p class="text-slate-500 max-w-sm mx-auto">There are no items currently pending document verification.
+                </p>
+            </div>
+
+            <!-- Desktop Table (Hidden on mobile) -->
+            <div class="hidden {% if page_obj %}md:block{% endif %} overflow-x-auto" id="tableContainer">
+                <table class="w-full text-left border-collapse" id="verificationTable">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200">
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item Details</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Seller</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Documents</th>
+                            <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="verificationTableBody">
+                        {% for item in page_obj %}
+                        <tr class="hover:bg-slate-50 transition-colors" id="item-row-{{ item.id }}">
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    {% if item.get_image_urls %}
+                                    <div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-slate-200"
+                                        style="background-image: url('{{ item.get_image_urls.0 }}')"></div>
+                                    {% else %}
+                                    <div
+                                        class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                                        <i class="fas fa-box text-slate-400"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <p class="font-bold text-slate-900">{{ item.title }}</p>
+                                        <p class="text-sm text-slate-500">Value: ₹{{ item.estimated_value }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <span
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                    {{ item.item_catagory.name }}
+                                </span>
+                            </td>
+                            <td class="p-4">
+                                <div class="text-sm font-medium text-slate-900">
+                                    {{ item.owner.get_full_name|default:item.owner.username }}</div>
+                                <div class="text-xs text-slate-500">{{ item.owner.email }}</div>
+                            </td>
+                            <td class="p-4">
+                                {% if item.document_proofs %}
+                                <button onclick="openDocModal({{ item.id }})"
+                                    class="text-indigo-600 hover:text-indigo-900 font-medium text-sm flex items-center gap-1">
+                                    <i class="fas fa-folder-open"></i>
+                                    View Docs ({{ item.document_proofs|length }})
+                                </button>
+                                <div id="docs-{{ item.id }}" class="hidden">
+                                    {% for doc in item.document_proofs %}
+                                    <div class="doc-link" data-url="{{ doc }}"></div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-sm text-slate-400 italic">No documents provided</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <form method="POST" action="{% url 'admin_approve_item' item.id %}" class="inline"
+                                        onsubmit="return confirm('Are you sure you want to approve this item?')">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                            class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors tooltip-trigger"
+                                            title="Approve Item">
+                                            <i class="fas fa-check-circle text-lg"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{% url 'admin_reject_item' item.id %}" class="inline"
+                                        onsubmit="return confirm('Are you sure you want to REJECT and DELETE this item? This action cannot be undone.')">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors tooltip-trigger"
+                                            title="Reject & Delete">
+                                            <i class="fas fa-times-circle text-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Cards (Visible only on mobile) -->
+            <div class="md:hidden divide-y divide-slate-100 {% if not page_obj %}hidden{% endif %}"
+                id="verificationMobileContainer">
+                {% for item in page_obj %}
+                <div class="p-4 space-y-4 bg-white hover:bg-slate-50 transition-colors" id="mobile-item-{{ item.id }}">
+                    <div class="flex gap-3">
+                        {% if item.get_image_urls %}
+                        <div class="w-16 h-16 rounded-lg bg-cover bg-center shrink-0 border border-slate-200"
+                            style="background-image: url('{{ item.get_image_urls.0 }}')"></div>
+                        {% else %}
+                        <div
+                            class="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                            <i class="fas fa-box text-slate-400"></i>
+                        </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-bold text-slate-900 truncate">{{ item.title }}</h3>
+                            <p class="text-sm text-slate-500 mb-1">Value: ₹{{ item.estimated_value }}</p>
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-indigo-100 text-indigo-800">
+                                {{ item.item_catagory.name }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-between items-center">
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-0.5">Seller</p>
+                            <p class="text-sm font-medium text-slate-900 truncate">
+                                {{item.owner.get_full_name|default:item.owner.username }}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            {% if item.document_proofs %}
+                            <button onclick="openDocModal({{ item.id }})"
+                                class="text-indigo-600 hover:text-indigo-900 font-bold text-sm flex flex-col items-center">
+                                <i class="fas fa-folder-open mb-1"></i>
+                                Docs ({{ item.document_proofs|length }})
+                            </button>
+                            <!-- Hidden logic for modal -->
+                            <div id="docs-mobile-{{ item.id }}" class="hidden">
+                                {% for doc in item.document_proofs %}
+                                <div class="doc-link" data-url="{{ doc }}"></div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <span class="text-xs text-slate-400 italic">No Docs</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <form method="POST" action="{% url 'admin_approve_item' item.id %}" class="flex-1"
+                            onsubmit="return confirm('Are you sure you want to approve this item?')">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="w-full py-2.5 bg-green-50 text-green-700 font-bold rounded-lg hover:bg-green-100 transition-colors flex justify-center items-center gap-2">
+                                <i class="fas fa-check-circle"></i> Approve
+                            </button>
+                        </form>
+                        <form method="POST" action="{% url 'admin_reject_item' item.id %}" class="flex-1"
+                            onsubmit="return confirm('Are you sure you want to REJECT and DELETE this item? This action cannot be undone.')">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="w-full py-2.5 bg-red-50 text-red-700 font-bold rounded-lg hover:bg-red-100 transition-colors flex justify-center items-center gap-2">
+                                <i class="fas fa-times-circle"></i> Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination logic -->
+            {% if page_obj.has_other_pages %}
+            <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between sm:px-6">
+                <!-- Simple pagination logic placeholder -->
+                <div class="flex flex-1 justify-between sm:hidden">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}"
+                        class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Previous</a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}"
+                        class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<!-- Document Modal -->
+<div id="docModal"
+    class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-lg text-slate-800">Verification Documents</h3>
+            <button onclick="closeDocModal()"
+                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 flex-1 overflow-y-auto" id="modalDocContent">
+            <!-- Documents will be injected here -->
+        </div>
+
+        <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end">
+            <button onclick="closeDocModal()"
+                class="px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 font-medium transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDocModal(itemId) {
+        const modal = document.getElementById('docModal');
+        const content = document.getElementById('modalDocContent');
+        const docsContainer = document.getElementById(`docs-${itemId}`);
+
+        content.innerHTML = ''; // Clear previous
+
+        if (docsContainer) {
+            const links = docsContainer.querySelectorAll('.doc-link');
+            if (links.length === 0) {
+                content.innerHTML = '<p class="text-slate-500 text-center py-8">No documents available.</p>';
+            } else {
+                let grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+
+                links.forEach((link, idx) => {
+                    const url = link.getAttribute('data-url');
+                    const isImage = url.match(/\.(jpeg|jpg|gif|png)$/i) || url.startsWith('data:image');
+                    const isPdf = url.match(/\.pdf$/i) || url.startsWith('data:application/pdf');
+
+                    let el = document.createElement('div');
+                    // Give PDFs full width by checking if it's a PDF and adding col-span-2 on medium screens
+                    el.className = 'border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col ' + (isPdf ? 'md:col-span-2' : '');
+
+                    let header = `<div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 flex justify-between items-center"><span class="font-semibold text-indigo-900 text-sm">Document ${idx + 1}</span><a href="${url}" download class="text-indigo-600 hover:text-indigo-800" title="Download"><i class="fas fa-download"></i></a></div>`;
+
+                    let body = '';
+                    if (isImage) {
+                        body = `<div class="bg-slate-50 p-4 flex-1 flex justify-center items-center"><a href="${url}" target="_blank"><img src="${url}" class="max-h-96 object-contain rounded drop-shadow hover:scale-105 transition-transform" /></a></div>`;
+                    } else if (isPdf) {
+                        body = `<div class="bg-slate-50 min-h-[600px] flex-1"><iframe src="${url}" class="w-full h-full border-0"></iframe></div>`;
+                    } else {
+                        body = `<div class="bg-slate-50 p-8 flex-1 flex flex-col justify-center items-center text-center"><i class="fas fa-file-alt text-4xl text-slate-300 mb-2"></i><a href="${url}" target="_blank" class="text-indigo-600 font-medium hover:underline">Download/View Document</a></div>`;
+                    }
+
+                    el.innerHTML = header + body;
+                    grid.appendChild(el);
+                });
+
+                content.appendChild(grid);
+            }
+        }
+
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeDocModal() {
+        const modal = document.getElementById('docModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto'; // Restore scrolling
+    }
+
+    // Real-time WebSocket Logic for new pending items
+    let verificationSocket = null;
+
+    function renderNewItem(itemData) {
+        const itemId = itemData.item_id;
+
+        // Ensure we don't duplicate
+        if (document.getElementById(`item-row-${itemId}`)) return;
+
+        const tbody = document.getElementById('verificationTableBody');
+
+        let imgHtml = itemData.image_url
+            ? `<div class="w-12 h-12 rounded-lg bg-cover bg-center shrink-0 border border-slate-200" style="background-image: url('${itemData.image_url}')"></div>`
+            : `<div class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200"><i class="fas fa-box text-slate-400"></i></div>`;
+
+        let docsHtml = '';
+        if (itemData.docs && itemData.docs.length > 0) {
+            docsHtml = `
+                <button onclick="openDocModal(${itemId})" class="text-indigo-600 hover:text-indigo-900 font-medium text-sm flex items-center gap-1">
+                    <i class="fas fa-folder-open"></i> View Docs (${itemData.docs.length})
+                </button>
+                <div id="docs-${itemId}" class="hidden">
+                    ${itemData.docs.map(doc => `<div class="doc-link" data-url="${doc}"></div>`).join('')}
+                </div>
+            `;
+        } else {
+            docsHtml = `<span class="text-sm text-slate-400 italic">No documents provided</span>`;
+        }
+
+        if (tbody) {
+            const tr = document.createElement('tr');
+            tr.className = 'bg-indigo-50/50 hover:bg-slate-50 transition-colors animate-pulse';
+            tr.id = `item-row-${itemId}`;
+            tr.innerHTML = `
+                <td class="p-4">
+                    <div class="flex items-center gap-3">
+                        ${imgHtml}
+                        <div>
+                            <p class="font-bold text-slate-900">${itemData.title}</p>
+                            <p class="text-sm text-slate-500">Value: ₹${itemData.value || 'N/A'}</p>
+                        </div>
+                    </div>
+                </td>
+                <td class="p-4">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        ${itemData.category_name || 'Category'}
+                    </span>
+                </td>
+                <td class="p-4">
+                    <div class="text-sm font-medium text-slate-900">${itemData.owner}</div>
+                </td>
+                <td class="p-4">${docsHtml}</td>
+                <td class="p-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <form method="POST" action="/auctions/admin/verification/approve/${itemId}/" class="inline" onsubmit="return confirm('Are you sure you want to approve this item?')">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+                            <button type="submit" class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors tooltip-trigger" title="Approve Item"><i class="fas fa-check-circle text-lg"></i></button>
+                        </form>
+                        <form method="POST" action="/auctions/admin/verification/reject/${itemId}/" class="inline" onsubmit="return confirm('Are you sure you want to REJECT and DELETE this item?')">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+                            <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors tooltip-trigger" title="Reject & Delete"><i class="fas fa-times-circle text-lg"></i></button>
+                        </form>
+                    </div>
+                </td>
+            `;
+            tbody.insertBefore(tr, tbody.firstChild);
+            setTimeout(() => { tr.classList.remove('animate-pulse', 'bg-indigo-50/50'); }, 3000);
+        }
+
+        // --- Mobile Card Creation ---
+        const mobileContainer = document.getElementById('verificationMobileContainer');
+        if (mobileContainer) {
+            const card = document.createElement('div');
+            card.className = 'p-4 space-y-4 bg-indigo-50/50 hover:bg-slate-50 transition-colors animate-pulse';
+            card.id = `mobile-item-${itemId}`;
+
+            let imgHtmlMobile = itemData.image_url
+                ? `<div class="w-16 h-16 rounded-lg bg-cover bg-center shrink-0 border border-indigo-200" style="background-image: url('${itemData.image_url}')"></div>`
+                : `<div class="w-16 h-16 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-200"><i class="fas fa-box text-indigo-400"></i></div>`;
+
+            let docsHtmlMobile = '';
+            if (itemData.docs && itemData.docs.length > 0) {
+                docsHtmlMobile = `
+                    <button onclick="openDocModal(${itemId})" class="text-indigo-600 hover:text-indigo-900 font-bold text-sm flex flex-col items-center">
+                        <i class="fas fa-folder-open mb-1"></i> Docs (${itemData.docs.length})
+                    </button>
+                `;
+            } else {
+                docsHtmlMobile = `<span class="text-xs text-slate-400 italic">No Docs</span>`;
+            }
+
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            card.innerHTML = `
+                <div class="flex gap-3">
+                    ${imgHtmlMobile}
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-slate-900 truncate">${itemData.title}</h3>
+                        <p class="text-sm text-slate-500 mb-1">Value: ₹${itemData.value || 'N/A'}</p>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-indigo-100 text-indigo-800">${itemData.category_name || 'Category'}</span>
+                    </div>
+                </div>
+                <div class="bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 flex justify-between items-center">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-0.5">Seller</p>
+                        <p class="text-sm font-medium text-slate-900 truncate">${itemData.owner}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                        ${docsHtmlMobile}
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <form method="POST" action="/auctions/admin/verification/approve/${itemId}/" class="flex-1" onsubmit="return confirm('Approve?')">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
+                        <button type="submit" class="w-full py-2.5 bg-green-50 text-green-700 font-bold rounded-lg hover:bg-green-100 transition-colors flex justify-center items-center gap-2"><i class="fas fa-check-circle"></i> Approve</button>
+                    </form>
+                    <form method="POST" action="/auctions/admin/verification/reject/${itemId}/" class="flex-1" onsubmit="return confirm('Reject & Delete?')">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
+                        <button type="submit" class="w-full py-2.5 bg-red-50 text-red-700 font-bold rounded-lg hover:bg-red-100 transition-colors flex justify-center items-center gap-2"><i class="fas fa-times-circle"></i> Reject</button>
+                    </form>
+                </div>
+            `;
+            mobileContainer.insertBefore(card, mobileContainer.firstChild);
+            setTimeout(() => { card.classList.remove('animate-pulse', 'bg-indigo-50/50'); }, 3000);
+        }
+
+        // Ensure the empty placeholder gets hidden if it was there and show containers
+        const emptyPlaceholder = document.getElementById('emptyPlaceholder');
+        if (emptyPlaceholder) emptyPlaceholder.classList.add('hidden');
+
+        const tableContainer = document.getElementById('tableContainer');
+        if (tableContainer) {
+            tableContainer.classList.remove('hidden');
+            tableContainer.classList.remove('md:hidden');
+            tableContainer.classList.add('md:block');
+        }
+
+        const verificationMobileContainer = document.getElementById('verificationMobileContainer');
+        if (verificationMobileContainer) {
+            verificationMobileContainer.classList.remove('hidden');
+        }
+    }
+
+    // Polling setup (Fallback for when WebSockets are unsupported/isolated)
+    function fetchPendingItems() {
+        fetch('/auctions/admin/verification/api/pending-items/')
+            .then(res => res.json())
+            .then(data => {
+                if (data.items && data.items.length > 0) {
+                    // Iterate backwards so they are prepended in the correct order
+                    for (let i = data.items.length - 1; i >= 0; i--) {
+                        renderNewItem(data.items[i]);
+                    }
+                }
+            })
+            .catch(err => console.error('Polling error:', err));
+    }
+    // Poll every 3 seconds to guarantee real-time feel
+    setInterval(fetchPendingItems, 3000);
+
+    function connectVerificationSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = protocol + '//' + window.location.host + '/ws/admin/verification/';
+
+        verificationSocket = new WebSocket(wsUrl);
+
+        verificationSocket.onmessage = function (e) {
+            console.log('WebSocket payload received:', e.data);
+            const data = JSON.parse(e.data);
+            if (data.type === 'new_item_pending') {
+                renderNewItem(data.data);
+            }
+        };
+
+        verificationSocket.onopen = function (e) {
+            console.log('Verification socket connected successfully.');
+        };
+
+        verificationSocket.onerror = function (e) {
+            console.error('Verification socket error:', e);
+        };
+
+        verificationSocket.onclose = function (e) {
+            console.error('Verification socket closed unexpectedly, retrying in 5s...');
+            setTimeout(connectVerificationSocket, 5000);
+        };
+    }
+
+    // Initialize the socket
+    connectVerificationSocket();
+</script>
+{% endblock %}

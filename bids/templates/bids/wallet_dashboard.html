@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Wallet - Auction House{% endblock %}
+{% block title %}My Wallet & Deposit - Auction House{% endblock %}
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
@@ -126,7 +126,7 @@
         background: #EFF4FF;
     }
 
-    /* ── Balance Hero ── */
+    /* ── Deposit Hero ── */
     .balance-hero {
         border-radius: 18px;
         overflow: hidden;
@@ -180,6 +180,31 @@
         color: #fff;
         line-height: 1;
         margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .status-badge {
+        font-size: 14px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+    .status-badge.active {
+        background: rgba(74, 222, 128, 0.2);
+        color: #4ADE80;
+        border: 1px solid rgba(74, 222, 128, 0.4);
+    }
+
+    .status-badge.pending {
+        background: rgba(248, 113, 113, 0.2);
+        color: #F87171;
+        border: 1px solid rgba(248, 113, 113, 0.4);
     }
 
     .balance-amount sup {
@@ -191,19 +216,16 @@
     }
 
     .balance-updated {
-        font-size: 11px;
-        color: rgba(255, 255, 255, .3);
+        font-size: 13px;
+        color: rgba(255, 255, 255, .7);
         margin-bottom: 28px;
-    }
-
-    .balance-updated i {
-        color: #60A5FA;
-        margin-right: 4px;
+        line-height: 1.5;
+        max-width: 500px;
     }
 
     .balance-stats {
         display: flex;
-        gap: 28px;
+        gap: 36px;
         flex-wrap: wrap;
         padding-top: 20px;
         border-top: 1px solid rgba(255, 255, 255, .08);
@@ -212,7 +234,7 @@
     .bstat {
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 4px;
     }
 
     .bstat-label {
@@ -224,7 +246,7 @@
     }
 
     .bstat-val {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 700;
         color: #fff;
     }
@@ -239,13 +261,13 @@
 
     .balance-right {
         background: linear-gradient(145deg, #2563EB, #1D4ED8);
-        padding: 36px 32px;
+        padding: 36px 40px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 14px;
-        min-width: 190px;
+        gap: 18px;
+        min-width: 240px;
         position: relative;
         z-index: 1;
     }
@@ -260,14 +282,14 @@
     .add-icon {
         position: relative;
         z-index: 1;
-        width: 50px;
-        height: 50px;
+        width: 56px;
+        height: 56px;
         background: rgba(255, 255, 255, .15);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 24px;
         color: #fff;
     }
 
@@ -279,146 +301,48 @@
 
     .add-label strong {
         display: block;
-        font-size: 17px;
+        font-size: 18px;
         font-weight: 700;
         color: #fff;
-        line-height: 1.1;
+        line-height: 1.2;
     }
 
     .add-label small {
-        font-size: 11px;
-        color: rgba(255, 255, 255, .6);
+        font-size: 12px;
+        color: rgba(255, 255, 255, .7);
     }
 
     .btn-add {
         position: relative;
         z-index: 1;
-        display: inline-flex;
+        display: flex;
         align-items: center;
-        gap: 7px;
-        padding: 11px 24px;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 24px;
         background: #fff;
         color: #1D4ED8;
-        border-radius: 9px;
-        font-size: 12px;
+        border-radius: 10px;
+        font-size: 13px;
         font-weight: 700;
         letter-spacing: .04em;
         text-transform: uppercase;
         text-decoration: none;
         transition: .2s;
-        white-space: nowrap;
+        border: none;
+        cursor: pointer;
     }
 
-    .btn-add:hover {
+    .btn-add:hover:not(:disabled) {
         background: #EFF4FF;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, .2);
-    }
-
-    /* ── Stats row ── */
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-        margin-bottom: 20px;
-    }
-
-    .stat-card {
-        background: #fff;
-        border-radius: 14px;
-        padding: 18px 20px;
-        border: 1.5px solid #E8ECF4;
-    }
-
-    .stat-card .sc-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        margin-bottom: 12px;
-    }
-
-    .stat-card .sc-val {
-        font-size: 22px;
-        font-weight: 800;
-        color: #1A1D23;
-        line-height: 1;
-        margin-bottom: 4px;
-    }
-
-    .stat-card .sc-lbl {
-        font-size: 11px;
-        font-weight: 500;
-        color: #8A93A6;
-    }
-
-    .stat-card .sc-sub {
-        font-size: 10px;
-        font-weight: 600;
-        margin-top: 6px;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        padding: 2px 7px;
-        border-radius: 20px;
-    }
-
-    /* ── Quick add ── */
-    .section-title {
-        font-size: 15px;
-        font-weight: 700;
-        color: #1A1D23;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .section-title i {
-        color: #2563EB;
-    }
-
-    .quick-row {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
-    }
-
-    .qa-card {
-        flex: 1;
-        min-width: 90px;
-        background: #fff;
-        border: 1.5px solid #E8ECF4;
-        border-radius: 12px;
-        padding: 14px 10px;
-        text-align: center;
-        text-decoration: none;
-        transition: .18s;
-    }
-
-    .qa-card:hover {
-        border-color: #2563EB;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, .12);
         transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, .2);
     }
 
-    .qa-card .qa-lbl {
-        font-size: 10px;
-        font-weight: 600;
-        color: #8A93A6;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        margin-bottom: 4px;
-    }
-
-    .qa-card .qa-val {
-        font-size: 18px;
-        font-weight: 800;
-        color: #1A1D23;
+    .btn-add:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
     }
 
     /* ── Transactions ── */
@@ -428,25 +352,40 @@
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 10px;
-        margin-bottom: 14px;
+        margin-bottom: 20px;
+        margin-top: 32px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1A1D23;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: #2563EB;
     }
 
     .filter-pills {
         display: flex;
-        gap: 6px;
+        gap: 8px;
         flex-wrap: wrap;
     }
 
     .pill {
-        padding: 6px 14px;
+        padding: 8px 16px;
         border-radius: 20px;
         border: 1.5px solid #D1D9E6;
         background: #fff;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
-        color: #8A93A6;
+        color: #64748B;
         cursor: pointer;
-        transition: .15s;
+        transition: .2s;
     }
 
     .pill.active,
@@ -467,8 +406,8 @@
         display: grid;
         grid-template-columns: auto 1fr auto;
         align-items: center;
-        gap: 14px;
-        padding: 16px 20px;
+        gap: 16px;
+        padding: 20px 24px;
         border-bottom: 1px solid #F0F2F5;
         transition: background .15s;
     }
@@ -482,13 +421,13 @@
     }
 
     .tx-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 15px;
+        font-size: 18px;
         flex-shrink: 0;
     }
 
@@ -519,13 +458,13 @@
 
     .tx-badge {
         display: inline-block;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 700;
         letter-spacing: .08em;
         text-transform: uppercase;
-        padding: 2px 7px;
-        border-radius: 4px;
-        margin-bottom: 3px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        margin-bottom: 6px;
     }
 
     .tx-badge.dep {
@@ -554,19 +493,21 @@
     }
 
     .tx-desc {
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 600;
         color: #1A1D23;
+        margin: 0;
     }
 
     .tx-date {
-        font-size: 11px;
+        font-size: 12px;
         color: #8A93A6;
-        margin-top: 2px;
+        margin-top: 4px;
+        margin-bottom: 0;
     }
 
     .tx-amt {
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 700;
         text-align: right;
         white-space: nowrap;
@@ -585,21 +526,22 @@
         background: #EFF4FF;
         border: 1.5px solid #BFDBFE;
         border-radius: 12px;
-        padding: 14px 18px;
+        padding: 16px 20px;
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 20px;
+        gap: 14px;
+        margin-bottom: 24px;
     }
 
     .notice-box i {
         color: #2563EB;
         margin-top: 2px;
         flex-shrink: 0;
+        font-size: 18px;
     }
 
     .notice-box p {
-        font-size: 12px;
+        font-size: 13px;
         color: #1E40AF;
         margin: 0;
         line-height: 1.6;
@@ -610,34 +552,34 @@
         background: #fff;
         border: 1.5px solid #E8ECF4;
         border-radius: 16px;
-        padding: 60px 24px;
+        padding: 64px 24px;
         text-align: center;
     }
 
     .empty-box .ei {
-        width: 64px;
-        height: 64px;
+        width: 72px;
+        height: 72px;
         background: #F0F2F5;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
+        font-size: 28px;
         color: #94A3B8;
-        margin: 0 auto 14px;
+        margin: 0 auto 16px;
     }
 
     .empty-box h3 {
-        font-size: 17px;
+        font-size: 18px;
         font-weight: 700;
         color: #1A1D23;
-        margin: 0 0 6px;
+        margin: 0 0 8px;
     }
 
     .empty-box p {
-        font-size: 13px;
-        color: #8A93A6;
-        margin: 0 0 18px;
+        font-size: 14px;
+        color: #64748B;
+        margin: 0 0 24px;
     }
 
     /* ── Responsive ── */
@@ -650,42 +592,54 @@
             flex-direction: row;
             flex-wrap: wrap;
             justify-content: space-between;
-            padding: 22px 24px;
+            padding: 24px 32px;
+            gap: 16px;
         }
 
         .balance-left {
-            padding: 28px 24px 22px;
+            padding: 32px 32px 24px;
         }
 
         .balance-amount {
-            font-size: 38px;
+            font-size: 42px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
         }
 
-        .stats-row {
-            grid-template-columns: repeat(2, 1fr);
+        .btn-add {
+            width: auto;
         }
     }
 
     @media (max-width:480px) {
-        .stats-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
         .balance-amount {
-            font-size: 30px;
+            font-size: 36px;
         }
 
         .balance-left {
-            padding: 22px 18px;
+            padding: 28px 20px;
         }
 
         .balance-right {
-            padding: 18px;
+            padding: 24px 20px;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .btn-add {
+            width: 100%;
         }
 
         .tx-row {
-            padding: 13px 14px;
-            gap: 11px;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .tx-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
         }
     }
 </style>
@@ -700,35 +654,55 @@
                     <span class="icon-wrap"><i class="fas fa-wallet"></i></span>
                     My Wallet
                 </h1>
-                <p class="breadcrumb">Dashboard &rsaquo; <span>My Wallet</span></p>
+                <p class="breadcrumb">Dashboard &rsaquo; <span>My Wallet &amp; Security Deposit</span></p>
             </div>
-            <a href="{% url 'transaction_invoice' %}" class="btn-outline">
-                <i class="fas fa-file-arrow-down"></i>
-                <span class="hidden sm:inline">Download Statement</span>
-                <span class="inline sm:hidden">Statement</span>
-            </a>
+            <div class="flex gap-2">
+                <a href="{% url 'add_funds' %}" class="btn-outline">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Funds</span>
+                </a>
+                <a href="{% url 'transaction_invoice' %}" class="btn-outline">
+                    <i class="fas fa-file-arrow-down"></i>
+                    <span class="hidden sm:inline">Download Statement</span>
+                    <span class="inline sm:hidden">Statement</span>
+                </a>
+            </div>
         </div>
 
         <!-- NOTICE BOX -->
         <div class="notice-box a1">
             <i class="fas fa-shield-halved"></i>
-            <p>Your wallet funds are securely held and only deducted when you win an auction. Outbid amounts are
-                refunded instantly to your wallet.</p>
+            <p><strong>Security Deposit:</strong> To ensure security and combat spam bidding, we require a fully
+                refundable security deposit of ₹10,000 before you can participate in any live auction. Deposit is
+                refundable 1 day after the auction. <br><strong>Wallet:</strong> Your wallet funds are securely held and
+                only deducted when you win an auction. Outbid amounts are refunded instantly to your wallet.</p>
         </div>
 
         <!-- BALANCE HERO -->
         <div class="balance-hero a2">
             <div class="balance-left">
-                <p class="balance-eyebrow">Available Balance</p>
-                <div class="balance-amount"><sup>₹</sup>{{ wallet.balance|floatformat:2 }}</div>
+                <p class="balance-eyebrow">Security Deposit Status</p>
+                <div class="balance-amount">
+                    <span><sup>₹</sup>{{ deposit.amount|floatformat:2 }}</span>
+                    {% if deposit.status == 'active' %}
+                    <span class="status-badge active"><i class="fas fa-check-circle mr-1"></i> Active</span>
+                    {% else %}
+                    <span class="status-badge pending"><i class="fas fa-lock mr-1"></i> Pending Payment</span>
+                    {% endif %}
+                </div>
+
                 <p class="balance-updated">
-                    <i class="fas fa-circle-dot" style="font-size:7px;"></i>
-                    Live · Last updated {{ wallet.updated_at|date:"M d, Y · H:i" }}
+                    {% if deposit.status == 'active' %}
+                    Your security deposit is active. You have full access to bid on any live auctions.
+                    {% else %}
+                    You must pay the security deposit to place bids.
+                    {% endif %}
                 </p>
-                <div class="balance-stats">
+
+                <div class="balance-stats mt-4">
                     <div class="bstat">
-                        <span class="bstat-label">Total Deposited</span>
-                        <span class="bstat-val pos">+₹{{ total_deposited|default:"0.00"|floatformat:2 }}</span>
+                        <span class="bstat-label">Wallet Balance</span>
+                        <span class="bstat-val pos">₹{{ wallet.balance|floatformat:2 }}</span>
                     </div>
                     <div class="bstat">
                         <span class="bstat-label">Total Spent</span>
@@ -738,90 +712,40 @@
                         <span class="bstat-label">Transactions</span>
                         <span class="bstat-val">{{ transactions|length }}</span>
                     </div>
-                    <div class="bstat">
-                        <span class="bstat-label">Account Status</span>
-                        <span class="bstat-val pos">● Active</span>
-                    </div>
                 </div>
             </div>
             <div class="balance-right">
-                <div class="add-icon"><i class="fas fa-plus"></i></div>
+                <div class="add-icon">
+                    {% if deposit.status == 'active' %}
+                    <i class="fas fa-shield-check text-green-300"></i>
+                    {% else %}
+                    <i class="fas fa-lock text-red-300"></i>
+                    {% endif %}
+                </div>
                 <div class="add-label">
-                    <strong>Add Funds</strong>
-                    <small>Instant · Secure</small>
+                    {% if deposit.status == 'active' %}
+                    <strong>Fully Verified</strong>
+                    <small>Ready to bid</small>
+                    {% else %}
+                    <strong>Access Restricted</strong>
+                    <small>Action required</small>
+                    {% endif %}
                 </div>
-                <a href="{% url 'add_funds' %}" class="btn-add">
-                    <i class="fas fa-arrow-up-right-dots"></i> Top Up
-                </a>
-            </div>
-        </div>
 
-        <!-- STATS ROW -->
-        <div class="stats-row a3">
-            <div class="stat-card">
-                <div class="sc-icon" style="background:#DBEAFE;"><i class="fas fa-arrow-down"
-                        style="color:#1D4ED8;"></i></div>
-                <div class="sc-val">₹{{ total_deposited|default:"0"|floatformat:0 }}</div>
-                <div class="sc-lbl">Total Added</div>
-                <span class="sc-sub" style="background:#DCFCE7; color:#16A34A;"><i class="fas fa-arrow-up"></i>
-                    Lifetime</span>
-            </div>
-            <div class="stat-card">
-                <div class="sc-icon" style="background:#EDE9FE;"><i class="fas fa-gavel" style="color:#7C3AED;"></i>
-                </div>
-                <div class="sc-val">{{ transactions|length }}</div>
-                <div class="sc-lbl">Total Transactions</div>
-                <span class="sc-sub" style="background:#F1F5F9; color:#64748B;">All time</span>
-            </div>
-            <div class="stat-card">
-                <div class="sc-icon" style="background:#FEF3C7;"><i class="fas fa-trophy" style="color:#D97706;"></i>
-                </div>
-                <div class="sc-val">₹{{ total_spent|default:"0"|floatformat:0 }}</div>
-                <div class="sc-lbl">Won &amp; Paid</div>
-                <span class="sc-sub" style="background:#FEF3C7; color:#D97706;"><i class="fas fa-star"></i>
-                    Purchases</span>
-            </div>
-            <div class="stat-card">
-                <div class="sc-icon" style="background:#DCFCE7;"><i class="fas fa-rotate-left"
-                        style="color:#16A34A;"></i></div>
-                <div class="sc-val" style="font-size:16px; padding-top:4px;">Instant</div>
-                <div class="sc-lbl">Refund Speed</div>
-                <span class="sc-sub" style="background:#DCFCE7; color:#16A34A;"><i class="fas fa-bolt"></i> Auto</span>
-            </div>
-        </div>
-
-        <!-- QUICK ADD -->
-        <div class="a3">
-            <p class="section-title"><i class="fas fa-bolt"></i> Quick Top-Up</p>
-            <div class="quick-row">
-                <a href="{% url 'add_funds' %}?amount=500" class="qa-card">
-                    <p class="qa-lbl">Add</p>
-                    <p class="qa-val">₹500</p>
-                </a>
-                <a href="{% url 'add_funds' %}?amount=1000" class="qa-card">
-                    <p class="qa-lbl">Add</p>
-                    <p class="qa-val">₹1,000</p>
-                </a>
-                <a href="{% url 'add_funds' %}?amount=2500" class="qa-card">
-                    <p class="qa-lbl">Add</p>
-                    <p class="qa-val">₹2,500</p>
-                </a>
-                <a href="{% url 'add_funds' %}?amount=5000" class="qa-card">
-                    <p class="qa-lbl">Add</p>
-                    <p class="qa-val">₹5,000</p>
-                </a>
-                <a href="{% url 'add_funds' %}?amount=10000" class="qa-card">
-                    <p class="qa-lbl">Add</p>
-                    <p class="qa-val">₹10,000</p>
-                </a>
+                {% if deposit.status != 'active' %}
+                <button id="pay-deposit-btn" class="btn-add">
+                    <i class="fas fa-credit-card"></i> Pay Securely
+                </button>
+                <div id="payment-error"
+                    class="hidden text-white text-xs mt-2 text-center bg-red-500 bg-opacity-50 p-2 rounded"></div>
+                {% endif %}
             </div>
         </div>
 
         <!-- TRANSACTION HISTORY -->
         <div class="a4">
             <div class="section-bar">
-                <p class="section-title" style="margin-bottom:0;"><i class="fas fa-clock-rotate-left"></i> Transaction
-                    History</p>
+                <p class="section-title"><i class="fas fa-clock-rotate-left"></i> Transaction History</p>
                 <div class="filter-pills">
                     <button class="pill active">All</button>
                     <button class="pill">Deposits</button>
@@ -860,7 +784,7 @@
                             {{ transaction.get_transaction_type_display }}
                         </span>
                         <p class="tx-desc">{{ transaction.description }}</p>
-                        <p class="tx-date"><i class="far fa-clock" style="margin-right:3px;"></i>{{ transaction.timestamp|date:"M d, Y · H:i" }}</p>
+                        <p class="tx-date"><i class="far fa-clock" style="margin-right:4px;"></i>{{transaction.timestamp|date:"M d, Y · H:i" }}</p>
                     </div>
 
                     <div class="tx-amt {% if transaction.amount >= 0 %}pos{% else %}neg{% endif %}">
@@ -871,13 +795,18 @@
                 {% endfor %}
             </div>
 
+            <div class="mt-6 text-center">
+                <p class="text-slate-500 text-sm mb-4"><i class="fas fa-info-circle mr-2"></i> Only your 5 most recent
+                    transactions are shown here.</p>
+            </div>
+
             {% else %}
             <div class="empty-box">
-                <div class="ei"><i class="fas fa-wallet"></i></div>
+                <div class="ei"><i class="fas fa-receipt"></i></div>
                 <h3>No Transactions Yet</h3>
-                <p>Add funds to get started. Your complete history will appear here.</p>
+                <p>Add funds or participate in bids to get started. Your complete history will appear here.</p>
                 <a href="{% url 'add_funds' %}"
-                    style="display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:#2563EB;color:#fff;border-radius:9px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;">
+                    style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:#2563EB;color:#fff;border-radius:10px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;">
                     <i class="fas fa-plus"></i> Add Funds
                 </a>
             </div>
@@ -886,6 +815,109 @@
 
     </div>
 </div>
+
+{% if deposit.status != 'active' %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.getElementById('pay-deposit-btn').addEventListener('click', async function () {
+        const btn = this;
+        const errorDiv = document.getElementById('payment-error');
+        errorDiv.classList.add('hidden');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+
+        try {
+            // 1. Create Order
+            const response = await fetch('{% url "create_deposit_order" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                errorDiv.textContent = data.error || 'Server error';
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-credit-card mr-2"></i> Try Again';
+                return;
+            }
+
+            // 2. Initialize Razorpay Checkout
+            var options = {
+                "key": data.key,
+                "amount": data.amount,
+                "currency": data.currency,
+                "name": "Auction House",
+                "description": "Security Deposit for Bidding",
+                "order_id": data.razorpay_order_id,
+                "handler": function (response) {
+                    // 3. Verify Payment
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Verifying...';
+
+                    fetch('{% url "verify_deposit" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    }).then(res => res.json())
+                        .then(verifyData => {
+                            if (verifyData.success) {
+                                window.location.reload();
+                            } else {
+                                errorDiv.textContent = verifyData.error || 'Verification failed';
+                                errorDiv.classList.remove('hidden');
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="fas fa-credit-card mr-2"></i> Try Again';
+                            }
+                        }).catch(err => {
+                            errorDiv.textContent = err.message || 'Verification HTTP error';
+                            errorDiv.classList.remove('hidden');
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-credit-card mr-2"></i> Try Again';
+                        });
+                },
+                "prefill": {
+                    "name": data.user_name,
+                    "email": data.user_email
+                },
+                "theme": {
+                    "color": "#1D4ED8"
+                },
+                "modal": {
+                    "ondismiss": function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-credit-card mr-2"></i> Pay Securely';
+                    }
+                }
+            };
+            var rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response) {
+                errorDiv.textContent = "Payment failed.";
+                errorDiv.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-credit-card mr-2"></i> Try Again';
+            });
+            rzp1.open();
+
+        } catch (error) {
+            errorDiv.textContent = error.message || 'An error occurred';
+            errorDiv.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card mr-2"></i> Try Again';
+        }
+    });
+</script>
+{% endif %}
 
 <script>
     const pills = document.querySelectorAll('.pill');

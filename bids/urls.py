@@ -5,6 +5,10 @@ from . import invoice_generator
 urlpatterns = [
     path('wallet/', views.wallet_dashboard, name='wallet_dashboard'),
     path('wallet/add-funds/', views.add_funds, name='add_funds'),
+    path('wallet/add-funds/create-order/', views.create_wallet_add_funds_order, name='create_wallet_add_funds_order'),
+    path('wallet/add-funds/verify/', views.verify_wallet_add_funds, name='verify_wallet_add_funds'),
+    path('deposit/create/', views.create_deposit_order, name='create_deposit_order'),
+    path('deposit/verify/', views.verify_deposit, name='verify_deposit'),
     path('my-bids/', views.my_bids, name='my_bids'),
     path('won-lots/', views.won_lots, name='won_lots'),
     path('place-bid/<slug:slug>/', views.place_bid_api, name='place_bid_api'),

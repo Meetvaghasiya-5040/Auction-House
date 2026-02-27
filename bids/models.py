@@ -63,6 +63,31 @@ class Wallet(models.Model):
         return self.balance >= Decimal(str(amount))
 
 
+class SecurityDeposit(models.Model):
+    """Initial deposit required for users to be able to bid"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Payment'),
+        ('active', 'Active'),
+        ('returned', 'Returned'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='security_deposits')
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=10000.00)
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Security Deposit'
+        verbose_name_plural = 'Security Deposits'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - ₹{self.amount} ({self.get_status_display()})"
+
+
 class AdminWallet(models.Model):
     """Singleton wallet for collecting admin commissions"""
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
@@ -118,27 +143,10 @@ class Bid(models.Model):
         if self.amount < minimum_bid:
             raise ValidationError(f"Bid must be at least ₹{minimum_bid}")
         
-        # Check wallet balance
-        wallet = getattr(self.user, 'wallet', None)
-        if not wallet:
-            raise ValidationError("User does not have a wallet")
-        
-        # Calculate required funds
-        # If user is already the winning bidder, they only need to pay the difference
-        current_winning_bid = self.lot.bids.filter(is_winning=True).first()
-        required_amount = self.amount
-
-        if current_winning_bid and current_winning_bid.user == self.user:
-             # Top-Up Scenario: Need (New Bid - Old Bid)
-             # But if for some reason new bid < old bid (shouldn't happen due to min_bid check), logic still holds mathematically
-             required_amount = self.amount - current_winning_bid.amount
-        else:
-             # New Bidder Scenario: Need full amount. 
-             # (Refunds for previous winners happen AFTER this bid is accepted, so we don't count them for THIS user)
-             pass
-        
-        if wallet.balance < Decimal(str(required_amount)):
-            raise ValidationError(f"Insufficient wallet balance. You need ₹{required_amount} more.")
+        # Check security deposit
+        active_deposit = SecurityDeposit.objects.filter(user=self.user, status='active').exists()
+        if not active_deposit:
+            raise ValidationError("You must pay the ₹10,000 security deposit before placing a bid.")
     
     def save(self, *args, **kwargs):
         """Override save to update lot and create transaction"""
@@ -149,36 +157,15 @@ class Bid(models.Model):
             self.full_clean()
             
             with transaction.atomic():
-                # Lock lot to prevent race conditions (optional but good practice)
-                # self.lot.refresh_from_db() 
-
                 previous_winner_bid = Bid.objects.filter(lot=self.lot, is_winning=True).first()
-                deduction_amount = self.amount
-                description = f"Bid placed on {self.lot.title}"
                 
                 if previous_winner_bid:
                     if previous_winner_bid.user == self.user:
-                        # 1. Top-Up Scenario (User outbidding themselves)
-                        deduction_amount = self.amount - previous_winner_bid.amount
-                        description = f"Bid increased on {self.lot.title} (Top-up)"
-                        
-                        # Mark previous bid as not winning
                         previous_winner_bid.is_winning = False
                         previous_winner_bid.save()
-                        
                     else:
-                        # 2. Start-Over Scenario (New User outbidding someone else)
-                        # Refund the previous winner
-                        prev_wallet = previous_winner_bid.user.wallet
-                        prev_wallet.add_funds(
-                            amount=previous_winner_bid.amount,
-                            description=f"Refund: Outbid on '{self.lot.title}'"
-                        )
                         previous_winner_bid.is_winning = False
                         previous_winner_bid.save()
-                        
-                        # Use full amount for deduction
-                        deduction_amount = self.amount
                 
                 # 3. This bid is now winning
                 self.is_winning = True
@@ -189,25 +176,10 @@ class Bid(models.Model):
                 self.lot.last_bid_time = timezone.now()
                 self.lot.idle_timer_started = False  # Reset idle timer
                 self.lot.save(update_fields=['current_bid', 'last_bid_time', 'idle_timer_started', 'winning_bidder'])
-            
-                # 5. Deduct funds from wallet
-                # We do this AFTER invalidating previous bid to ensure 'Top-Up' logic uses correct state
-                if deduction_amount > 0:
-                     self.user.wallet.deduct_funds(
-                        amount=deduction_amount,
-                        description=description
-                    )
 
         super().save(*args, **kwargs)
         
-        if is_new and deduction_amount > 0:
-            # Link transaction (Best effort lookup)
-            latest_txn = Transaction.objects.filter(wallet=self.user.wallet).order_by('-timestamp').first()
-            if latest_txn:
-                latest_txn.related_bid = self
-                latest_txn.transaction_type = 'bid_placed'
-                latest_txn.save()
-            
+        if is_new:
             # Broadcast bid update via WebSocket
             from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
@@ -291,8 +263,9 @@ class PendingPayment(models.Model):
     lot = models.ForeignKey('auction_list.Lot', on_delete=models.CASCADE, related_name='pending_payments')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pending_payments')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    amount_to_pay = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(help_text="Payment deadline (15 minutes from creation)")
+    expires_at = models.DateTimeField(help_text="Payment deadline (3 days from creation)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     attempt_number = models.IntegerField(default=1, help_text="1 for first winner, 2 for second bidder")
     pin_verified = models.BooleanField(default=False)

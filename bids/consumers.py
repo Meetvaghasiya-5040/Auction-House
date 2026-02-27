@@ -326,3 +326,27 @@ class GlobalStatusConsumer(AsyncWebsocketConsumer):
             'type': 'status_update',
             'data': event['data']
         }))
+
+class AdminVerificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_group_name = 'admin_verification'
+        
+        # Accept the connection. The page itself is protected by staff_member_required view decorator.
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+
+    async def new_item_pending(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'new_item_pending',
+            'data': event['data']
+        }))

@@ -310,7 +310,11 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", f"Auction House <{EMAI
 
 
 # Auction Settings  
-WINNER_PAYMENT_TIMEOUT_MINUTES = 15
+WINNER_PAYMENT_TIMEOUT_MINUTES = 3 * 24 * 60  # 3 days
+
+# Razorpay Settings
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_SLDw6EMAUEf6k1")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "2RFsPhs4TrSWYhThL5mUo4p7")
 
 # Warehouse Location for Shipping Calculation
 WAREHOUSE_CITY = 'Ahmedabad'

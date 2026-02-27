@@ -440,3 +440,37 @@ def get_auction_updates(request):
     }
     
     return JsonResponse(data)
+
+from django.contrib.admin.views.decorators import staff_member_required
+
+@staff_member_required
+def fetch_new_pending_items(request):
+    """Fallback API for Real-Time Verification Dashboard to fetch new items"""
+    # Fetch all pending items (the frontend will filter out ones it already has)
+    pending_items = Item.objects.filter(status='Pending Approval').order_by('-created_at')[:20]
+    
+    data = []
+    for item in pending_items:
+        docs = []
+        if hasattr(item, 'document_proofs') and item.document_proofs:
+            if isinstance(item.document_proofs, list):
+                docs = [str(d) for d in item.document_proofs]
+            else:
+                docs = [str(item.document_proofs.url)] if hasattr(item.document_proofs, 'url') else [str(item.document_proofs)]
+                
+        img_url = ''
+        if item.get_image_urls:
+            img_url = item.get_image_urls[0]
+            
+        data.append({
+            'item_id': item.id,
+            'title': item.title,
+            'owner': request.user.username if request.user else item.owner.username,
+            'value': str(item.estimated_value),
+            'category_name': item.item_catagory.name if item.item_catagory else '',
+            'image_url': img_url,
+            'docs': docs
+        })
+        
+    return JsonResponse({'items': data})
+

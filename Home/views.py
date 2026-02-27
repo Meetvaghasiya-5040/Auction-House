@@ -180,6 +180,25 @@ def add_item_view(request):
                 images_paths.append(saved_path)
             else:
                 images_paths.append(data_uri)
+                
+        documents = request.FILES.getlist("document")
+        document_paths = []
+        
+        for doc in documents:
+            import base64
+            doc_data = doc.read()
+            base64_encoded = base64.b64encode(doc_data).decode('utf-8')
+            mime_type = doc.content_type
+            data_uri = f"data:{mime_type};base64,{base64_encoded}"
+            
+            if hasattr(settings, 'CLOUDINARY_STORAGE') and settings.CLOUDINARY_STORAGE.get('CLOUD_NAME'):
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"{timestamp}_{doc.name}"
+                doc.seek(0)
+                saved_path = default_storage.save(f"item_documents/{filename}", doc)
+                document_paths.append(saved_path)
+            else:
+                document_paths.append(data_uri)
         
         # Calculate Shipping Fee
         # try:
@@ -194,6 +213,14 @@ def add_item_view(request):
         #     shipping_fee = Decimal('0.00')
         shipping_fee = Decimal('0.00')
 
+        # Check conditions for document verification
+        try:
+            value_decimal = Decimal(estimated_value)
+        except:
+            value_decimal = Decimal('0')
+
+        requires_doc = selected_catagory.requires_document or value_decimal >= Decimal('500000')
+        item_status = 'Pending Approval' if requires_doc else 'Available'
 
         item = Item.objects.create(
             owner=request.user,
@@ -206,11 +233,53 @@ def add_item_view(request):
             weight=weight if weight else None,
             shipping_fee=shipping_fee,
             images=images_paths,
-            status='Available'  
+            document_proofs=document_paths,
+            status=item_status  
         )
         
         messages.success(request, f'Item "{item.title}" has been added to your warehouse successfully!')
         
+        if item.status == 'Pending Approval':
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            try:
+                # Prepare URLs safely
+                img_url = ''
+                if item.get_image_urls():
+                    img_url = item.get_image_urls()[0]
+                
+                docs = []
+                if hasattr(item, 'document_proofs') and item.document_proofs:
+                    if isinstance(item.document_proofs, list):
+                        docs = [str(d) for d in item.document_proofs]
+                    else:
+                        docs = [str(item.document_proofs.url)] if hasattr(item.document_proofs, 'url') else [str(item.document_proofs)]
+
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Sending WebSocket event for item {item.id} to admin_verification group")
+                
+                async_to_sync(channel_layer.group_send)(
+                    'admin_verification',
+                    {
+                        'type': 'new_item_pending',
+                        'data': {
+                            'item_id': item.id,
+                            'title': item.title,
+                            'owner': request.user.username,
+                            'value': str(item.estimated_value),
+                            'category_name': item.item_catagory.name if item.item_catagory else '',
+                            'image_url': img_url,
+                            'docs': docs
+                        }
+                    }
+                )
+                logger.warning("WebSocket send completed")
+            except Exception as e:
+                import logging
+                logging.error(f"WebSocket send failed: {e}")
+
         return redirect("profile")
    
     context = {
@@ -221,7 +290,7 @@ def add_item_view(request):
 
 def delete_item_view(request, slug):
     item = get_object_or_404(Item, slug=slug, owner=request.user)
-    if item.status in ('Lotted', 'Sold'):
+    if item.status in ('Lotted', 'Sold', 'Pending Approval'):
         messages.error(request, f'Cannot delete "{item.title}" — it is currently {item.status}.')
         return redirect('profile')
     if request.method == "POST":
@@ -231,7 +300,7 @@ def delete_item_view(request, slug):
 
 def edit_item_view(request, slug):
     item = get_object_or_404(Item, slug=slug, owner=request.user)
-    if item.status in ('Lotted', 'Sold'):
+    if item.status in ('Lotted', 'Sold', 'Pending Approval'):
         messages.error(request, f'Cannot edit "{item.title}" — it is currently {item.status}.')
         return redirect('profile')
     if request.method == "POST":

@@ -145,6 +145,10 @@
                             class="block px-4 py-3 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-bold border-b border-slate-100">
                             <i class="fas fa-truck mr-3 text-purple-600"></i>Delivery Dashboard
                         </a>
+                        <a href="{% url 'verification_dashboard' %}"
+                            class="block px-4 py-3 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-bold border-b border-slate-100">
+                            <i class="fas fa-file-signature mr-3 text-purple-600"></i>Verification Dashboard
+                        </a>
                         {% endif %}
 
                         <div class="border-t-2 border-slate-200"></div>
@@ -309,6 +313,10 @@
                             <a href="{% url 'delivery_dashboard' %}"
                                 class="block px-8 py-2.5 text-sm text-purple-700 hover:bg-purple-100 transition font-bold">
                                 <i class="fas fa-truck mr-3 text-purple-600"></i>Delivery Dashboard
+                            </a>
+                            <a href="{% url 'verification_dashboard' %}"
+                                class="block px-8 py-2.5 text-sm text-purple-700 hover:bg-purple-100 transition font-bold">
+                                <i class="fas fa-file-signature mr-3 text-purple-600"></i>Verification Dashboard
                             </a>
                             {% endif %}
                         </div>

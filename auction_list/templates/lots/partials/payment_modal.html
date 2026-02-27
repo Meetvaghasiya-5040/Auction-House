@@ -15,67 +15,70 @@
             </div>
         </div>
 
-        <form id="paymentPinForm" class="p-6">
-            {% csrf_token %}
-            <input type="hidden" name="lot_id" value="{{ lot.id }}">
-
+        <div class="p-6">
             <div class="mb-6">
+                <!-- Warning Timer Box -->
                 <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
                     <div class="flex">
                         <i class="fas fa-clock text-yellow-400 mt-1 mr-3"></i>
                         <div class="text-sm text-yellow-800">
                             <p class="font-bold mb-1">Payment Required</p>
-                            <p>Enter your transaction PIN to complete payment within <span id="payment-timer"
-                                    class="font-bold">15:00</span></p>
+                            <p>Complete payment within <span id="payment-timer" class="font-bold"></span>.</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Lot Total Info -->
                 <div class="bg-slate-50 rounded-lg p-4 mb-6">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-slate-600">Lot:</span>
+                    <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
+                        <span class="text-sm text-slate-600">Lot Title:</span>
                         <span class="text-sm font-bold text-slate-900">{{ lot.title }}</span>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-slate-600">Amount:</span>
-                        <span class="text-2xl font-black text-green-600">₹{{
-                            pending_payment.amount|floatformat:2}}</span>
+
+                    {% if pending_payment.amount_to_pay < pending_payment.amount %}
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Total Bid Amount:</span>
+                        <span class="text-sm font-bold text-slate-900 line-through">₹{{ pending_payment.amount|floatformat:2 }}</span>
                     </div>
+                    {% endif %}
+
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Amount Due Items:</span>
+                        <span class="text-sm font-bold text-slate-900">₹{{ pending_payment.amount_to_pay|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Shipping Fee:</span>
+                        <span class="text-sm font-bold text-slate-900">+ ₹{{ lot.shipping_fee|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                        <span class="text-md font-bold text-slate-800">Total Charge:</span>
+                        <span class="text-2xl font-black text-green-600">₹{{ total_amount|floatformat:2 }}</span>
+                    </div>
+                    {% if pending_payment.amount_to_pay < pending_payment.amount %}
+                    <p class="text-xs text-orange-600 font-bold mt-2 text-right">* 5% initial token amount required for bids over ₹5,00,000.</p>
+                    {% endif %}
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">
-                        <i class="fas fa-lock text-green-600 mr-2"></i>Enter Transaction PIN
-                    </label>
-                    <input type="password" name="pin" id="payment-pin" maxlength="6"
-                        class="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-green-500 focus:outline-none text-center text-2xl tracking-widest font-bold"
-                        placeholder="••••" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-                </div>
-
-                <div id="paymentPinError"
-                    class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
-                <div id="paymentPinSuccess"
-                    class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-                </div>
+                <div id="paymentError" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+                <div id="paymentSuccess" class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"></div>
             </div>
 
-            <button type="submit" id="verifyPaymentBtn"
-                class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105 shadow-lg">
-                <i class="fas fa-check-circle mr-2"></i>Confirm Payment
+            <button id="rzp-button1" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
+                <i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}
             </button>
 
             <p class="text-xs text-slate-500 text-center mt-4">
-                <i class="fas fa-info-circle mr-1"></i>Your payment will be processed securely
+                <i class="fas fa-shield-alt mr-1"></i>Secure payment powered by Razorpay
             </p>
-        </form>
+        </div>
     </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     (function () {
-        // Encapsulate to avoid global pollutant if loaded multiple times
-        // BUT we need it to run when injected.
-
         // Payment Timer Countdown
         const expiresAtStr = "{{ pending_payment.expires_at|date:'c' }}";
         if (!expiresAtStr) return;
@@ -91,9 +94,9 @@
             if (distance < 0) {
                 timerDisplay.textContent = "EXPIRED";
                 timerDisplay.classList.add('text-red-600');
-                const btn = document.getElementById('verifyPaymentBtn');
+                const btn = document.getElementById('rzp-button1');
                 if (btn) btn.disabled = true;
-                const err = document.getElementById('paymentPinError');
+                const err = document.getElementById('paymentError');
                 if (err) {
                     err.textContent = 'Payment window has expired. The lot will be offered to the next bidder.';
                     err.classList.remove('hidden');
@@ -101,76 +104,62 @@
                 return;
             }
 
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            timerDisplay.textContent = `${days}d ${hours}h ${minutes}m`;
 
-            // Warning when less than 2 minutes
-            if (distance < 120000) {
+            if (distance < 3600000) { // less than 1 hour
                 timerDisplay.classList.add('text-red-600', 'font-bold');
             }
         }
 
         updatePaymentTimer();
-        const paymentTimerInterval = setInterval(updatePaymentTimer, 1000);
-        // Store interval to clear it later? Attach to window or element?
-        // simple way: 
-        window.currentPaymentInterval = paymentTimerInterval;
+        window.currentPaymentInterval = setInterval(updatePaymentTimer, 60000);
 
-
-        // Payment PIN Form Handler
-        const form = document.getElementById('paymentPinForm');
-        if (form) {
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-
-                const pin = document.getElementById('payment-pin').value;
-                const errorDiv = document.getElementById('paymentPinError');
-                const successDiv = document.getElementById('paymentPinSuccess');
-                const submitBtn = document.getElementById('verifyPaymentBtn');
-
-                errorDiv.classList.add('hidden');
-                successDiv.classList.add('hidden');
-
-                if (!/^\d{4,6}$/.test(pin)) {
-                    errorDiv.textContent = 'PIN must be 4-6 digits';
-                    errorDiv.classList.remove('hidden');
-                    return;
-                }
-
+        const options = {
+            "key": "{{ razorpay_key_id }}", 
+            "amount": "{{ amount_in_paise }}", 
+            "currency": "INR",
+            "name": "Auction House",
+            "description": "Payment for won lot - {{ lot.title }}",
+            "order_id": "{{ razorpay_order_id }}", 
+            "handler": function (response){
+                // Callback function when payment succeeds
+                const errorDiv = document.getElementById('paymentError');
+                const successDiv = document.getElementById('paymentSuccess');
+                const submitBtn = document.getElementById('rzp-button1');
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
 
-                try {
-                    const formData = new FormData(this);
-                    const response = await fetch('{% url "verify_payment_pin" %}', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-
-                    const data = await response.json();
-
+                fetch('{% url "verify_payment_pin" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        lot_id: '{{ lot.id }}',
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
+                }).then(res => res.json())
+                .then(data => {
                     if (data.success) {
                         successDiv.textContent = data.message;
                         successDiv.classList.remove('hidden');
 
-                        // Hide modal immediately
                         const paymentModal = document.getElementById('paymentPinModal');
                         if (paymentModal) {
                             paymentModal.classList.add('hidden');
-                            paymentModal.remove(); // Remove from DOM entirely on success
+                            paymentModal.remove();
                         }
 
-                        // STOP THE TIMER
-                        if (window.currentPaymentInterval) {
-                            clearInterval(window.currentPaymentInterval);
-                        }
+                        if (window.currentPaymentInterval) clearInterval(window.currentPaymentInterval);
 
-                        // Main page timer update (if exists outside)
                         const mainTimerDisplay = document.getElementById('timer-display');
                         if (mainTimerDisplay) {
                             mainTimerDisplay.textContent = "PAID";
@@ -178,34 +167,43 @@
                             mainTimerDisplay.classList.add('text-green-600');
                         }
 
-                        // Show Winner Overlay Logic (global scope function)
                         if (window.showWinnerOverlay) {
-                            window.showWinnerOverlay("{{ request.user.username }}", "₹{{ pending_payment.amount|floatformat:2 }}");
+                            window.showWinnerOverlay("{{ request.user.username }}", "₹{{ total_amount|floatformat:2 }}");
                         } else {
-                            // Fallback reload
                             window.location.reload();
                         }
-
                     } else {
-                        errorDiv.textContent = data.error || 'Payment verification failed';
+                        errorDiv.textContent = data.error || 'Payment verification failed server-side.';
                         errorDiv.classList.remove('hidden');
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Payment';
+                        submitBtn.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}';
                     }
-                } catch (error) {
-                    errorDiv.textContent = 'An error occurred. Please try again.';
+                }).catch(err => {
+                    errorDiv.textContent = 'Server connection error verifying payment.';
                     errorDiv.classList.remove('hidden');
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm Payment';
-                }
-            });
-        }
+                    submitBtn.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}';
+                });
+            },
+            "prefill": {
+                "name": "{{ request.user.get_full_name|default:request.user.username }}",
+                "email": "{{ request.user.email }}"
+            },
+            "theme": {
+                "color": "#059669"
+            }
+        };
 
-        const pinInput = document.getElementById('payment-pin');
-        if (pinInput) {
-            pinInput.addEventListener('input', function (e) {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
+        const rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response){
+            const errorDiv = document.getElementById('paymentError');
+            errorDiv.textContent = "Payment failed: " + response.error.description;
+            errorDiv.classList.remove('hidden');
+        });
+
+        document.getElementById('rzp-button1').onclick = function(e){
+            e.preventDefault();
+            rzp1.open();
         }
     })();
 </script>

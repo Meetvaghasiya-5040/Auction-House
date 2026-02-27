@@ -983,8 +983,7 @@
                   <div class="mb-3 p-2 bg-yellow-50 border border-yellow-100 rounded-lg">
                     <p class="text-[9px] text-yellow-700 font-bold uppercase tracking-wider mb-1">Pickup OTP</p>
                     <div class="flex items-center justify-between">
-                      <span class="text-sm font-black text-yellow-900 tracking-widest font-mono">{{
-                        item.pickup_otp}}</span>
+                      <span class="text-sm font-black text-yellow-900 tracking-widest font-mono">{{ item.pickup_otp}}</span>
                       <span class="text-[9px] text-yellow-600 bg-yellow-100 px-1.5 py-0.5 rounded">Share with pickup
                         agent</span>
                     </div>
@@ -1276,7 +1275,7 @@
       </div>
     </div>
 
-    <form action="{% url 'add_funds' %}" method="POST" class="p-4 sm:p-6">
+    <form id="addFundsForm" onsubmit="initiateRazorpayAddFunds(event)" class="p-4 sm:p-6">
       {% csrf_token %}
       <div class="mb-4 sm:mb-6">
         <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Amount to
@@ -1284,7 +1283,7 @@
         <div class="relative">
           <span
             class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-500 font-bold text-lg sm:text-xl">₹</span>
-          <input type="number" name="amount" required min="100" step="100" placeholder="Enter amount"
+          <input type="number" id="addAmount" name="amount" required min="100" step="1" placeholder="Enter amount"
             class="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 text-base sm:text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
         </div>
         <p class="text-[10px] sm:text-xs text-slate-500 mt-2"><i class="fas fa-info-circle mr-1"></i>Minimum amount:
@@ -1309,29 +1308,17 @@
         </div>
       </div>
 
-      <div class="mb-4 sm:mb-6">
-        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
-          <i class="fas fa-lock text-purple-600 mr-2"></i>Transaction PIN (4-6 digits)
-        </label>
-        <input type="password" name="pin" id="add-funds-pin" maxlength="6"
-          class="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none text-center text-xl sm:text-2xl tracking-widest font-bold"
-          placeholder="Enter PIN" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
-        <p class="text-[10px] sm:text-xs text-slate-500 mt-2">
-          <i class="fas fa-info-circle mr-1"></i>Enter your 4-6 digit transaction PIN to confirm
-        </p>
-      </div>
-
       <div class="bg-blue-50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
         <p class="text-[10px] sm:text-xs text-blue-700 font-bold">
           <i class="fas fa-shield-alt mr-1"></i>
-          YOUR PAYMENT IS SECURED WITH INDUSTRY-STANDARD ENCRYPTION
+          SECURED VIA RAZORPAY ENCRYPTION
         </p>
       </div>
 
-      <button type="submit"
+      <button type="submit" id="addFundsPayBtn"
         class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 text-sm sm:text-base uppercase tracking-wide">
         <i class="fas fa-check-circle mr-2"></i>
-        ADD FUNDS
+        PAY VIA RAZORPAY
       </button>
     </form>
   </div>
@@ -1363,9 +1350,7 @@
           <i class="fas fa-info-circle mr-1"></i>Withdrawal Information
         </p>
         <ul class="text-[10px] sm:text-xs text-amber-700 space-y-1">
-          <li>• Available Balance: ₹<span id="withdrawableBalance">{{ user.wallet.balance|floatformat:0|default:"0"
-              }}</span></li>
-          <li>• Processing time: 2-3 business days</li>
+          <li>• Available Balance: ₹<span id="withdrawableBalance">{{ user.wallet.balance|floatformat:0|default:"0"}}</span></li>
           <li>• Minimum withdrawal: ₹500</li>
         </ul>
       </div>
@@ -2073,7 +2058,96 @@
   }
 </style>
 
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
+  async function initiateRazorpayAddFunds(e) {
+    e.preventDefault();
+    const amountInput = document.getElementById('addAmount');
+    if (!amountInput) return;
+    const amount = amountInput.value;
+
+    if (!amount || amount < 100) {
+      alert("Please enter a valid amount (Min: 100)");
+      return;
+    }
+
+    const btn = document.getElementById('addFundsPayBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>PROCESSING...';
+
+    try {
+      const response = await fetch("{% url 'create_wallet_add_funds_order' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ amount: amount })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const options = {
+          "key": data.key,
+          "amount": data.amount,
+          "currency": data.currency,
+          "name": "Auction House",
+          "description": "Add Funds to Wallet",
+          "order_id": data.razorpay_order_id,
+          "handler": async function (response) {
+            // Verify payment
+            const verifyResp = await fetch("{% url 'verify_wallet_add_funds' %}", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: data.amount
+              })
+            });
+            const verifyData = await verifyResp.json();
+            if (verifyData.success) {
+              window.location.reload();
+            } else {
+              alert("Verification Failed: " + verifyData.error);
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>PAY VIA RAZORPAY';
+            }
+          },
+          "prefill": {
+            "name": data.user_name,
+            "email": data.user_email
+          },
+          "theme": {
+            "color": "#10b981"
+          },
+          "modal": {
+            "ondismiss": function () {
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>PAY VIA RAZORPAY';
+            }
+          }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        alert('Error: ' + data.error);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>PAY VIA RAZORPAY';
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to initiate payment. Please try again.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>PAY VIA RAZORPAY';
+    }
+  }
 </script>
 
 {% endblock %}
