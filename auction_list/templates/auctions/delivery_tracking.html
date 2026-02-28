@@ -39,8 +39,7 @@
                         <div class="flex-1">
                             <span class="text-xs font-bold uppercase tracking-wider"
                                 style="color: rgba(156, 163, 175, 1);">Current Status</span>
-                            <h2 class="text-xl md:text-2xl font-bold mt-1" style="color: rgba(34, 197, 94, 1);" {% if
-                                delivery %}data-status-model="delivery" data-status-id="{{ delivery.id }}" {% else %} data-status-model="lot" data-status-id="{{ lot.id }}" {% endif %}>
+                            <h2 class="text-xl md:text-2xl font-bold mt-1" style="color: rgba(34, 197, 94, 1);" {% if delivery %}data-status-model="delivery" data-status-id="{{ delivery.id }}" {% else %} data-status-model="lot" data-status-id="{{ lot.id }}" {% endif %}>
                                 {% if delivery %}
                                 <span class="status-text">{{ delivery.get_status_display }}</span>
                                 {% else %}
