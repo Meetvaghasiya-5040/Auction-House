@@ -1,0 +1,399 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Finance Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Finance & Transactions</h1>
+        <p class="text-sm text-slate-500 mt-1">Manage platform revenue, security deposits, and pending payments.</p>
+    </div>
+
+    <div class="flex gap-3">
+        <a href="{% url 'admin_panel:finance_report' %}"
+            class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm inline-flex items-center">
+            <i class="fas fa-file-invoice mr-2"></i> Generate Report
+        </a>
+    </div>
+</div>
+
+<!-- Financial Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+    <!-- Admin Wallet -->
+    <div
+        class="bg-gradient-to-br from-indigo-900 to-indigo-700 rounded-xl shadow-lg p-6 relative overflow-hidden group">
+        <div class="absolute right-0 bottom-0 opacity-10">
+            <i
+                class="fas fa-wallet text-9xl -mr-6 -mb-6 transform group-hover:scale-110 transition-transform duration-500"></i>
+        </div>
+        <div class="relative z-10">
+            <p class="text-sm font-medium text-indigo-200 mb-1">Admin Wallet Balance</p>
+            <h3 class="text-4xl font-bold text-white mb-4">₹{{ wallet.balance|default:"0.00" }}</h3>
+            <div class="flex items-center gap-4 text-xs">
+                <div class="flex flex-col">
+                    <span class="text-indigo-200">Total Active Deposits</span>
+                    <span class="text-white font-medium">{{ active_deposits|default:"0" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Payments -->
+    <div
+        class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between hover:border-amber-300 transition-colors">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm font-medium text-slate-500 mb-1">Pending Buy Payments</p>
+                <h3 class="text-3xl font-bold text-slate-800">{{ pending_count }}</h3>
+            </div>
+            <div class="h-10 w-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="#pending-table"
+                class="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center">
+                Review pending payments <i class="fas fa-arrow-right ml-1 text-xs"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Deposits -->
+    <div
+        class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between hover:border-emerald-300 transition-colors">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm font-medium text-slate-500 mb-1">Active Security Deposits</p>
+                <h3 class="text-3xl font-bold text-slate-800">{{ active_deposits }}</h3>
+            </div>
+            <div class="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="#deposits-table"
+                class="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center">
+                Manage deposits <i class="fas fa-arrow-right ml-1 text-xs"></i>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- Pending Payments Table -->
+<div id="pending-table" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-hourglass-half text-amber-500 mr-2"></i> Pending Payments from Winners
+        </h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-slate-600">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50/50 border-b border-slate-200">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-semibold">User</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Lot / Amount</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Deadline</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pending_payments %}
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-900">{{ p.user.username }}</div>
+                        <div class="text-xs text-slate-500">{{ p.user.email }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-800">Lot #{{ p.lot.lot_number }} — {{ p.lot.title }}</div>
+                        <div class="text-xs font-semibold text-emerald-600 mt-1">₹{{ p.amount_to_pay }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs text-slate-700">{{ p.payment_deadline|date:"M d, Y h:i A" }}</div>
+                        {% if p.is_expired %}
+                        <span class="text-[10px] uppercase font-bold text-rose-500 tracking-wider">Expired</span>
+                        {% else %}
+                        <span class="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Awaiting</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <span
+                            class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800">
+                            {{ p.status|title }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if p.status == 'pending' or p.status == 'expired' %}
+                        <button onclick="forceCompletePayment({{ p.id }}, '{{ p.lot.title|escapejs }}')"
+                            class="text-indigo-600 hover:text-indigo-900 font-medium text-xs bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded transition-colors">
+                            Force Complete
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                        <i class="fas fa-check-circle text-2xl text-emerald-400 mb-2 block"></i>
+                        No pending payments at this time.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Active Deposits Table -->
+<div id="deposits-table" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-shield-alt text-emerald-500 mr-2"></i> Security Deposits
+        </h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-slate-600">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50/50 border-b border-slate-200">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-semibold">User</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Date Paid</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Gateway ID</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Amount</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in deposits %}
+                <tr class="border-b border-slate-100 hover:bg-slate-50" data-deposit-id="{{ d.id }}">
+                    <td class="px-6 py-4 font-medium text-slate-900">{{ d.user.username }}</td>
+                    <td class="px-6 py-4 text-xs text-slate-700">{{ d.created_at|date:"M d, Y h:i A" }}</td>
+                    <td class="px-6 py-4 font-mono text-xs">{{ d.razorpay_payment_id|default:"N/A" }}</td>
+                    <td class="px-6 py-4 font-semibold text-emerald-600">₹{{ d.amount }}</td>
+                    <td class="px-6 py-4">
+                        {% if d.status == 'active' %}
+                        <span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">
+                            Active
+                        </span>
+                        {% elif d.status == 'refunded' %}
+                        <span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-slate-100 text-slate-800">
+                            Refunded
+                        </span>
+                        {% elif d.status == 'forfeited' %}
+                        <span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-rose-100 text-rose-800">
+                            Forfeited
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800">
+                            {{ d.status|title }}
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                        No security deposits found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Invoices Table -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-file-invoice text-indigo-500 mr-2"></i> Recent Successful Invoices
+        </h3>
+        <a href="{% url 'admin_panel:invoices' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-slate-600">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50/50 border-b border-slate-200">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-semibold">Invoice ID</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Lot / Buyer</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Date</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Amount</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in recent_invoices|slice:":10" %}
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-6 py-4 font-mono text-xs">{{ inv.invoice_number }}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-800">{{ inv.lot.title }}</div>
+                        <div class="text-xs text-slate-500">Buyer: {{ inv.user.username }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-xs text-slate-500">{{ inv.issued_at|date:"M d, Y" }}</td>
+                    <td class="px-6 py-4 font-semibold text-slate-800">₹{{ inv.amount }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'admin_panel:download_invoice' inv.id %}"
+                            class="text-indigo-600 hover:text-indigo-800 inline-flex p-1.5 rounded hover:bg-indigo-50 transition-colors"
+                            title="Download PDF">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                        No invoices generated yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function forceCompletePayment(paymentId, lotTitle) {
+        Swal.fire({
+            title: 'Force Complete Payment?',
+            html: `Are you sure you want to mark the payment for <b>${lotTitle}</b> as completed?<br><br><span class="text-sm text-slate-500">This simulates a successful Razorpay transaction and will generate invoices and emails.</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Yes, force complete'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Processing...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                fetch(`{% url 'admin_panel:force_payment' 0 %}`.replace('0', paymentId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire(
+                            'Completed!',
+                            data.message,
+                            'success'
+                        ).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error',
+                            data.error || 'Failed to force complete the payment.',
+                            'error'
+                        );
+                    }
+                })
+                .catch(error => {
+                    Swal.fire(
+                        'Error',
+                        'A network error occurred.',
+                        'error'
+                    );
+                });
+            }
+        })
+    }
+
+    // Live DOM updates for new Security Deposits
+    document.addEventListener('adminLiveUpdate', function(e) {
+        const data = e.detail;
+        if (data.type === 'admin_notification' && data.notification_type === 'deposit_active' && data.extra_data) {
+            
+            const tbody = document.querySelector('#deposits-table table tbody');
+            if (!tbody) return;
+
+            const noDepositsRow = tbody.querySelector('td[colspan="5"]');
+            if (noDepositsRow) {
+                noDepositsRow.parentElement.remove();
+            }
+
+            // Create new row
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-deposit-id', data.extra_data.deposit_id);
+            tr.className = 'bg-emerald-50 border-b border-emerald-100 hover:bg-emerald-100 transition-colors duration-500';
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-medium text-emerald-900">${data.extra_data.username}</td>
+                <td class="px-6 py-4 text-xs text-emerald-800">${data.extra_data.created_at}</td>
+                <td class="px-6 py-4 font-mono text-xs text-emerald-800">${data.extra_data.gateway_id}</td>
+                <td class="px-6 py-4 font-semibold text-emerald-600">₹${data.extra_data.amount}</td>
+                <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-1 py-1 px-2.5 rounded-md text-xs font-medium bg-emerald-200 text-emerald-900 shadow-sm animate-pulse flex items-center">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 block mr-1"></span> Active
+                    </span>
+                </td>
+            `;
+
+            // Insert at the top of the table
+            tbody.prepend(tr);
+            
+            // Remove highlight effect after a few seconds
+            setTimeout(() => {
+                tr.classList.remove('bg-emerald-50', 'border-emerald-100', 'hover:bg-emerald-100');
+                tr.classList.add('bg-white', 'border-slate-100', 'hover:bg-slate-50');
+                
+                // Remove pulse dot from badge
+                const badge = tr.querySelector('td:last-child span');
+                if (badge) {
+                    badge.outerHTML = `<span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">Active</span>`;
+                }
+            }, 5000);
+
+            // Update Active Deposits Stats Card
+            const statsCards = document.querySelectorAll('.grid > div');
+            statsCards.forEach(card => {
+                const titleEl = card.querySelector('p');
+                if(titleEl && titleEl.textContent.trim().toUpperCase() === 'ACTIVE DEPOSITS') {
+                    const h3 = card.querySelector('h3');
+                    if(h3) {
+                        const currentCount = parseInt(h3.textContent.replace(/,/g, '')) || 0;
+                        h3.textContent = (currentCount + 1).toLocaleString();
+                    }
+                }
+            });
+        } else if (data.type === 'status_update' && data.data.model === 'securitydeposit') {
+            const tr = document.querySelector(`tr[data-deposit-id="${data.data.id}"]`);
+            if (tr) {
+                const badgeCell = tr.querySelector('td:last-child');
+                const status = data.data.status.toLowerCase();
+                let html = '';
+                
+                if (status === 'active') {
+                    html = `<span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">Active</span>`;
+                } else if (status === 'refunded' || status === 'returned') {
+                    html = `<span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-slate-100 text-slate-800">${data.data.status_display}</span>`;
+                } else if (status === 'forfeited') {
+                    html = `<span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-rose-100 text-rose-800">Forfeited</span>`;
+                } else {
+                    html = `<span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800">${data.data.status_display}</span>`;
+                }
+                
+                if(badgeCell.innerHTML.trim() !== html.trim()) {
+                    badgeCell.innerHTML = html;
+                    tr.classList.add('bg-indigo-50', 'transition-colors', 'duration-500');
+                    setTimeout(() => {
+                        tr.classList.remove('bg-indigo-50');
+                    }, 3000);
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

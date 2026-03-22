@@ -1,0 +1,209 @@
+{% extends "admin_panel/admin_base.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">Analytics Overview</h1>
+    <p class="text-slate-500 text-sm mt-1">Platform-wide performance metrics and trends</p>
+</div>
+
+<!-- Revenue Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</p>
+        <p class="text-2xl font-bold text-indigo-600 mt-1">₹{{ total_bid_revenue|floatformat:0 }}</p>
+        <p class="text-xs text-slate-400 mt-1">From winning bids</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Buyer Premium</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1">₹{{ total_premium_rev|floatformat:0 }}</p>
+        <p class="text-xs text-slate-400 mt-1">Admin extra profit</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Shipping Revenue</p>
+        <p class="text-2xl font-bold text-amber-600 mt-1">₹{{ total_shipping_rev|floatformat:0 }}</p>
+        <p class="text-xs text-slate-400 mt-1">Delivery & pickup fees</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Admin Wallet</p>
+        <p class="text-2xl font-bold text-slate-800 mt-1">₹{{ total_wallet|floatformat:0 }}</p>
+        <p class="text-xs text-slate-400 mt-1">Current balance</p>
+    </div>
+</div>
+
+<!-- Live Auction Stats -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-indigo-600 rounded-xl p-5 text-white">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-indigo-200 text-xs font-semibold uppercase">Live Auctions</p>
+                <p class="text-3xl font-bold mt-1">{{ live_auctions }}</p>
+            </div>
+            <i class="fas fa-gavel text-4xl text-indigo-300"></i>
+        </div>
+    </div>
+    <div class="bg-emerald-600 rounded-xl p-5 text-white">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-emerald-200 text-xs font-semibold uppercase">Active Lots</p>
+                <p class="text-3xl font-bold mt-1">{{ active_lots }}</p>
+            </div>
+            <i class="fas fa-layer-group text-4xl text-emerald-300"></i>
+        </div>
+    </div>
+    <div class="bg-amber-600 rounded-xl p-5 text-white">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-amber-200 text-xs font-semibold uppercase">Total Bids</p>
+                <p class="text-3xl font-bold mt-1">{{ total_bids }}</p>
+            </div>
+            <i class="fas fa-hand-holding-usd text-4xl text-amber-300"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Monthly Revenue Chart -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <h2 class="font-semibold text-slate-700 mb-4">Monthly Revenue Trend (Last 6 Months)</h2>
+        <canvas id="revenueChart" height="120"></canvas>
+    </div>
+    <!-- Auction Status Pie -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <h2 class="font-semibold text-slate-700 mb-4">Auction Status Breakdown</h2>
+        <canvas id="auctionPieChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Bottom Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Top Auctions -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <h2 class="font-semibold text-slate-700 mb-4">Top 5 Auctions by Revenue</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="text-xs text-slate-400 uppercase border-b border-slate-100">
+                        <th class="text-left pb-2">Auction</th>
+                        <th class="text-right pb-2">Revenue</th>
+                        <th class="text-right pb-2">Premium</th>
+                        <th class="text-right pb-2">Sold</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for a in top_auctions %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2">
+                            <a href="{% url 'admin_panel:auction_analytics_detail' a.id %}"
+                                class="font-medium text-indigo-600 hover:underline">{{ a.title|truncatechars:30 }}</a>
+                            <span class="ml-1 text-xs px-1.5 py-0.5 rounded
+                              {% if a.status == 'live' %}bg-emerald-100 text-emerald-700
+                              {% elif a.status == 'completed' %}bg-slate-100 text-slate-600
+                              {% else %}bg-amber-100 text-amber-700{% endif %}">{{ a.get_status_display }}</span>
+                        </td>
+                        <td class="py-2 text-right font-semibold text-slate-800">₹{{ a.total_revenue|default:0|floatformat:0 }}</td>
+                        <td class="py-2 text-right text-emerald-600">₹{{ a.total_premium|default:0|floatformat:0 }}</td>
+                        <td class="py-2 text-right text-slate-500">{{ a.sold_lots }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-6 text-slate-400">No auction data yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top Bidders -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <h2 class="font-semibold text-slate-700 mb-4">Top 5 Bidders</h2>
+        <div class="space-y-3">
+            {% for bidder in top_bidders %}
+            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                        {{ bidder.user__username.0|upper }}</div>
+                    <span class="font-medium text-slate-700">{{ bidder.user__username }}</span>
+                </div>
+                <div class="text-right">
+                    <p class="font-semibold text-slate-800">{{ bidder.bid_count }} bids</p>
+                    <p class="text-xs text-slate-400">₹{{ bidder.total_spent|floatformat:0 }} total</p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-slate-400 text-sm text-center py-6">No bids recorded yet</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Lot Status Breakdown -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-6">
+    <h2 class="font-semibold text-slate-700 mb-4">Lot Status Breakdown</h2>
+    <canvas id="lotStatusChart" height="60"></canvas>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const monthlyData = {{ monthly_data_json| safe }};
+    const auctionStatusData = {{ auction_status_json| safe }};
+    const lotStatusData = {{ lot_status_json| safe }};
+
+    // Monthly Revenue Line Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(d => d.month),
+            datasets: [
+                {
+                    label: 'Bid Revenue (₹)', data: monthlyData.map(d => d.revenue),
+                    borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#4f46e5'
+                },
+                {
+                    label: 'Buyer Premium (₹)', data: monthlyData.map(d => d.premium),
+                    borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.4, fill: true, pointBackgroundColor: '#10b981'
+                },
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Auction Status Pie
+    const pieCtx = document.getElementById('auctionPieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(auctionStatusData),
+            datasets: [{
+                data: Object.values(auctionStatusData),
+                backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right' } }, cutout: '60%' }
+    });
+
+    // Lot Status Bar Chart
+    const lotCtx = document.getElementById('lotStatusChart').getContext('2d');
+    new Chart(lotCtx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(lotStatusData),
+            datasets: [{
+                label: 'Lots', data: Object.values(lotStatusData),
+                backgroundColor: ['#4f46e5', '#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#f97316', '#ef4444', '#64748b']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+</script>
+{% endblock %}

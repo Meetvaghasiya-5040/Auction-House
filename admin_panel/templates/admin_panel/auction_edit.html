@@ -1,0 +1,246 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}{% if is_locked %}View{% else %}Edit{% endif %} Auction{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+        <a href="{% url 'admin_panel:auctions' %}"
+            class="h-10 w-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-colors shadow-sm">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">{% if is_locked %}View{% else %}Edit{% endif %} Auction</h1>
+            <p class="text-sm text-slate-500 mt-0.5">{{ auction.title }}</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        {% if not is_locked %}
+        <a href="{% url 'admin_panel:auction_delete' auction.id %}"
+            class="text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-600 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fas fa-trash-alt"></i> Delete
+        </a>
+        {% endif %}
+        {% if auction.status == 'completed' or auction.status == 'cancelled' %}
+        <a href="{% url 'admin_panel:auction_history' %}"
+            class="text-slate-600 bg-slate-100 border border-slate-200 hover:bg-slate-600 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2">
+            <i class="fas fa-history"></i> History
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if messages %}
+<div class="mb-6 space-y-2">
+    {% for msg in messages %}
+    <div
+        class="flex items-center p-4 rounded-xl border {% if msg.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
+        <i
+            class="fas {% if msg.tags == 'error' %}fa-exclamation-circle text-rose-500{% else %}fa-check-circle text-emerald-500{% endif %} mr-3"></i>
+        {{ msg }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if is_locked %}
+<div class="mb-6 flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+    <i class="fas fa-lock text-amber-500 mt-0.5 shrink-0"></i>
+    <div>
+        <p class="font-bold text-amber-800">Auction is locked</p>
+        <p class="text-sm text-amber-700 mt-0.5">This auction is <strong>{{ auction.get_status_display }}</strong> and
+            cannot be edited. You can only view its details.</p>
+    </div>
+</div>
+{% endif %}
+
+<form method="POST" id="edit-form">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- Left: Core Details -->
+        <div class="xl:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div
+                    class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-gavel text-sm"></i>
+                    </div>
+                    <h2 class="font-bold text-slate-800">Auction Details</h2>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                            Title <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" name="title" value="{{ auction.title }}" {% if is_locked %}disabled{% endif
+                            %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 font-medium focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                            Description <span class="text-rose-500">*</span>
+                        </label>
+                        <textarea name="description" rows="4" {% if is_locked %}disabled{% endif %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all resize-none {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">{{ auction.description }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location & Terms -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div
+                    class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                        <i class="fas fa-map-marker-alt text-sm"></i>
+                    </div>
+                    <h2 class="font-bold text-slate-800">Location & Terms</h2>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Location</label>
+                        <input type="text" name="location" value="{{ auction.location }}" {% if is_locked %}disabled{%
+                            endif %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Terms &
+                            Conditions</label>
+                        <textarea name="terms_and_conditions" rows="4" {% if is_locked %}disabled{% endif %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 resize-none outline-none transition-all {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">{{ auction.terms_and_conditions }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div
+                    class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                        <i class="far fa-calendar-alt text-sm"></i>
+                    </div>
+                    <h2 class="font-bold text-slate-800">Schedule</h2>
+                </div>
+                <div class="p-6 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Start Date &
+                            Time</label>
+                        <input type="datetime-local" name="start_date"
+                            value="{% if auction.start_date %}{{ auction.start_date|date:'Y-m-d' }}T{{ auction.start_date|date:'H:i' }}{% endif %}"
+                            {% if is_locked %}disabled{% endif %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">End Date &
+                            Time</label>
+                        <input type="datetime-local" name="end_date"
+                            value="{% if auction.end_date %}{{ auction.end_date|date:'Y-m-d' }}T{{ auction.end_date|date:'H:i' }}{% endif %}"
+                            {% if is_locked %}disabled{% endif %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Settings & Info -->
+        <div class="space-y-6">
+            <!-- Status Info -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <h2 class="font-bold text-slate-800 mb-4">Auction Info</h2>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Status</span>
+                        <span class="font-semibold
+                            {% if auction.status == 'live' %}text-rose-600
+                            {% elif auction.status == 'approved' %}text-emerald-600
+                            {% elif auction.status == 'completed' %}text-slate-600
+                            {% else %}text-amber-600{% endif %}">
+                            {{ auction.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Type</span>
+                        <span class="font-semibold text-slate-800">{{ auction.get_auction_type_display }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Lots</span>
+                        <span class="font-semibold text-slate-800">{{ auction.lots.count }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Created by</span>
+                        <span class="font-semibold text-slate-800">{{ auction.created_by.username }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Created</span>
+                        <span class="font-semibold text-slate-800">{{ auction.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bidding Settings -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div
+                    class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                        <i class="fas fa-sliders-h text-sm"></i>
+                    </div>
+                    <h2 class="font-bold text-slate-800">Bidding Settings</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Min. Bid
+                            Increment (₹)</label>
+                        <input type="number" name="min_bid_increment" value="{{ auction.min_bid_increment }}" min="1"
+                            step="1" {% if is_locked %}disabled{% endif %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Buyer's
+                            Premium (%)</label>
+                        <input type="number" name="buyer_premium_percentage"
+                            value="{{ auction.buyer_premium_percentage }}" min="0" max="100" step="0.5" {% if is_locked
+                            %}disabled{% endif %}
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none transition-all {% if is_locked %}opacity-60 cursor-not-allowed{% endif %}">
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">Allow Proxy Bidding</p>
+                            <p class="text-xs text-slate-500">Let users auto-bid up to a max</p>
+                        </div>
+                        <label
+                            class="relative inline-flex items-center cursor-pointer {% if is_locked %}pointer-events-none{% endif %}">
+                            <input type="checkbox" name="allow_proxy_bidding" class="sr-only peer" {% if
+                                auction.allow_proxy_bidding %}checked{% endif %} {% if is_locked %}disabled{% endif %}>
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 {% if is_locked %}opacity-60{% endif %}">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            {% if not is_locked %}
+            <button type="submit" id="save-btn"
+                class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white py-3.5 rounded-xl font-bold text-sm hover:from-indigo-700 hover:to-violet-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const editForm = document.getElementById('edit-form');
+    const saveBtn = document.getElementById('save-btn');
+    if (editForm && saveBtn) {
+        editForm.addEventListener('submit', () => {
+            saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+        });
+    }
+</script>
+{% endblock %}

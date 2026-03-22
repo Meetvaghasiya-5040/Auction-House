@@ -1,0 +1,253 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Live Moderation{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Live Moderation</h1>
+        <p class="text-sm text-slate-500 mt-1">Monitor real-time bids, remove fraudulent activity, and moderate live
+            chats.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- Left Column: Active Lots Monitor -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[600px]">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-800 flex items-center">
+                <i class="fas fa-satellite-dish text-indigo-500 mr-2"></i> Active Lots
+            </h3>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            {% for lot in live_lots %}
+            <div class="border border-slate-200 rounded-xl p-4 hover:border-indigo-300 transition-colors bg-white">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-3">
+                        {% if lot.items.first and lot.items.first.get_image_urls %}
+                        <img src="{{ lot.items.first.get_image_urls.0 }}" class="w-10 h-10 rounded-lg object-cover">
+                        {% else %}
+                        <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-sm line-clamp-1">{{ lot.title }}</h4>
+                            <p class="text-[10px] text-slate-500 font-medium tracking-wide">LOT #{{ lot.id|slice:":8" }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span
+                            class="inline-flex items-center gap-1.5 py-0.5 px-2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 uppercase tracking-wider mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> Live
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase">Current Price</p>
+                        <p class="text-lg font-bold text-emerald-600" id="mod-price-{{ lot.id }}">₹{{ lot.current_bid }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase">Total Bids</p>
+                        <p class="text-base font-bold text-slate-800" id="mod-bids-count-{{ lot.id }}">
+                            {{lot.bids.count}}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                <i class="fas fa-box-open text-4xl mb-3"></i>
+                <p class="text-sm">No lots are currently live.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right Column: Live Bid Feed -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[600px]">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 relative">
+            <h3 class="font-bold text-slate-800 flex items-center">
+                <i class="fas fa-stream text-emerald-500 mr-2"></i> Global Bid Feed
+            </h3>
+            <div class="live-dot absolute right-4 top-5" style="animation-duration: 1s;"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-0" id="mod-bid-feed">
+            {% for bid in recent_bids %}
+            <div class="p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors" id="mod-bid-{{ bid.id }}">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                            {{ bid.user.username.0|upper }}
+                        </div>
+                        <span class="text-sm font-bold text-slate-900">{{ bid.user.username }}</span>
+                        <span class="text-[10px] text-slate-400">• {{ bid.created_at|date:"H:i:s" }}</span>
+                    </div>
+                    <span
+                        class="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                        ₹{{ bid.amount }}
+                    </span>
+                </div>
+
+                <div class="flex justify-between items-center mt-2">
+                    <p class="text-xs text-slate-500 truncate max-w-[200px]" title="{{ bid.lot.title }}">
+                        On: {{ bid.lot.title }}
+                    </p>
+                    <button onclick="deleteBid('{{ bid.id }}', this)"
+                        class="text-[10px] font-bold uppercase tracking-wider text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded transition-colors border border-rose-100">
+                        <i class="fas fa-trash-alt mr-1"></i> Remove
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="h-full flex flex-col items-center justify-center text-slate-400">
+                <i class="fas fa-comment-slash text-4xl mb-3"></i>
+                <p class="text-sm">Awaiting incoming bids...</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Listen for global admin updates (from admin_base.html)
+    document.addEventListener('adminLiveUpdate', function (e) {
+        const data = e.detail;
+
+        if (data.type === 'live_bid_update') {
+            const bid = data.bid;
+            updateLiveModeration(bid);
+        } else if (data.type === 'status_update' && data.data.model === 'lot') {
+            updateLotStatus(data.data.id, data.data.status, data.data.status_display);
+        }
+    });
+
+    function updateLotStatus(lotId, newStatus, statusDisplay) {
+        // Find the lot container and update its "Live" badge or price
+        const priceEl = document.getElementById(`mod-price-${lotId}`);
+        if (!priceEl) return;
+
+        const lotDiv = priceEl.closest('.border.border-slate-200.rounded-xl');
+        if (lotDiv && newStatus !== 'active') {
+            const badge = lotDiv.querySelector('.bg-rose-100.text-rose-700');
+            if (badge) {
+                badge.className = 'inline-flex items-center gap-1.5 py-0.5 px-2 rounded text-[10px] font-bold bg-slate-100 text-slate-500 uppercase tracking-wider mb-1';
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> ${statusDisplay}`;
+            }
+        }
+    }
+
+    function updateLiveModeration(bid) {
+        // 1. Update Global Bid Feed
+        const feed = document.getElementById('mod-bid-feed');
+        if (feed) {
+            // Remove "Awaiting incoming bids" message if it exists
+            const emptyMsg = feed.querySelector('.h-full.flex-col');
+            if (emptyMsg) emptyMsg.remove();
+
+            const bidHtml = `
+                <div class="p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors animate-in fade-in duration-500" id="mod-bid-${bid.id || Date.now()}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                                ${bid.user.charAt(0).toUpperCase()}
+                            </div>
+                            <span class="text-sm font-bold text-slate-900">${bid.user}</span>
+                            <span class="text-[10px] text-slate-400">• Just now</span>
+                        </div>
+                        <span class="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                            ₹${bid.amount.toLocaleString()}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-xs text-slate-500 truncate max-w-[200px]" title="${bid.lot_title}">
+                            On: ${bid.lot_title}
+                        </p>
+                        <button onclick="deleteBid('${bid.id || ""}', this)" 
+                                class="text-[10px] font-bold uppercase tracking-wider text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded transition-colors border border-rose-100">
+                            <i class="fas fa-trash-alt mr-1"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+            feed.insertAdjacentHTML('afterbegin', bidHtml);
+
+            // Limit feed to last 50
+            if (feed.children.length > 50) {
+                feed.lastElementChild.remove();
+            }
+        }
+
+        // 2. Update Active Lots List Price & Bid Count
+        const priceEl = document.getElementById(`mod-price-${bid.lot_id}`);
+        const countEl = document.getElementById(`mod-bids-count-${bid.lot_id}`);
+
+        if (priceEl) {
+            priceEl.innerText = `₹${bid.current_bid.toLocaleString()}`;
+            priceEl.classList.add('animate-pulse', 'text-indigo-600');
+            setTimeout(() => priceEl.classList.remove('animate-pulse', 'text-indigo-600'), 1000);
+        }
+
+        if (countEl) {
+            const currentCount = parseInt(countEl.innerText) || 0;
+            countEl.innerText = currentCount + 1;
+        }
+    }
+
+    async function deleteBid(bidId, btnElement) {
+        if (!bidId) {
+            showToast('Cannot Remove', 'This bid was just placed and needs a page refresh to be removed (ID pending).', 'info');
+            return;
+        }
+        if (!confirm('Are you sure you want to remove this bid? The lot price will be reverted and connected clients will see the change.')) return;
+
+        try {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            btnElement.disabled = true;
+
+            const response = await fetch(`/custom-admin/moderation/bid/${bidId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast('Bid Removed', data.message, 'success');
+
+                // Remove element from DOM
+                const bidDiv = document.getElementById(`mod-bid-${bidId}`);
+                if (bidDiv) {
+                    bidDiv.style.opacity = '0';
+                    setTimeout(() => bidDiv.remove(), 300);
+                }
+
+                // Re-fetch or reload to update lots list safely 
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                throw new Error(data.error || 'Server error');
+            }
+        } catch (err) {
+            console.error('Delete bid error:', err);
+            showToast('Action Failed', err.message, 'error');
+            btnElement.innerHTML = originalText;
+            btnElement.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

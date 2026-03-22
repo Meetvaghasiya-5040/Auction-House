@@ -1,0 +1,369 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Lot & Auction Management{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Auctions & Lots</h1>
+        <p class="text-sm text-slate-500 mt-1">Create new lots from approved items and manage live auctions.</p>
+    </div>
+
+    <div class="flex gap-3">
+        <a href="{% url 'admin_panel:auction_history' %}"
+            class="bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm inline-flex items-center">
+            <i class="fas fa-history mr-2"></i> History
+        </a>
+        <a href="{% url 'admin_panel:auction_create' %}"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm inline-flex items-center">
+            <i class="fas fa-plus mr-2"></i> Create Auction
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+    <div class="lg:col-span-1">
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden sticky top-6">
+            <div class="p-4 border-b border-slate-200 bg-slate-50">
+                <h3 class="font-bold text-slate-800 flex items-center">
+                    <i class="fas fa-magic text-indigo-500 mr-2"></i> Dynamic Lot Creator
+                </h3>
+            </div>
+            <div class="p-5 space-y-4">
+
+                <!-- Step 1: Category -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">1. Pick a
+                        Category</label>
+                    <select id="lot-category"
+                        class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 outline-none transition-colors">
+                        <option value="">-- Select Category --</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Step 2: Item Cards -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">2. Select Item</label>
+                    <div id="item-cards-container" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        <div class="text-center py-8 text-slate-400 text-sm" id="item-placeholder">
+                            <i class="fas fa-arrow-up text-slate-300 text-2xl mb-2 block"></i>
+                            Pick a category to see available items.
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected-item-id">
+                </div>
+
+                <!-- Selected item preview -->
+                <div id="selected-item-preview" class="hidden bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                    <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1">Selected Item</p>
+                    <p id="selected-item-name" class="text-sm font-bold text-slate-900 truncate"></p>
+                </div>
+
+                <!-- Step 3: Auction -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">3. Assign to
+                        Auction</label>
+                    <select id="lot-auction"
+                        class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 outline-none transition-colors">
+                        <option value="">-- Select Auction --</option>
+                        {% for a in auctions %}
+                        {% if a.status != 'completed' %}
+                        <option value="{{ a.id }}">{{ a.title }} ({{ a.status|title }})</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Submit -->
+                <button id="lot-submit-btn" type="button" onclick="submitCreateLot()"
+                    class="w-full bg-indigo-600 text-white font-semibold text-sm rounded-lg px-4 py-2.5 hover:bg-indigo-700 transition-colors shadow-sm flex items-center justify-center disabled:opacity-50">
+                    <i class="fas fa-link mr-2"></i> Bind Item & Create Lot
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Auctions Dashboard -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Live and Pending Auctions -->
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-800 flex items-center">
+                    <i class="fas fa-broadcast-tower text-rose-500 mr-2"></i> Active Auctions Control
+                </h3>
+            </div>
+
+            <div class="p-0">
+                {% for a in auctions %}
+                {% if a.status != 'completed' and a.status != 'cancelled' %}
+                <div class="p-5 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                        <!-- Info -->
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="text-base font-bold text-slate-900">{{ a.title }}</h4>
+                                {% if a.status == 'live' %}
+                                <span
+                                    class="inline-flex items-center gap-1.5 py-0.5 px-2 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> Live
+                                </span>
+                                {% elif a.status == 'pending' %}
+                                <span
+                                    class="inline-flex items-center py-0.5 px-2 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                                    Pending Approval
+                                </span>
+                                {% elif a.status == 'approved' %}
+                                <span
+                                    class="inline-flex items-center py-0.5 px-2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
+                                    ✓ Approved
+                                </span>
+                                {% elif a.status == 'draft' %}
+                                <span
+                                    class="inline-flex items-center py-0.5 px-2 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">
+                                    Draft
+                                </span>
+                                {% elif a.status == 'scheduled' %}
+                                <span
+                                    class="inline-flex items-center py-0.5 px-2 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 uppercase tracking-wider">
+                                    Scheduled
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
+                                <span><i class="far fa-clock mr-1"></i> Starts: {{ a.start_time|date:"M d" }}</span>
+                                <span><i class="fas fa-box mr-1"></i> Lots: {{ a.lots.count }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Admin Actions -->
+                        <div class="flex items-center gap-2 shrink-0">
+                            {% if a.status == 'draft' %}
+                            <button onclick="toggleAuction('{{ a.id }}', 'pending', this)"
+                                class="bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-600 hover:text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors flex items-center shadow-sm">
+                                <i class="fas fa-arrow-up mr-1.5"></i> Submit
+                            </button>
+                            {% elif a.status == 'pending' %}
+                            <button onclick="toggleAuction('{{ a.id }}', 'approved', this)"
+                                class="bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors flex items-center shadow-sm">
+                                <i class="fas fa-check-circle mr-1.5"></i> Approve
+                            </button>
+                            {% elif a.status == 'approved' %}
+                            <button onclick="toggleAuction('{{ a.id }}', 'live', this)"
+                                class="bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors flex items-center shadow-sm">
+                                <i class="fas fa-play mr-1.5"></i> Go Live
+                            </button>
+                            {% elif a.status == 'live' or a.status == 'scheduled' %}
+                            <button onclick="toggleAuction('{{ a.id }}', 'completed', this)"
+                                class="bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors flex items-center shadow-sm">
+                                <i class="fas fa-stop mr-1.5"></i> End Now
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'admin_panel:auction_edit' a.id %}"
+                                class="text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-600 hover:text-white px-3 py-1.5 rounded text-xs font-semibold transition-colors">
+                                Edit Details
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mini Lots preview -->
+                    {% if a.lots.exists %}
+                    <div class="mt-4 bg-slate-100 rounded-lg p-3">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Lots Tracking</p>
+                        <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
+                            {% for lot in a.lots.all|slice:":5" %}
+                            <div class="bg-white border border-slate-200 rounded p-2 min-w-[140px] shrink-0">
+                                <p class="text-xs font-bold text-slate-800 line-clamp-1">{{ lot.title }}</p>
+                                <p class="text-[10px] text-slate-500 mt-1 flex justify-between">
+                                    <span>{{ lot.status|title }}</span>
+                                    <span
+                                        class="font-semibold {% if lot.status == 'active' %}text-emerald-600{% endif %}">₹{{lot.current_bid}}</span>
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                {% endif %}
+                {% empty %}
+                <div class="p-8 text-center text-slate-500">
+                    <i class="fas fa-gavel text-3xl mb-3 text-slate-300"></i>
+                    <p>No active or pending auctions right now.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // ── ITEM CARD BUILDER ──────────────────────────────────────────
+    const catSelect = document.getElementById('lot-category');
+    const cardsContainer = document.getElementById('item-cards-container');
+    const selectedItemId = document.getElementById('selected-item-id');
+    const selectedPreview = document.getElementById('selected-item-preview');
+    const selectedItemName = document.getElementById('selected-item-name');
+
+    const STATUS_COLORS = {
+        'Approved': 'bg-emerald-100 text-emerald-700',
+        'Pickup Item': 'bg-orange-100 text-orange-700',
+        'Warehouse': 'bg-blue-100 text-blue-700',
+        'Pending Approval': 'bg-amber-100 text-amber-700',
+    };
+
+    function buildItemCard(item) {
+        const statusClass = STATUS_COLORS[item.status] || 'bg-slate-100 text-slate-600';
+        const imgHtml = item.image
+            ? `<img src="${item.image}" alt="${item.title}" class="w-14 h-14 object-cover rounded-lg border border-slate-200 shrink-0">`
+            : `<div class="w-14 h-14 bg-indigo-50 rounded-lg border border-indigo-100 flex items-center justify-center shrink-0"><i class="fas fa-cube text-indigo-300 text-xl"></i></div>`;
+
+        return `
+        <div class="item-card flex items-start gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 transition-all group"
+             data-item-id="${item.id}" data-item-title="${item.title}" onclick="selectItemCard(this)">
+            ${imgHtml}
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-slate-900 text-sm truncate group-hover:text-indigo-700">${item.title}</p>
+                <p class="text-xs text-slate-500 mt-0.5"><i class="fas fa-user mr-1"></i>${item.owner}</p>
+                ${item.description ? `<p class="text-[11px] text-slate-400 mt-1 line-clamp-1">${item.description}</p>` : ''}
+                <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${statusClass}">${item.status}</span>
+                    <span class="text-xs font-semibold text-emerald-600">Est. ₹${item.estimate}</span>
+                </div>
+            </div>
+            <div class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <i class="fas fa-circle-check text-indigo-400 text-lg"></i>
+            </div>
+        </div>`;
+    }
+
+    function selectItemCard(card) {
+        // Deselect all
+        document.querySelectorAll('.item-card').forEach(c => {
+            c.classList.remove('border-indigo-500', 'bg-indigo-50', 'ring-2', 'ring-indigo-300');
+        });
+        // Select this
+        card.classList.add('border-indigo-500', 'bg-indigo-50', 'ring-2', 'ring-indigo-300');
+        selectedItemId.value = card.dataset.itemId;
+        selectedItemName.textContent = card.dataset.itemTitle;
+        selectedPreview.classList.remove('hidden');
+    }
+
+    catSelect.addEventListener('change', async (e) => {
+        const catId = e.target.value;
+        selectedItemId.value = '';
+        selectedPreview.classList.add('hidden');
+
+        if (!catId) {
+            cardsContainer.innerHTML = `
+                <div class="text-center py-8 text-slate-400 text-sm">
+                    <i class="fas fa-arrow-up text-slate-300 text-2xl mb-2 block"></i>
+                    Pick a category to see available items.
+                </div>`;
+            return;
+        }
+
+        cardsContainer.innerHTML = `
+            <div class="text-center py-8 text-slate-400 text-sm">
+                <i class="fas fa-circle-notch fa-spin text-indigo-400 text-2xl mb-2 block"></i>
+                Loading items...
+            </div>`;
+
+        try {
+            const res = await fetch(`/custom-admin/auctions/eligible-items/?category_id=${catId}`);
+            const data = await res.json();
+
+            if (data.items && data.items.length > 0) {
+                cardsContainer.innerHTML = data.items.map(buildItemCard).join('');
+            } else {
+                cardsContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-sm">
+                        <i class="fas fa-box-open text-slate-300 text-2xl mb-2 block"></i>
+                        No eligible items in this category.
+                    </div>`;
+            }
+        } catch (err) {
+            console.error(err);
+            cardsContainer.innerHTML = `<div class="text-center py-4 text-rose-400 text-sm"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading items.</div>`;
+        }
+    });
+
+    // ── LOT CREATION ──────────────────────────────────────────────
+    async function submitCreateLot() {
+        const itemId = selectedItemId.value;
+        const auctionId = document.getElementById('lot-auction').value;
+        const btn = document.getElementById('lot-submit-btn');
+
+        if (!itemId) {
+            showToast('No Item', 'Please select an item from the list above.', 'warning');
+            return;
+        }
+        if (!auctionId) {
+            showToast('No Auction', 'Please select an auction to assign the item to.', 'warning');
+            return;
+        }
+
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = `<i class="fas fa-circle-notch fa-spin mr-2"></i> Creating...`;
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/custom-admin/auctions/create-lot/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ item_id: itemId, auction_id: auctionId })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast('✅ Lot Created!', 'Item has been bound to the auction as a new lot.', 'success');
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                throw new Error(data.error || 'Server error');
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Failed', err.message, 'error');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+    }
+
+    // ── AUCTION TOGGLING ──────────────────────────────────────────
+    async function toggleAuction(auctionId, newStatus, btnElement) {
+        if (!confirm(`Are you sure you want to mark this auction as ${newStatus}?`)) return;
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = `<i class="fas fa-circle-notch fa-spin mr-1.5"></i> processing...`;
+        btnElement.disabled = true;
+
+        try {
+            const res = await fetch(`/custom-admin/auctions/${auctionId}/toggle/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ status: newStatus })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(`Auction ${newStatus}`, 'Auction state updated.', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                throw new Error(data.error || 'Server error');
+            }
+        } catch (err) {
+            showToast('Action Failed', err.message, 'error');
+            setTimeout(() => window.location.reload(), 1500);
+        }
+    }
+</script>
+{% endblock %}

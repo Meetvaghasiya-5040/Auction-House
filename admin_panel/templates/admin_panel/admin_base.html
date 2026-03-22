@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %} - EasyBid</title>
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        indigo: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                        emerald: {
+                            500: '#10b981',
+                        },
+                        slate: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Admin CSS -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: #4f46e5;
+            border-right: 4px solid #4f46e5;
+        }
+
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Pulse dot for live data */
+        .live-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="text-slate-800 antialiased flex h-screen overflow-hidden">
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Sidebar -->
+    <aside
+        class="w-64 bg-white border-r border-slate-200 flex flex-col h-full flex-shrink-0 relative z-20 no-scrollbar">
+        <div class="h-16 flex items-center px-6 border-b border-slate-200">
+            <span
+                class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-indigo-400">EasyBid
+                Admin</span>
+            <div title="Realtime Active" class="ml-2 live-dot"></div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-4 no-scrollbar">
+            <nav class="space-y-1">
+                <a href="{% url 'admin_panel:dashboard' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-chart-pie w-6 text-center mr-2"></i> Dashboard
+                </a>
+
+                <div class="px-6 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Management
+                </div>
+                <a href="{% url 'admin_panel:users' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'users' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-users w-6 text-center mr-2"></i> Users
+                </a>
+                <a href="{% url 'admin_panel:finance' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'finance' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-wallet w-6 text-center mr-2"></i> Finance
+                </a>
+
+                <div class="px-6 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Auctions</div>
+                <a href="{% url 'admin_panel:auctions' %}"
+                    class="sidebar-link flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-gavel w-6 text-center mr-2"></i> Lots & Auctions
+                </a>
+                <a href="{% url 'admin_panel:items' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'items' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-box w-6 text-center mr-2"></i> Items
+                </a>
+
+                <div class="px-6 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Live &
+                    Logistics</div>
+                <a href="{% url 'admin_panel:moderation' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'moderation' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-satellite-dish w-6 text-center mr-2"></i> Live Moderation
+                </a>
+                <a href="{% url 'admin_panel:delivery' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'delivery' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-truck w-6 text-center mr-2"></i> Delivery
+                </a>
+                <a href="{% url 'admin_panel:invoices' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'invoices' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-file-invoice-dollar w-6 text-center mr-2"></i> Invoices
+                </a>
+                <a href="{% url 'admin_panel:property_sales' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'property_sales' or request.resolver_match.url_name == 'property_sale_detail' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-building w-6 text-center mr-2"></i> Property Sales
+                </a>
+
+                <div class="px-6 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Insights</div>
+                <a href="{% url 'admin_panel:analytics' %}"
+                    class="sidebar-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-chart-bar w-6 text-center mr-2"></i> Analytics
+                </a>
+                <a href="{% url 'admin_panel:reports' %}"
+                    class="sidebar-link {% if 'report' in request.resolver_match.url_name %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-file-alt w-6 text-center mr-2"></i> Reports
+                </a>
+
+                <div class="px-6 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Notifications
+                </div>
+                <a href="{% url 'admin_panel:notifications' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-bell w-6 text-center mr-2"></i>
+                    Notifications
+                    <span id="sidebar-notif-badge"
+                        class="ml-auto bg-rose-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center hidden"></span>
+                </a>
+                <a href="{% url 'admin_panel:notification_history' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'notification_history' %}active{% endif %} flex items-center px-6 py-3 text-sm font-medium text-slate-600">
+                    <i class="fas fa-history w-6 text-center mr-2"></i> History
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-200">
+            <a href="{% url 'home' %}" class="flex items-center text-sm text-slate-500 hover:text-indigo-600">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Website
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+
+        <!-- Topbar -->
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0">
+            <div class="flex-1 flex items-center">
+                <form action="{% url 'admin_panel:global_search' %}" method="GET" class="relative w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+                        class="w-full pl-10 pr-4 py-2 bg-slate-100 border-transparent rounded-lg text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                        placeholder="Search users, lots, invoices...">
+                </form>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <!-- ── Notification Bell ──────────────────────── -->
+                <div class="relative" id="notif-bell-container">
+                    <button id="notif-bell-btn" onclick="toggleNotifDropdown()"
+                        class="text-slate-400 hover:text-indigo-600 relative p-1.5 rounded-lg hover:bg-indigo-50 transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                        <!-- Badge -->
+                        <span id="notif-badge"
+                            class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                            0
+                        </span>
+                    </button>
+
+                    <!-- Dropdown Panel -->
+                    <div id="notif-dropdown"
+                        class="hidden absolute right-0 top-full mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                        <!-- Header -->
+                        <div class="flex justify-between items-center px-4 py-3 border-b border-slate-100 bg-slate-50">
+                            <span class="font-bold text-slate-700 text-sm">Notifications</span>
+                            <button onclick="markAllRead()"
+                                class="text-xs text-indigo-500 hover:text-indigo-700 font-medium">Mark all read</button>
+                        </div>
+                        <!-- Items list -->
+                        <div id="notif-dropdown-list" class="max-h-72 overflow-y-auto divide-y divide-slate-50">
+                            <div class="py-8 text-center text-slate-400 text-xs" id="notif-empty">
+                                <i class="fas fa-bell-slash text-2xl mb-2 opacity-30 block"></i>
+                                No unread notifications
+                            </div>
+                        </div>
+                        <!-- Footer -->
+                        <div class="px-4 py-2.5 border-t border-slate-100 bg-slate-50 flex justify-between">
+                            <a href="{% url 'admin_panel:notifications' %}"
+                                class="text-xs text-indigo-500 hover:underline font-medium">
+                                <i class="fas fa-inbox mr-1"></i>All Notifications
+                            </a>
+                            <a href="{% url 'admin_panel:notification_history' %}"
+                                class="text-xs text-slate-400 hover:text-slate-600 font-medium">
+                                <i class="fas fa-history mr-1"></i>History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 border-l border-slate-200 pl-4 cursor-pointer">
+                    <div
+                        class="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                        {% if request.user.is_authenticated %}{{ request.user.username.0|upper }}{% else %}A{% endif %}
+                    </div>
+                    <span class="text-sm font-medium text-slate-700">{{ request.user.username }}</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-6">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    <!-- Core Admin JS -->
+    <script>
+        // Global Toast Notification Function
+        function showToast(title, message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let icon = 'check-circle';
+            let color = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+            let iconColor = 'text-emerald-500';
+
+            if (type === 'error') {
+                icon = 'exclamation-circle';
+                color = 'bg-rose-50 text-rose-800 border-rose-200';
+                iconColor = 'text-rose-500';
+            } else if (type === 'info') {
+                icon = 'info-circle';
+                color = 'bg-blue-50 text-blue-800 border-blue-200';
+                iconColor = 'text-blue-500';
+            } else if (type === 'warning') {
+                icon = 'exclamation-triangle';
+                color = 'bg-amber-50 text-amber-800 border-amber-200';
+                iconColor = 'text-amber-500';
+            }
+
+            toast.className = `toast flex items-start p-4 mb-3 border rounded-lg shadow-lg w-80 ${color}`;
+            toast.innerHTML = `
+                <div class="flex-shrink-0 mr-3">
+                    <i class="fas fa-${icon} text-lg ${iconColor}"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold">${title}</h4>
+                    <p class="text-xs mt-1 opacity-90">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="ml-auto text-slate-400 hover:text-slate-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            // Auto remove after 5s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // --- WebSocket Setup for Admin Realtime Events ---
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        // const adminSocket = new WebSocket(`${protocol}//${window.location.host}/ws/admin_updates/`);
+
+        // adminSocket.onmessage = function(e) {
+        //     const data = JSON.parse(e.data);
+        //     // Dispatch a custom event so specific pages can listen (like dashboard updating charts)
+        //     document.dispatchEvent(new CustomEvent('adminLiveUpdate', { detail: data }));
+        //     
+        //     // Optionally show global toast for important events
+        //     if (data.type === 'notification') {
+        //         showToast(data.title, data.message, data.level || 'info');
+        //     }
+        // };
+
+        // adminSocket.onclose = function(e) { console.error('Admin socket closed unexpectedly', e); };
+
+        // Setup CSRF token for AJAX requests
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // ── Notification Dropdown ──────────────────────────────────────────
+        function toggleNotifDropdown() {
+            const dd = document.getElementById('notif-dropdown');
+            dd.classList.toggle('hidden');
+        }
+        document.addEventListener('click', function (e) {
+            const container = document.getElementById('notif-bell-container');
+            if (container && !container.contains(e.target)) {
+                document.getElementById('notif-dropdown')?.classList.add('hidden');
+            }
+        });
+
+        function updateBadge(count) {
+            const badge = document.getElementById('notif-badge');
+            const sidebar = document.getElementById('sidebar-notif-badge');
+            if (count > 0) {
+                const label = count > 99 ? '99+' : count;
+                if (badge) { badge.textContent = label; badge.classList.remove('hidden'); badge.classList.add('flex'); }
+                if (sidebar) { sidebar.textContent = label; sidebar.classList.remove('hidden'); sidebar.classList.add('flex'); }
+            } else {
+                if (badge) { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+                if (sidebar) { sidebar.classList.add('hidden'); sidebar.classList.remove('flex'); }
+            }
+        }
+
+        function buildDropdownItem(n) {
+            const el = document.createElement('div');
+            el.id = `dd-notif-${n.id}`;
+            el.className = 'flex items-start gap-3 p-3 hover:bg-slate-50 cursor-pointer';
+            const iconMap = { info: 'fa-info-circle text-blue-500', success: 'fa-check-circle text-emerald-500', warning: 'fa-exclamation-triangle text-amber-500', error: 'fa-times-circle text-rose-500' };
+            el.innerHTML = `
+                <div class="flex-shrink-0 mt-0.5 h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-sm">
+                    <i class="fas ${iconMap[n.level] || 'fa-bell text-slate-400'}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-slate-800 truncate">${n.title}</p>
+                    <p class="text-xs text-slate-500 truncate">${n.message}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">${n.time_ago}</p>
+                </div>
+                <button onclick="markOneRead(${n.id}, this)" class="flex-shrink-0 text-slate-300 hover:text-emerald-500 mt-1">
+                    <i class="fas fa-check text-[10px]"></i>
+                </button>`;
+            return el;
+        }
+
+        async function markOneRead(notifId, btn) {
+            await fetch(`/custom-admin/notifications/${notifId}/read/`, { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
+            const el = document.getElementById(`dd-notif-${notifId}`);
+            if (el) el.remove();
+            await refreshDropdown();
+        }
+
+        async function markAllRead() {
+            await fetch('/custom-admin/notifications/mark-all-read/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
+            document.getElementById('notif-dropdown-list').innerHTML = '<div class="py-8 text-center text-slate-400 text-xs" id="notif-empty"><i class="fas fa-bell-slash text-2xl mb-2 opacity-30 block"></i>No unread notifications</div>';
+            updateBadge(0);
+        }
+
+        async function refreshDropdown() {
+            try {
+                const res = await fetch('/custom-admin/notifications/unread-count/');
+                const data = await res.json();
+                updateBadge(data.count);
+                const list = document.getElementById('notif-dropdown-list');
+                if (!list) return;
+                list.innerHTML = '';
+                if (data.notifications.length === 0) {
+                    list.innerHTML = '<div class="py-8 text-center text-slate-400 text-xs"><i class="fas fa-bell-slash text-2xl mb-2 opacity-30 block"></i>No unread notifications</div>';
+                } else {
+                    data.notifications.forEach(n => list.appendChild(buildDropdownItem(n)));
+                }
+            } catch (e) { }
+        }
+
+        // Load on page start
+        refreshDropdown();
+
+        // ── Admin WebSocket ──────────────────────────────────────────────
+        let adminSocket;
+
+        function connectAdminWS() {
+            adminSocket = new WebSocket(`${protocol}//${window.location.host}/ws/admin_updates/`);
+
+            adminSocket.onopen = () => console.log('[Admin WS] Connected');
+
+            adminSocket.onmessage = function (e) {
+                try {
+                    const data = JSON.parse(e.data);
+
+                    if (data.type === 'unread_count') {
+                        updateBadge(data.count);
+
+                    } else if (data.type === 'admin_notification') {
+                        // Update badge
+                        if (data.unread_count !== undefined) updateBadge(data.unread_count);
+
+                        // Show toast popup
+                        const toastType = { info: 'info', success: 'success', warning: 'warning', error: 'error' }[data.level] || 'info';
+                        showToast(data.title, data.message, toastType);
+
+                        // Add to dropdown list (prepend)
+                        const list = document.getElementById('notif-dropdown-list');
+                        const empty = document.getElementById('notif-empty');
+                        if (empty) empty.remove();
+                        if (list) {
+                            list.prepend(buildDropdownItem({
+                                id: data.notification_id,
+                                title: data.title,
+                                message: data.message,
+                                level: data.level,
+                                time_ago: 'just now',
+                            }));
+                        }
+
+                        // Dispatch for page-specific listeners (e.g. notifications.html)
+                        window.dispatchEvent(new CustomEvent('admin_ws_notification', { detail: data }));
+                    }
+
+                    // Dispatch a generic event for other pages
+                    document.dispatchEvent(new CustomEvent('adminLiveUpdate', { detail: data }));
+                } catch (err) { console.error('[Admin WS] Parse error', err); }
+            };
+
+            adminSocket.onclose = () => { console.warn('[Admin WS] Disconnected — reconnecting in 3s'); setTimeout(connectAdminWS, 3000); };
+            adminSocket.onerror = (err) => console.error('[Admin WS] Error', err);
+        }
+
+        connectAdminWS();
+    </script>
+
+    {% block extra_scripts %} {% endblock %}
+</body>
+
+</html>

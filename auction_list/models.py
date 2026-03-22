@@ -19,6 +19,7 @@ class Catagory(models.Model):
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, blank=True, help_text="FontAwesome icon class")
     requires_document = models.BooleanField(default=False, help_text="Does this category require document proofs (e.g. real estate)?")
+    is_immovable = models.BooleanField(default=False, help_text="Is this category for immovable property (e.g., Real Estate)? Skips delivery and uses property sale workflow.")
     
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -56,12 +57,16 @@ class Item(models.Model):
     
     # Status tracking
     STATUS_CHOICES = [
+        ('Draft', 'Draft'),
         ('Pending Approval', 'Pending Verification'),
-        ('Available', 'In Warehouse'),
+        ('Approved', 'Approved'),
+        ('Pickup Item', 'Pickup Item'),
+        ('Warehouse', 'Warehouse'),
         ('Lotted', 'Assigned to Auction'),
         ('Sold', 'Sold'),
+        ('Rejected', 'Rejected'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Available')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending Approval')
 
     # Delivery & Pickup Info
     shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Cost to ship from User to Warehouse")
@@ -228,7 +233,16 @@ class Auction(models.Model):
         # Set approved_at timestamp
         if self.status == 'approved' and not self.approved_at:
             self.approved_at = timezone.now()
-        
+        # Auto-sync Lot end times if Auction end_date changed
+        if self.pk:
+            try:
+                old_instance = Auction.objects.get(pk=self.pk)
+                if old_instance.end_date != self.end_date:
+                    self.lots.update(end_time=self.end_date)
+                    print(f"🔄 Synced {self.lots.count()} lots to new auction end date: {self.end_date}")
+            except Auction.DoesNotExist:
+                pass
+
         super().save(*args, **kwargs)
     
     def generate_unique_slug(self):
@@ -243,6 +257,10 @@ class Auction(models.Model):
     
     def update_auction_status(self):
         """Update auction status based on current time"""
+        # Can't access reverse FK (self.lots) until the instance has a PK
+        if not self.pk:
+            return
+
         now = timezone.now()
         old_status = self.status
         
@@ -264,6 +282,10 @@ class Auction(models.Model):
             
         # If auction just completed, mark unsold lots and items
         if old_status != 'completed' and self.status == 'completed':
+            # 1. Close all active lots first (handles winners and pending payments)
+            for lot in self.lots.filter(status='active'):
+                lot.close_lot()
+            # 2. Mark any remaining unsold lots/items
             self._mark_unsold_items()
     
     def can_edit(self, user):
@@ -392,12 +414,14 @@ class Lot(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('active', 'Active'),
+        ('pending_payment', 'Pending Payment'),
         ('paid', 'Paid - Awaiting Shipment'),
         ('shipped_to_warehouse', 'Shipped to Warehouse'),
         ('at_warehouse', 'At Warehouse'),
         ('shipped', 'Shipped to Buyer'),
         ('sold', 'Sold & Delivered'),
         ('unsold', 'Unsold'),
+        ('property_sale', 'Property Sale in Progress'),
     ]
     
     # Core Information
@@ -408,7 +432,7 @@ class Lot(models.Model):
     description = models.TextField()
     
     # Items in this lot
-    lot_catagory = models.ForeignKey('Catagory',on_delete=models.CASCADE,blank=True)
+    lot_catagory = models.ForeignKey('Catagory',on_delete=models.CASCADE,blank=True, null=True)
     items = models.ManyToManyField('Item', related_name='lots', blank=True)
     
     # Pricing
@@ -467,8 +491,9 @@ class Lot(models.Model):
     
     def generate_unique_slug(self):
         """Generate a unique slug for the lot"""
-        # Use lot_number and title for slug
-        base_slug = slugify(f"{self.title}-lot-{self.lot_number}")
+        # Ensure we have a valid lot number to avoid 'None' in slug
+        lot_num = self.lot_number if self.lot_number is not None else 0
+        base_slug = slugify(f"{self.title}-lot-{lot_num}")
         slug = base_slug
         counter = 1
         while Lot.objects.filter(slug=slug).exclude(pk=self.pk).exists():
@@ -479,6 +504,49 @@ class Lot(models.Model):
     def item_count(self):
         return self.items.count()
     item_count.short_description = 'Total items'
+
+    @classmethod
+    def create_from_item(cls, auction, item):
+        """
+        Structured backend logic to create a Lot and bind an Item.
+        """
+        from decimal import Decimal
+        from django.utils import timezone
+        
+        # 1. Generate sequential lot number
+        last_lot = cls.objects.filter(auction=auction).order_by('-lot_number').first()
+        next_number = (last_lot.lot_number + 1) if last_lot else 1
+        
+        # 2. Determine end time (default to 7 days if auction has no end_date)
+        end_time = auction.end_date or (timezone.now() + timezone.timedelta(days=7))
+        
+        # 3. Determine initial status based on auction state
+        # If auction is already live, new lot should be active immediately
+        initial_status = 'active' if auction.status == 'live' else 'draft'
+
+        # 4. Create Lot securely
+        lot = cls.objects.create(
+            auction=auction,
+            lot_number=next_number,
+            title=item.title,
+            description=item.description,
+            lot_catagory=item.item_catagory,
+            starting_bid=item.estimated_value or Decimal('0.00'),
+            current_bid=item.estimated_value or Decimal('0.00'),
+            status=initial_status,
+            end_time=end_time,
+            is_timed=True,
+            shipping_fee=item.shipping_fee or Decimal('0.00')
+        )
+        
+        # 4. Bind M2M relationship
+        lot.items.add(item)
+        
+        # 5. Update Item status
+        item.status = 'Lotted'
+        item.save(update_fields=['status'])
+        
+        return lot
 
     @classmethod
     def all_status_count(cls):
@@ -567,17 +635,17 @@ class Lot(models.Model):
             highest_bid = Bid.objects.filter(lot=self).order_by('-amount').first()
             
             if highest_bid:
-                # Set winning bidder but don't mark as sold yet
+                # Set winning bidder and mark as pending payment
                 self.winning_bidder = highest_bid.user
+                self.status = 'pending_payment'
                 highest_bid.is_winning = True
                 highest_bid.save()
                 
-                # Check for 5% token amount if > 5,00,000
+                # Token amount = 5% of bid, capped under ₹2,00,000 (Razorpay limit)
                 from decimal import Decimal
-                if self.current_bid > Decimal('500000'):
-                    amount_to_pay = self.current_bid * Decimal('0.05')
-                else:
-                    amount_to_pay = self.current_bid
+                amount_to_pay = (self.current_bid * Decimal('0.05')).quantize(Decimal('0.01'))
+                if amount_to_pay >= Decimal('200000'):
+                    amount_to_pay = Decimal('199999')
 
                 # Create pending payment with centralized timeout
                 expires_at = timezone.now() + timedelta(minutes=settings.WINNER_PAYMENT_TIMEOUT_MINUTES)
@@ -592,15 +660,41 @@ class Lot(models.Model):
                     status='pending'
                 )
                 
-                # Keep lot as active until payment is verified
-                # Status will be updated to 'sold' when PIN is verified
+                # Status updated to 'pending_payment'
                 print(f"Pending payment created for Lot #{self.lot_number}. Winner: {highest_bid.user.username}, Expires at: {expires_at}, Amount to Pay: {amount_to_pay}")
+                
+                # Generate 'pending' Proforma Invoice and send email automatically
+                try:
+                    import uuid
+                    shipping_fee = Decimal(str(self.shipping_fee))
+                    buyer_premium_pct = Decimal(str(self.auction.buyer_premium_percentage or 0))
+                    buyer_premium_amount = (self.current_bid * buyer_premium_pct / Decimal('100')).quantize(Decimal('0.01'))
+                    
+                    invoice = Invoice.objects.create(
+                        user=highest_bid.user,
+                        lot=self,
+                        amount=self.current_bid,
+                        shipping_fee=shipping_fee,
+                        buyer_premium=buyer_premium_amount,
+                        invoice_number=f"INV-{self.id}-{uuid.uuid4().hex[:8].upper()}",
+                        status='pending'
+                    )
+                    
+                    # Offload sending the proforma email immediately
+                    send_invoice_email_task(invoice.id)
+                except Exception as e:
+                    print(f"Error generating pending invoice in tick(): {e}")
                 
             else:
                 # No bids, mark as unsold
                 self.status = 'unsold'
                 
             self.save()
+            
+            # Broadcast lot refresh to spectators so their page reloads with the new status
+            from bids.utils import broadcast_lot_refresh
+            broadcast_lot_refresh(self)
+            
             return True
 
 
@@ -640,6 +734,8 @@ class Invoice(models.Model):
     lot = models.OneToOneField('Lot', on_delete=models.CASCADE, related_name='invoice')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    buyer_premium = models.DecimalField(max_digits=10, decimal_places=2, default=0.00,
+                                        help_text="Buyer premium charged (admin profit)")
     invoice_number = models.CharField(max_length=50, unique=True)
     issued_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default='paid', choices=[
@@ -686,6 +782,7 @@ def send_invoice_email_task(invoice_id):
             'total_amount': total_amount, 
             'invoice_number': invoice.invoice_number,
             'invoice_date': invoice.issued_at.strftime("%B %d, %Y"),
+            'invoice_status': invoice.status,
             'delivery': getattr(lot, 'delivery', None)
         }
         
@@ -713,8 +810,11 @@ def send_invoice_email_task(invoice_id):
                 pdf_error = pisa_status.err
                 
                 # Send Email
+                # Determine subject prefix based on status
+                subject_prefix = "Receipt" if invoice.status == 'paid' else "Pending Invoice"
+                
                 email = EmailMultiAlternatives(
-                    subject=f"Invoice for Lot #{lot_num}: {lot_title}",
+                    subject=f"{subject_prefix} for Lot #{lot_num}: {lot_title}",
                     body=plain_message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     to=[user_email]
@@ -727,10 +827,17 @@ def send_invoice_email_task(invoice_id):
                 else:
                     print(f"Skipping PDF attachment due to format error")
                     
-                email.send(fail_silently=True)
-                print(f"[Async] Invoice email sent to {user_email}")
+                try:
+                    email.send(fail_silently=False)
+                    print(f"[Async] Invoice email sent to {user_email}")
+                except Exception as eval_err:
+                    import traceback
+                    print(f"[Async Error] Failed to send invoice email via SMTP: {eval_err}")
+                    traceback.print_exc()
             except Exception as e:
-                print(f"[Async Error] Failed to send invoice email: {e}")
+                import traceback
+                print(f"[Async Error] Failed to generate/send invoice email: {e}")
+                traceback.print_exc()
 
         # Start background thread
         thread = threading.Thread(target=bg_task, daemon=False)
@@ -771,3 +878,123 @@ class Delivery(models.Model):
         import random
         self.verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         return self.verification_code
+
+
+class PropertySale(models.Model):
+    """Tracks the full real estate sale lifecycle for immovable property lots.
+    Replaces the Delivery model for real estate items."""
+    
+    STATUS_CHOICES = [
+        ('emd_pending', 'EMD Payment Pending'),
+        ('emd_paid', 'EMD Paid'),
+        ('documents_pending', 'Documents Pending'),
+        ('documents_submitted', 'Documents Submitted'),
+        ('documents_verified', 'Documents Verified'),
+        ('agreement_pending', 'Agreement Pending'),
+        ('agreement_signed', 'Agreement Signed'),
+        ('final_payment_pending', 'Final Payment Pending'),
+        ('final_payment_done', 'Final Payment Done'),
+        ('registration_pending', 'Registration Pending'),
+        ('registration_done', 'Registration Done'),
+        ('possession_transferred', 'Possession Transferred'),
+        ('completed', 'Completed'),
+    ]
+    
+    # Core links
+    lot = models.OneToOneField('Lot', on_delete=models.CASCADE, related_name='property_sale')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='property_purchases')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='property_sales')
+    
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='emd_pending')
+    
+    # ── EMD (Earnest Money Deposit) ──
+    emd_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=5.00, help_text="EMD as % of winning bid")
+    emd_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Auto-calculated EMD amount")
+    emd_paid = models.BooleanField(default=False)
+    emd_payment_id = models.CharField(max_length=100, blank=True, help_text="Razorpay payment ID for EMD")
+    emd_deadline = models.DateTimeField(null=True, blank=True, help_text="Deadline for EMD payment (default 72h)")
+    
+    # ── Documents ──
+    buyer_documents = models.JSONField(default=list, blank=True, help_text="Uploaded buyer KYC documents")
+    seller_documents = models.JSONField(default=list, blank=True, help_text="Uploaded seller property documents")
+    documents_verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                              related_name='verified_property_docs',
+                                              help_text="Admin who verified documents")
+    documents_verified_at = models.DateTimeField(null=True, blank=True)
+    documents_rejection_reason = models.TextField(blank=True, help_text="Reason if documents are rejected")
+    
+    # ── Agreement ──
+    agreement_file = models.CharField(max_length=500, blank=True, help_text="Path/URL to generated sale agreement PDF")
+    buyer_agreed = models.BooleanField(default=False)
+    seller_agreed = models.BooleanField(default=False)
+    agreement_signed_at = models.DateTimeField(null=True, blank=True)
+    
+    # ── Final Payment ──
+    final_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Winning bid - EMD")
+    final_payment_id = models.CharField(max_length=100, blank=True, help_text="Razorpay payment ID for final payment")
+    final_payment_at = models.DateTimeField(null=True, blank=True)
+    
+    # ── Registration ──
+    stamp_duty = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Stamp duty amount")
+    registration_charges = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Registration charges")
+    registration_number = models.CharField(max_length=100, blank=True, help_text="Government registration number")
+    registration_date = models.DateTimeField(null=True, blank=True)
+    sale_deed_file = models.CharField(max_length=500, blank=True, help_text="Path/URL to uploaded sale deed")
+    
+    # ── Possession ──
+    possession_date = models.DateTimeField(null=True, blank=True)
+    possession_letter_file = models.CharField(max_length=500, blank=True, help_text="Path/URL to possession letter")
+    
+    # ── Platform Commission ──
+    platform_commission_pct = models.DecimalField(max_digits=5, decimal_places=2, default=2.00,
+                                                  help_text="Platform commission % for real estate")
+    
+    # ── Metadata ──
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    admin_notes = models.TextField(blank=True, help_text="Internal admin notes")
+    
+    class Meta:
+        verbose_name = 'Property Sale'
+        verbose_name_plural = 'Property Sales'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Property Sale for Lot #{self.lot.lot_number} - {self.get_status_display()}"
+    
+    @property
+    def winning_bid(self):
+        return self.lot.current_bid
+    
+    @property
+    def is_emd_expired(self):
+        if self.emd_deadline and not self.emd_paid:
+            return timezone.now() > self.emd_deadline
+        return False
+    
+    @property
+    def total_property_value(self):
+        """Total amount buyer pays = winning bid + stamp duty + registration"""
+        return self.lot.current_bid + self.stamp_duty + self.registration_charges
+    
+    @property
+    def remaining_amount(self):
+        """Amount remaining after EMD"""
+        return self.lot.current_bid - self.emd_amount
+    
+    def get_status_step_number(self):
+        """Get the step number (1-8) for the progress tracker"""
+        step_map = {
+            'emd_pending': 1, 'emd_paid': 2,
+            'documents_pending': 2, 'documents_submitted': 3,
+            'documents_verified': 4,
+            'agreement_pending': 4, 'agreement_signed': 5,
+            'final_payment_pending': 5, 'final_payment_done': 6,
+            'registration_pending': 6, 'registration_done': 7,
+            'possession_transferred': 7, 'completed': 8,
+        }
+        return step_map.get(self.status, 1)
+    
+    def get_progress_percentage(self):
+        """Get progress percentage for the UI"""
+        return int((self.get_status_step_number() / 8) * 100)

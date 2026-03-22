@@ -11,7 +11,7 @@ from io import BytesIO
 from django.utils import timezone
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from .models import Bid, Wallet,Transaction 
+from .models import Bid, Transaction 
 from reportlab.platypus import PageBreak    
 from auction_list.models import Lot,Invoice
 from django.http import FileResponse
@@ -95,37 +95,15 @@ def download_bid_history_pdf(request):
     ))
     elements.append(Spacer(1, 0.3*inch))
     
-    # Wallet Summary Section
-    try:
-        wallet = user.wallet
-        elements.append(Paragraph("Wallet Summary", heading_style))
-        
-        wallet_data = [
-            ['Current Balance:', f'Rs. {wallet.balance:,.2f}'],
-            ['Wallet Created:', wallet.created_at.strftime('%B %d, %Y')],
-            ['Last Updated:', wallet.updated_at.strftime('%B %d, %Y at %I:%M %p')],
-        ]
-        
-        wallet_table = Table(wallet_data, colWidths=[2.5*inch, 4*inch])
-        wallet_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f0f0')),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 11),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ]))
-        
-        elements.append(wallet_table)
-        elements.append(Spacer(1, 0.3*inch))
-        
-    except Wallet.DoesNotExist:
-        elements.append(Paragraph("No wallet found for this user.", styles['Normal']))
-        elements.append(Spacer(1, 0.3*inch))
+    # Wallet Summary Section (Removed)
+    elements.append(Paragraph("Security Deposit Status", heading_style))
+    from .models import SecurityDeposit
+    active_deposit = SecurityDeposit.objects.filter(user=user, status='active').first()
+    if active_deposit:
+        elements.append(Paragraph(f"Active Security Deposit: Rs. {active_deposit.amount:,.2f}", styles['Normal']))
+    else:
+        elements.append(Paragraph("No active security deposit found.", styles['Normal']))
+    elements.append(Spacer(1, 0.3*inch))
     
     # Bid History Section
     bids = Bid.objects.filter(user=user).select_related(
@@ -349,112 +327,82 @@ def transaction_invoice(request):
     elements.append(Spacer(1, 0.3*inch))
 
     # Wallet Summary Section
-    try:
-        wallet = user.wallet
-        elements.append(Paragraph("Wallet Summary", heading_style))
+    # Status Summary Section
+    elements.append(Paragraph("Account Status Summary", heading_style))
+    from .models import SecurityDeposit
+    active_deposit = SecurityDeposit.objects.filter(user=user, status='active').first()
+    if active_deposit:
+        elements.append(Paragraph(f"Active Security Deposit: Rs. {active_deposit.amount:,.2f}", styles['Normal']))
+    else:
+        elements.append(Paragraph("No active security deposit found.", styles['Normal']))
+    elements.append(Spacer(1, 0.3*inch))
+
+    transactions = Transaction.objects.filter(
+        user=user
+    ).order_by('-timestamp')[:50]  # Last 50 transactions
+    
+    if transactions.exists():
+        elements.append(PageBreak())  # New page for transactions
+        elements.append(Paragraph("Recent Transaction History", heading_style))
+        elements.append(Spacer(1, 0.15*inch))
         
-        wallet_data = [
-            ['Current Balance:', f'Rs. {wallet.balance:,.2f}'],
-            ['Wallet Created:', wallet.created_at.strftime('%B %d, %Y')],
-            ['Last Updated:', wallet.updated_at.strftime('%B %d, %Y at %I:%M %p')],
+        # Transaction table
+        trans_table_data = [
+            ['Date & Time', 'Type', 'Description', 'Amount', 'Balance']
         ]
         
-        wallet_table = Table(wallet_data, colWidths=[2.5*inch, 4*inch])
-        wallet_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f0f0')),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 11),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
+        for trans in transactions:
+            # Add prefix for positive/negative
+            if trans.amount > 0:
+                amount_color = colors.green
+                amount_prefix = '+'
+            else:
+                amount_color = colors.red
+                amount_prefix = '-'
+            
+            # Use Paragraph for description to allow wrapping
+            description = Paragraph(trans.description or "", styles['Normal'])
+            
+            trans_table_data.append([
+                trans.timestamp.strftime('%m/%d/%y %I:%M %p'),
+                trans.get_transaction_type_display(),
+                description,
+                Paragraph(
+                    f'{amount_prefix} Rs. {abs(trans.amount):,.2f}',
+                    ParagraphStyle('amount', textColor=amount_color, parent=styles['Normal'], fontName='Helvetica-Bold')
+                ),
+                "N/A" # Balance not tracked without wallet
+            ])
+
+        
+        trans_table = Table(
+            trans_table_data,
+            colWidths=[1.2*inch, 1.3*inch, 2.3*inch, 1*inch, 1*inch]
+        )
+        
+        trans_table.setStyle(TableStyle([
+            # Header
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495e')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+            ('TOPPADDING', (0, 0), (-1, 0), 10),
+            
+            # Data
+            ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+            ('ALIGN', (1, 1), (2, -1), 'LEFT'),
+            ('ALIGN', (3, 1), (-1, -1), 'RIGHT'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+            ('TOPPADDING', (0, 1), (-1, -1), 6),
+            ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),  # Vertical alignment for wrapped text
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
         ]))
         
-        elements.append(wallet_table)
-        elements.append(Spacer(1, 0.3*inch))
-        
-    except Wallet.DoesNotExist:
-        elements.append(Paragraph("No wallet found for this user.", styles['Normal']))
-        elements.append(Spacer(1, 0.3*inch))
-
-    if hasattr(user, 'wallet'):
-        transactions = Transaction.objects.filter(
-            wallet=user.wallet
-        ).order_by('-timestamp')[:50]  # Last 50 transactions
-        
-        if transactions.exists():
-            elements.append(PageBreak())  # New page for transactions
-            elements.append(Paragraph("Recent Transaction History", heading_style))
-            elements.append(Spacer(1, 0.15*inch))
-            
-            # Transaction table
-            trans_table_data = [
-                ['Date & Time', 'Type', 'Description', 'Amount', 'Balance']
-            ]
-            
-            # Calculate running balance starting from current
-            current_running_balance = user.wallet.balance
-            
-            for trans in transactions:
-                # Add prefix for positive/negative
-                if trans.amount > 0:
-                    amount_color = colors.green
-                    amount_prefix = '+'
-                else:
-                    amount_color = colors.red
-                    amount_prefix = '-'
-                
-                # Use Paragraph for description to allow wrapping
-                description = Paragraph(trans.description, styles['Normal'])
-                
-                # The balance shown in THIS row is the balance AFTER this transaction happened.
-                # So for the first row (newest), it's the current wallet balance.
-                trans_table_data.append([
-                    trans.timestamp.strftime('%m/%d/%y %I:%M %p'),
-                    trans.get_transaction_type_display(),
-                    description,
-                    Paragraph(
-                        f'{amount_prefix} Rs. {abs(trans.amount):,.2f}',
-                        ParagraphStyle('amount', textColor=amount_color, parent=styles['Normal'], fontName='Helvetica-Bold')
-                    ),
-                    f'Rs. {current_running_balance:,.2f}'
-                ])
-                
-                # Move back to previous balance for the NEXT row (which is actually an OLDER transaction)
-                current_running_balance -= trans.amount
-
-            
-            trans_table = Table(
-                trans_table_data,
-                colWidths=[1.2*inch, 1.3*inch, 2.3*inch, 1*inch, 1*inch]
-            )
-            
-            trans_table.setStyle(TableStyle([
-                # Header
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495e')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-                ('TOPPADDING', (0, 0), (-1, 0), 10),
-                
-                # Data
-                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
-                ('ALIGN', (1, 1), (2, -1), 'LEFT'),
-                ('ALIGN', (3, 1), (-1, -1), 'RIGHT'),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
-                ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
-                ('TOPPADDING', (0, 1), (-1, -1), 6),
-                ('VALIGN', (0, 1), (-1, -1), 'MIDDLE'),  # Vertical alignment for wrapped text
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
-            ]))
-            
-            elements.append(trans_table)
+        elements.append(trans_table)
     
     # Footer
     elements.append(Spacer(1, 0.4*inch))

@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.conf import settings
 from auction_list.utils import calculate_shipping_fee
 from decimal import Decimal
-from bids.models import Bid, Transaction
+from bids.models import Bid, SecurityDeposit
 from auction_list.models import Lot
 
 
@@ -42,55 +42,26 @@ def profile_view(request):
     bids_page = request.GET.get('bids_page')
     bids = bids_paginator.get_page(bids_page)
     
-    # User's transactions
-    transaction_list = Transaction.objects.filter(wallet__user=request.user).order_by('-timestamp')
-    paginator = Paginator(transaction_list, 8)  # Show 8 transactions per page
-    trans_page = request.GET.get('trans_page')
-    transactions = paginator.get_page(trans_page)
+    # Security Deposit
+    deposit = SecurityDeposit.objects.filter(user=request.user).first()
     
     # Won Items (Lots where user is winning bidder and status is sold)
     # Won Items (Lots where user is winning bidder and status is paid or beyond)
-    won_statuses = ['paid', 'shipped_to_warehouse', 'at_warehouse', 'shipped', 'sold']
-    won_items = Lot.objects.filter(winning_bidder=request.user, status__in=won_statuses).select_related('auction', 'lot_catagory', 'delivery').order_by('-updated_at')
+    won_statuses = ['paid', 'shipped_to_warehouse', 'at_warehouse', 'shipped', 'sold', 'property_sale']
+    won_items = Lot.objects.filter(winning_bidder=request.user, status__in=won_statuses).select_related('auction', 'lot_catagory', 'delivery', 'property_sale').order_by('-updated_at')
     
     # Pending Payments (Lots won but maybe not paid? Logic TBD, for now just show won items)
     # Using won_items as pending for now if we don't have paid status
 
-    # Wallet Activity Stats
-    total_deposits = Transaction.objects.filter(
-        wallet__user=request.user, 
-        transaction_type='deposit'
-    ).aggregate(total=Sum('amount'))['total'] or 0
-
-    total_bids = Transaction.objects.filter(
-        wallet__user=request.user, 
-        transaction_type='bid_placed'
-    ).aggregate(total=Sum('amount'))['total'] or 0
-
-    # Assuming 'deduction' covers withdrawals/fees not covered by bids/payments
-    total_withdrawals = Transaction.objects.filter(
-        wallet__user=request.user, 
-        transaction_type='deduction'
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    
-    # We store deductions as negative numbers in some logic? 
-    # Checking Wallet.deduct_funds: "amount=-amount" for transaction creation.
-    # So if they are stored as negative, we need to take absolute value or Sum will be negative.
-    # Let's check model logic: "amount=-amount". 
-    # Yes, deductions are negative.
-    
-    total_withdrawals = abs(total_withdrawals)
 
     
     context = {
         "profile": profile, 
         "item_list": item_list,
         "bids": bids,
-        "transactions": transactions,
         "won_items": won_items,
-        "total_deposits": total_deposits,
-        "total_bids": total_bids,
-        "total_withdrawals": total_withdrawals
+        "deposit": deposit,
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID
     }
     
     return render(request, "profile_page.html", context)
@@ -213,14 +184,13 @@ def add_item_view(request):
         #     shipping_fee = Decimal('0.00')
         shipping_fee = Decimal('0.00')
 
-        # Check conditions for document verification
         try:
             value_decimal = Decimal(estimated_value)
         except:
             value_decimal = Decimal('0')
 
-        requires_doc = selected_catagory.requires_document or value_decimal >= Decimal('500000')
-        item_status = 'Pending Approval' if requires_doc else 'Available'
+        # ALL items must go through admin verification regardless of value or doc rules
+        item_status = 'Pending Approval'
 
         item = Item.objects.create(
             owner=request.user,
@@ -475,3 +445,60 @@ def change_transaction_pin(request):
 
 def terms_and_condition_view(request):
     return render(request, "terms_and_condition.html")
+
+@login_required
+def seller_wallet(request):
+    """View for Seller Wallet Dashboard"""
+    from bids.models import UserWallet, SellerBankAccount, WalletTransaction, WithdrawalRequest
+    from django.db.models import Sum
+    from decimal import Decimal
+    from auction_list.models import Lot
+    
+    wallet, _ = UserWallet.objects.get_or_create(user=request.user)
+    bank_accounts = SellerBankAccount.objects.filter(user=request.user, is_active=True)
+    transactions = WalletTransaction.objects.filter(wallet=wallet)[:20]
+    withdrawals = WithdrawalRequest.objects.filter(user=request.user)[:10]
+    
+    # Calculate summary stats
+    total_earned = WalletTransaction.objects.filter(
+        wallet=wallet, transaction_type='credit'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    
+    total_withdrawn = WalletTransaction.objects.filter(
+        wallet=wallet, transaction_type='debit'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    
+    # Calculate pending payouts (lots paid but not yet delivered)
+    pending_lots = Lot.objects.filter(
+        items__owner=request.user, 
+        status__in=['paid', 'shipped_to_warehouse', 'at_warehouse', 'shipped', 'property_sale']
+    ).distinct()
+    
+    pending_payout = Decimal('0.00')
+    for lot in pending_lots:
+        winning_amount = Decimal(str(lot.current_bid))
+        is_real_estate = hasattr(lot, 'lot_catagory') and lot.lot_catagory and getattr(lot.lot_catagory, 'is_immovable', False)
+        admin_commission_pct = Decimal("0.02") if is_real_estate else Decimal("0.10")
+        admin_commission = (winning_amount * admin_commission_pct).quantize(Decimal('0.01'))
+        distributable_amount = winning_amount - admin_commission
+        
+        lot_starting_price = Decimal(str(lot.starting_bid))
+        if lot_starting_price <= 0:
+            lot_starting_price = sum(Decimal(str(item.estimated_value)) for item in lot.items.all())
+            if lot_starting_price <= 0:
+                lot_starting_price = Decimal("1")
+                
+        for item in lot.items.filter(owner=request.user):
+            share_percentage = Decimal(str(item.estimated_value)) / lot_starting_price
+            pending_payout += (share_percentage * distributable_amount).quantize(Decimal('0.01'))
+    
+    context = {
+        'wallet': wallet,
+        'bank_accounts': bank_accounts,
+        'transactions': transactions,
+        'withdrawals': withdrawals,
+        'total_earned': total_earned,
+        'total_withdrawn': total_withdrawn,
+        'pending_payout': pending_payout,
+    }
+    return render(request, "wallet.html", context)

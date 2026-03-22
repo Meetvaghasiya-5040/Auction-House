@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+# Auto-reload trigger
 import os
+from decouple import config
 import dj_database_url
 import cloudinary
 import cloudinary.uploader
@@ -59,7 +61,7 @@ UNFOLD = {
                 "items": [
                     {"title": "Bids", "icon": "gavel", "link": "/admin/bids/bid/"},
                     {"title": "Transactions", "icon": "receipt_long", "link": "/admin/bids/transaction/"},
-                    {"title": "Wallets", "icon": "category", "link": "/admin/bids/wallet/"},
+                    {"title": "Wallets", "icon": "category", "link": "/admin/bids/userwallet"},
                     {"title": "Admin Wallet", "icon": "inventory_2", "link": "/admin/bids/adminwallet/"},
                 ],
             },
@@ -111,7 +113,15 @@ INSTALLED_APPS = [
     "Home",
     "auction_list",
     "bids",
+    "admin_panel",
+    "core.apps.CoreConfig",
     "channels",
+    # Allauth
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -124,6 +134,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+    "AuctionHouse.middleware.SuspendMiddleware",
 ]
 
 ROOT_URLCONF = "AuctionHouse.urls"
@@ -136,6 +148,7 @@ TEMPLATES = [
             BASE_DIR / "Home/templates",
             BASE_DIR / "auction_list/templates",
             BASE_DIR / "custom_admin/templates",
+            BASE_DIR / "admin_panel/templates",
             BASE_DIR / "bids/templates",
         ],
         "APP_DIRS": True,
@@ -148,6 +161,43 @@ TEMPLATES = [
         },
     },
 ]
+
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+            'prompt': 'select_account',
+        }
+    }
+}
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none' # We already handle email OTP during registration
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_LOGIN_REDIRECT_URL = '/home/'
+ACCOUNT_SIGNUP_REDIRECT_URL = '/home/'
 
 WSGI_APPLICATION = "AuctionHouse.wsgi.application"
 # ASGI Configuration
@@ -191,6 +241,9 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            "OPTIONS": {
+                "timeout": 30,
+            }
         }
     }
 
@@ -301,10 +354,11 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp-relay.brevo.com")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "a34d24001@smtp-brevo.com")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD") or os.environ.get("BREVO_SMTP_KEY")
-# Default to the host user if not specified otherwise
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", f"Auction House <{EMAIL_HOST_USER}>")
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='a34d24001@smtp-brevo.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# Gmail deliverability: Use a real email address as the 'From' sender.
+# IMPORTANT: You MUST verify meetvaghasiya166@gmail.com in your Brevo Dashboard (Senders & IP).
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "meetvaghasiya166@gmail.com")
 
 
 
@@ -313,8 +367,8 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", f"Auction House <{EMAI
 WINNER_PAYMENT_TIMEOUT_MINUTES = 3 * 24 * 60  # 3 days
 
 # Razorpay Settings
-RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_SLDw6EMAUEf6k1")
-RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "2RFsPhs4TrSWYhThL5mUo4p7")
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID', default='')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET', default='')
 
 # Warehouse Location for Shipping Calculation
 WAREHOUSE_CITY = 'Ahmedabad'
@@ -337,6 +391,7 @@ else:
 
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
+
 
 # Required for WebSockets behind proxy
 USE_X_FORWARDED_HOST = True

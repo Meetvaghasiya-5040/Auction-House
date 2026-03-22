@@ -1,0 +1,79 @@
+{% extends "admin_panel/admin_base.html" %}
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">Reports Center</h1>
+    <p class="text-slate-500 text-sm mt-1">Generate and download detailed reports</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <a href="{% url 'admin_panel:report_auctions' %}"
+        class="group bg-white rounded-xl border border-slate-100 shadow-sm p-6 hover:border-indigo-300 hover:shadow-md transition-all">
+        <div
+            class="h-12 w-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <i class="fas fa-gavel text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-slate-800">Auction Report</h3>
+        <p class="text-sm text-slate-400 mt-1">All auctions with lot count, sold count, and revenue breakdown. Filter by
+            status or date.</p>
+        <div class="mt-4 flex items-center text-indigo-500 text-sm font-medium group-hover:text-indigo-700">
+            View Report <i class="fas fa-arrow-right ml-2"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'admin_panel:report_bids' %}"
+        class="group bg-white rounded-xl border border-slate-100 shadow-sm p-6 hover:border-emerald-300 hover:shadow-md transition-all">
+        <div
+            class="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+            <i class="fas fa-hand-holding-usd text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-slate-800">Bid Report</h3>
+        <p class="text-sm text-slate-400 mt-1">Every bid placed — filter by auction or date range. Includes proxy/auto
+            bids and winning bids.</p>
+        <div class="mt-4 flex items-center text-emerald-500 text-sm font-medium group-hover:text-emerald-700">
+            View Report <i class="fas fa-arrow-right ml-2"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'admin_panel:report_revenue' %}"
+        class="group bg-white rounded-xl border border-slate-100 shadow-sm p-6 hover:border-amber-300 hover:shadow-md transition-all">
+        <div
+            class="h-12 w-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <i class="fas fa-rupee-sign text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-slate-800">Revenue Report</h3>
+        <p class="text-sm text-slate-400 mt-1">Invoice-level revenue showing bid amounts, buyer premium, shipping fees,
+            and totals.</p>
+        <div class="mt-4 flex items-center text-amber-500 text-sm font-medium group-hover:text-amber-700">
+            View Report <i class="fas fa-arrow-right ml-2"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'admin_panel:report_delivery' %}"
+        class="group bg-white rounded-xl border border-slate-100 shadow-sm p-6 hover:border-rose-300 hover:shadow-md transition-all">
+        <div
+            class="h-12 w-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mb-4 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+            <i class="fas fa-truck text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-slate-800">Delivery Report</h3>
+        <p class="text-sm text-slate-400 mt-1">Track all paid lots through the delivery pipeline. Filter by delivery
+            status and date.</p>
+        <div class="mt-4 flex items-center text-rose-500 text-sm font-medium group-hover:text-rose-700">
+            View Report <i class="fas fa-arrow-right ml-2"></i>
+        </div>
+    </a>
+</div>
+
+<div class="mt-8 bg-indigo-50 border border-indigo-100 rounded-xl p-5">
+    <div class="flex items-start gap-3">
+        <i class="fas fa-info-circle text-indigo-500 mt-0.5"></i>
+        <div>
+            <p class="font-semibold text-indigo-800">Export to CSV</p>
+            <p class="text-sm text-indigo-600 mt-0.5">All reports support CSV export. On any report page, click
+                <strong>"Export CSV"</strong> to download the data for use in Excel, Google Sheets, or any spreadsheet
+                application.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

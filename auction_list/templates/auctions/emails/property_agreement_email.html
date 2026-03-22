@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f8fafc;
+            padding-bottom: 40px;
+        }
+
+        .main {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+            padding: 35px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 40px 30px;
+            color: #334155;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .content h2 {
+            color: #1e293b;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 0;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .highlight-box {
+            background-color: #f1f5f9;
+            border-left: 4px solid #7c3aed;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+
+        .highlight-box p {
+            margin: 0;
+            padding-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .highlight-box p:last-child {
+            padding-bottom: 0;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin: 35px 0 15px;
+        }
+
+        .btn {
+            background-color: #7c3aed;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .important-note {
+            font-size: 14px;
+            color: #b45309;
+            background-color: #fef3c7;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+            border: 1px solid #fde68a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="main">
+            <div class="header">
+                <h1>Property Sale Agreement</h1>
+            </div>
+            <div class="content">
+                <h2>Action Required: Sign Your Agreement</h2>
+                <p>Dear <strong>{{ buyer.get_full_name|default:buyer.username }}</strong>,</p>
+                <p>Congratulations on your successful bid! The initial document verification process has been completed,
+                    and your official <strong>Agreement to Sell</strong> has been generated.</p>
+
+                <div class="highlight-box">
+                    <p style="color: #64748b; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Property
+                        Details</p>
+                    <p style="font-size: 18px; color: #1e293b;">{{ lot_title }}</p>
+                    <p>Lot #{{ lot_number }}</p>
+                </div>
+
+                <p>We have successfully attached your official Agreement to Sell PDF to this email. Please review the
+                    attached document carefully.</p>
+
+                <div class="important-note">
+                    <strong>Next Steps:</strong> To proceed with the remaining payment and property registration, you
+                    must log in to your dashboard and digitally sign the agreement.
+                </div>
+
+                <div class="btn-container">
+                    <!-- The URL below would typically be absolute, but this works for demo -->
+                    <a href="https://easybid.com" class="btn">Go to Dashboard</a>
+                </div>
+
+                <p style="margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">If you have any questions
+                    regarding the agreement terms, please contact our real estate support team.</p>
+
+                <p>Best regards,<br><strong>The EasyBid Legal Team</strong></p>
+            </div>
+            <div class="footer">
+                <p>&copy; 2026 EasyBid Platform. All rights reserved.</p>
+                <p>This is an automated message, please do not reply to this email.</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

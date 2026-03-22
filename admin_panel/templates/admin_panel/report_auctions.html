@@ -1,0 +1,99 @@
+{% extends "admin_panel/admin_base.html" %}
+{% block title %}Auction Report{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+    <div>
+        <a href="{% url 'admin_panel:reports' %}" class="text-indigo-500 text-sm hover:underline"><i
+                class="fas fa-arrow-left mr-1"></i>Reports</a>
+        <h1 class="text-2xl font-bold text-slate-800 mt-1">Auction Report</h1>
+    </div>
+    <a href="?status={{ status_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&export=csv"
+        class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+        <i class="fas fa-download"></i> Export CSV
+    </a>
+</div>
+
+<!-- Filters -->
+<form method="get"
+    class="bg-white rounded-xl border border-slate-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end">
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Status</label>
+        <select name="status"
+            class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+            <option value="">All Statuses</option>
+            {% for k, v in status_choices %}<option value="{{ k }}" {% if status_filter == k %}selected{% endif %}>{{ v }}
+            </option>{% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">From Date</label>
+        <input type="date" name="date_from" value="{{ date_from }}"
+            class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+    </div>
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">To Date</label>
+        <input type="date" name="date_to" value="{{ date_to }}"
+            class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+    </div>
+    <button type="submit"
+        class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">Apply
+        Filters</button>
+    <a href="{% url 'admin_panel:report_auctions' %}"
+        class="text-slate-500 px-4 py-2 rounded-lg text-sm hover:text-indigo-600">Clear</a>
+</form>
+
+<!-- Table -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+    <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 border-b border-slate-100">
+            <tr class="text-xs text-slate-400 uppercase">
+                <th class="text-left py-3 px-4">Auction</th>
+                <th class="text-center py-3 px-4">Status</th>
+                <th class="text-center py-3 px-4">Lots</th>
+                <th class="text-center py-3 px-4">Sold</th>
+                <th class="text-right py-3 px-4">Revenue</th>
+                <th class="text-right py-3 px-4">Premium</th>
+                <th class="text-left py-3 px-4">Date Range</th>
+                <th class="text-center py-3 px-4">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            {% for a in auctions %}
+            <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4">
+                    <p class="font-medium text-slate-800">{{ a.title|truncatechars:40 }}</p>
+                    <p class="text-xs text-slate-400">{{ a.get_auction_type_display }}</p>
+                </td>
+                <td class="py-3 px-4 text-center">
+                    <span class="px-2 py-0.5 text-xs rounded-full font-medium
+                        {% if a.status == 'live' %}bg-emerald-100 text-emerald-700
+                        {% elif a.status == 'completed' %}bg-slate-100 text-slate-600
+                        {% elif a.status == 'cancelled' %}bg-rose-100 text-rose-700
+                        {% else %}bg-amber-100 text-amber-700{% endif %}">
+                        {{ a.get_status_display }}
+                    </span>
+                </td>
+                <td class="py-3 px-4 text-center text-slate-700">{{ a.lot_count }}</td>
+                <td class="py-3 px-4 text-center text-emerald-600 font-semibold">{{ a.sold_count }}</td>
+                <td class="py-3 px-4 text-right font-semibold text-slate-800">₹{{ a.total_rev|default:0|floatformat:0 }}
+                </td>
+                <td class="py-3 px-4 text-right text-emerald-600">₹{{ a.total_prem|default:0|floatformat:0 }}</td>
+                <td class="py-3 px-4 text-slate-500 text-xs">
+                    {% if a.start_date %}{{ a.start_date|date:"M d, Y" }}{% else %}—{% endif %} →
+                    {% if a.end_date %}{{ a.end_date|date:"M d, Y" }}{% else %}Open{% endif %}
+                </td>
+                <td class="py-3 px-4 text-center">
+                    <a href="{% url 'admin_panel:auction_analytics_detail' a.id %}"
+                        class="text-indigo-500 hover:text-indigo-700 text-xs font-medium">Analytics</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="py-12 text-center text-slate-400">No auctions match the selected filters</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

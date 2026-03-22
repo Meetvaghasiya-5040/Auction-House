@@ -29,10 +29,10 @@ def delivery_dashboard(request):
     search_delivery = request.GET.get('search_delivery', '').strip()
     
     # 1. Pickup Requests (Items sold/lotted but not yet picked up)
-    # Filter items that are in 'Sold' or 'Lotted' status but pickup is pending
+    # Exclude immovable property items (real estate) — no physical pickup needed
     items_to_pickup = Item.objects.filter(
         pickup_status__in=['pending', 'picked_up']
-    )
+    ).exclude(item_catagory__is_immovable=True)
     
     # Apply search filter for pickups
     if search_pickup:
@@ -44,8 +44,11 @@ def delivery_dashboard(request):
     
     # 2. Delivery Requests (Lots paid but not delivered)
     # Filter lots that are 'paid', 'shipped_to_warehouse', 'at_warehouse'
+    # EXCLUDE immovable property lots (they use PropertySale workflow)
     lots_to_deliver = Lot.objects.filter(
         status__in=['paid', 'shipped_to_warehouse', 'at_warehouse', 'shipped']
+    ).exclude(
+        lot_catagory__is_immovable=True
     ).select_related('delivery', 'winning_bidder')
     
     # Apply search filter for deliveries
@@ -83,11 +86,8 @@ def verify_pickup_otp(request, item_id):
     if item.pickup_otp == otp:
         # OTP Match!
         
-        # Check for Shipping Fee Funds BEFORE updating status
-        if item.shipping_fee > 0:
-            if not item.owner.wallet.has_sufficient_balance(item.shipping_fee):
-                messages.error(request, f"Insufficient funds in seller's wallet for shipping fee (₹{item.shipping_fee}). Cannot process pickup.")
-                return redirect('delivery_dashboard')
+        # Fund check removed (No Wallet system)
+        pass
 
         try:
             with transaction.atomic():
@@ -95,10 +95,12 @@ def verify_pickup_otp(request, item_id):
                 item.pickup_status = 'picked_up'
                 item.save()
                 
-                # 2. Deduct Shipping Fee from Owner's Wallet
+                # 2. Log Transaction (Optional, now linking to user)
                 if item.shipping_fee > 0:
-                    item.owner.wallet.deduct_funds(
-                        item.shipping_fee, 
+                    Transaction.objects.create(
+                        user=item.owner,
+                        transaction_type='deduction',
+                        amount=item.shipping_fee,
                         description=f"Shipping Fee for Item: {item.title}"
                     )
                     
@@ -146,18 +148,17 @@ def verify_delivery_otp(request, lot_id):
     if delivery.verification_code == otp:
         # OTP Match!
         
-        # Check for Delivery Fee Funds BEFORE updating status
-        if lot.shipping_fee > 0:
-            if not lot.winning_bidder.wallet.has_sufficient_balance(lot.shipping_fee):
-                messages.error(request, f"Insufficient funds in buyer's wallet for delivery fee (₹{lot.shipping_fee}). Cannot process delivery.")
-                return redirect('delivery_dashboard')
+        # Fund check removed (No Wallet system)
+        pass
         
         try:
             with transaction.atomic():
-                # 1. Deduct Delivery Fee from Buyer's Wallet (if applicable)
+                # 1. Log Transaction
                 if lot.shipping_fee > 0:
-                    lot.winning_bidder.wallet.deduct_funds(
-                        lot.shipping_fee, 
+                    Transaction.objects.create(
+                        user=lot.winning_bidder,
+                        transaction_type='deduction',
+                        amount=lot.shipping_fee,
                         description=f"Delivery Fee for Lot #{lot.lot_number}: {lot.title}"
                     )
                     
@@ -234,6 +235,10 @@ def user_delivery_tracking(request, lot_id):
     # Ensure user is the winner of the lot
     lot = get_object_or_404(Lot, id=lot_id, winning_bidder=request.user)
     
+    # Redirect immovable property lots to PropertySale dashboard
+    if lot.lot_catagory and getattr(lot.lot_catagory, 'is_immovable', False):
+        return redirect('property_sale_dashboard', lot_id=lot.id)
+    
     # Get delivery object if it exists
     delivery = getattr(lot, 'delivery', None)
     
@@ -266,7 +271,7 @@ def delivery_history(request):
     # Completed Pickups
     completed_pickups = Item.objects.exclude(
         pickup_status='pending'
-    ).order_by('-id')
+    ).exclude(item_catagory__is_immovable=True).order_by('-id')
     
     # Completed Deliveries
     completed_deliveries = Lot.objects.filter(

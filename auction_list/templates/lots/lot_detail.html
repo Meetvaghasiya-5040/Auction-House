@@ -672,6 +672,17 @@
     display: block;
   }
 
+  .status-badge.status-pending-payment {
+    background: #fffbeb;
+    color: #d97706;
+    border-color: #fcd34d;
+  }
+
+  .status-badge.status-pending-payment .dot {
+    background: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+  }
+
   .bid-msg.success {
     background: #f0fdf4;
     color: #15803d;
@@ -1426,6 +1437,7 @@
     <h1 class="ld-lot-title">{{ lot.title }}</h1>
     <span class="status-badge
       {% if lot.status == 'active' %}status-active
+      {% elif lot.status == 'pending_payment' %}status-pending-payment
       {% elif lot.status == 'draft' %}status-draft
       {% elif lot.status == 'paid' %}status-paid
       {% elif lot.status == 'shipped_to_warehouse' or lot.status == 'at_warehouse' %}status-warehouse
@@ -1590,13 +1602,24 @@
         </div>
         {% endif %}
 
-        <!-- Wallet Balance -->
-        <div class="wallet-card">
+        <!-- Security Deposit Status -->
+        <div class="wallet-card {% if not active_deposit %}bg-amber-50 border-amber-200{% endif %}">
           <div>
-            <p class="wallet-label"><i class="fas fa-wallet" style="margin-right:4px;"></i>Your Wallet</p>
-            <a href="{% url 'add_funds' %}" class="add-funds-link"><i class="fas fa-plus-circle"></i>Add Funds</a>
+            <p class="wallet-label {% if not active_deposit %}text-amber-700{% endif %}">
+              <i class="fas fa-shield-alt" style="margin-right:4px;"></i>Security Deposit
+            </p>
+            {% if active_deposit %}
+            <span style="font-size:10px; color:#16a34a; font-weight:700; text-transform:uppercase;">Verified ✓</span>
+            {% else %}
+            <a href="{% url 'profile' %}" class="add-funds-link" style="color:#d97706;">
+              <i class="fas fa-exclamation-triangle"></i> Action Required
+            </a>
+            {% endif %}
           </div>
-          <span id="wallet-balance">₹{{ user.wallet.balance|floatformat:2 }}</span>
+          <span id="deposit-status" class="{% if active_deposit %}text-emerald-700{% else %}text-amber-700{% endif %}"
+            style="font-size:18px; font-weight:900;">
+            {% if active_deposit %}ACTIVE{% else %}PENDING{% endif %}
+          </span>
         </div>
 
         <!-- Current / Starting Bid -->
@@ -1623,12 +1646,47 @@
           <p id="next-bid-display">₹{{ lot.get_minimum_bid|floatformat:2 }}</p>
         </div>
 
+        <!-- Buyer's Premium Breakdown -->
+        {% if lot.auction.buyer_premium_percentage %}
+        <div id="buyer-premium-box"
+          style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:8px;padding:12px 14px;">
+          <p
+            style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#166534;margin-bottom:8px;">
+            <i class="fas fa-percent" style="margin-right:4px"></i>Price Breakdown
+          </p>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+            <span style="color:#374151;font-weight:600;">Bid Amount</span>
+            <span id="bp-bid-amount" style="font-weight:700;color:#111827;">₹{{
+              lot.get_minimum_bid|floatformat:2}}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;">
+            <span style="color:#374151;font-weight:600;">Buyer Premium
+              ({{lot.auction.buyer_premium_percentage}}%)</span>
+            <span id="bp-premium-amount" style="font-weight:700;color:#16a34a;">—</span>
+          </div>
+          <div
+            style="border-top:1px solid #86efac;margin-top:4px;padding-top:6px;display:flex;justify-content:space-between;">
+            <span
+              style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#166534;">Total
+              Payable</span>
+            <span id="bp-total" style="font-size:14px;font-weight:900;color:#15803d;">—</span>
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Bid Button -->
         <div id="bid-form">
           {% if lot.status == 'active' %}
+          {% if active_deposit %}
           <button id="place-bid-btn" class="bid-btn">
             <i class="fas fa-gavel"></i>Place Bid
           </button>
+          {% else %}
+          <a href="{% url 'profile' %}" class="bid-btn"
+            style="background: linear-gradient(135deg, #f59e0b, #d97706); text-decoration:none;">
+            <i class="fas fa-shield-alt"></i>Pay Deposit to Bid
+          </a>
+          {% endif %}
           {% elif lot.status == 'draft' %}
           <button id="place-bid-btn" disabled class="bid-btn" style="opacity:.55;">
             <i class="fas fa-lock"></i>Starts Soon
@@ -1648,6 +1706,52 @@
         <div class="total-bids-row">
           <span class="total-bids-label"><i class="fas fa-chart-bar" style="margin-right:5px;"></i>Total Bids</span>
           <span id="bid-count" class="bid-count-display">{{ lot.bids.count }}</span>
+        </div>
+
+        <!-- ── Proxy Bid Section ── -->
+        {% if lot.auction.allow_proxy_bidding and lot.status == 'active' and request.user.is_authenticated %}
+        {% if active_deposit %}
+        <div id="proxy-bid-section" style="border-top:1.5px solid var(--border);padding-top:14px;">
+          <div style="margin-bottom:10px;">
+            <div
+              style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#6d28d9;margin-bottom:4px;">
+              <i class="fas fa-robot" style="margin-right:4px;"></i>Proxy / Auto Bid
+            </div>
+            <p style="font-size:10px;color:var(--text-muted);line-height:1.5;">Set your maximum bid. The system will
+              automatically bid for you up to this limit.</p>
+          </div>
+          <div id="proxy-bid-status"
+            style="display:none;background:#ede9fe;border:1.5px solid #c4b5fd;border-radius:6px;padding:8px 12px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:10px;font-weight:700;color:#5b21b6;"><i class="fas fa-check-circle"></i> Proxy Bid
+                Active: <span id="proxy-max-display">—</span></span>
+              <button onclick="cancelProxyBid()"
+                style="font-size:9px;font-weight:700;color:#dc2626;background:none;border:none;cursor:pointer;padding:0;text-transform:uppercase;">Cancel</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="proxy-max-input" placeholder="Your max bid (₹)" min="{{ lot.get_minimum_bid }}"
+              step="1"
+              style="flex:1;border:1.5px solid #c4b5fd;border-radius:6px;padding:8px 10px;font-size:12px;font-weight:600;outline:none;color:#1e1b4b;"
+              onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#c4b5fd'">
+            <button onclick="setProxyBid()"
+              style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:6px;padding:8px 14px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;text-transform:uppercase;">
+              <i class="fas fa-robot"></i> Set
+            </button>
+          </div>
+          <div id="proxy-msg" style="margin-top:6px;font-size:10px;font-weight:700;display:none;"></div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Proxy Bid Exceeded Notification Banner -->
+        <div id="proxy-exceeded-banner"
+          style="display:none;background:linear-gradient(135deg,#fef2f2,#fff7ed);border:1.5px solid #fca5a5;border-radius:8px;padding:12px 14px;">
+          <p style="font-size:11px;font-weight:800;color:#dc2626;margin-bottom:4px;"><i
+              class="fas fa-exclamation-triangle" style="margin-right:5px;"></i>Proxy Bid Limit Reached</p>
+          <p id="proxy-exceeded-msg" style="font-size:10px;color:#b91c1c;font-weight:600;"></p>
+          <button onclick="document.getElementById('proxy-exceeded-banner').style.display='none'"
+            style="margin-top:8px;font-size:9px;color:#6b7280;background:none;border:none;cursor:pointer;text-transform:uppercase;font-weight:700;">Dismiss</button>
         </div>
 
       </div><!-- end ld-card-body -->
@@ -1740,144 +1844,6 @@
   {% endif %}
 </div>
 
-<!-- ── Payment PIN Modal ── -->
-{% if pending_payment %}
-<div id="paymentPinModal" class="payment-modal-overlay">
-  <div class="payment-modal-box">
-
-    <div class="payment-modal-head">
-      <div class="icon-wrap"><i class="fas fa-trophy"></i></div>
-      <h2>Congratulations!</h2>
-      <p>You won this lot — complete payment to claim it.</p>
-    </div>
-
-    <form id="paymentPinForm" class="payment-modal-body">
-      {% csrf_token %}
-      <input type="hidden" name="lot_id" value="{{ lot.id }}">
-
-      <div class="payment-alert">
-        <i class="fas fa-clock"></i>
-        <div class="alert-text">
-          <strong>Payment Required</strong>
-          Enter your transaction PIN within <span id="payment-timer" style="font-weight:800;">15:00</span>
-        </div>
-      </div>
-
-      <div class="payment-lot-info">
-        <div class="lot-info-row">
-          <span class="lir-label">Lot</span>
-          <span class="lir-value">{{ lot.title }}</span>
-        </div>
-        <div class="lot-info-row">
-          <span class="lir-label">Amount Due</span>
-          <span class="lir-amount">₹{{ pending_payment.amount|floatformat:2 }}</span>
-        </div>
-      </div>
-
-      <p class="pin-label"><i class="fas fa-lock"></i>Transaction PIN</p>
-      <input type="password" name="pin" id="payment-pin" maxlength="6" placeholder="••••" inputmode="numeric"
-        pattern="[0-9]*" required autocomplete="off">
-
-      <div id="paymentPinError" class="payment-msg"></div>
-      <div id="paymentPinSuccess" class="payment-msg"></div>
-
-      <button type="submit" id="verifyPaymentBtn" class="confirm-btn">
-        <i class="fas fa-check-circle"></i>Confirm Payment
-      </button>
-      <p class="payment-footnote"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>Secured & encrypted</p>
-    </form>
-  </div>
-</div>
-
-<script>
-  const expiresAt = new Date("{{ pending_payment.expires_at|date:'c' }}");
-  const timerDisplay = document.getElementById('payment-timer');
-
-  function updatePaymentTimer() {
-    const now = new Date();
-    const distance = expiresAt - now;
-    if (distance < 0) {
-      timerDisplay.textContent = "EXPIRED";
-      timerDisplay.style.color = '#dc2626';
-      document.getElementById('verifyPaymentBtn').disabled = true;
-      const ed = document.getElementById('paymentPinError');
-      ed.textContent = 'Payment window has expired. The lot will be offered to the next bidder.';
-      ed.style.display = 'block';
-      return;
-    }
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    if (distance < 120000) timerDisplay.style.color = '#dc2626';
-  }
-  updatePaymentTimer();
-  const paymentTimerInterval = setInterval(updatePaymentTimer, 1000);
-
-  document.getElementById('paymentPinForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const pin = document.getElementById('payment-pin').value;
-    const errorDiv = document.getElementById('paymentPinError');
-    const successDiv = document.getElementById('paymentPinSuccess');
-    const submitBtn = document.getElementById('verifyPaymentBtn');
-
-    errorDiv.style.display = 'none'; successDiv.style.display = 'none';
-
-    if (!/^\d{4,6}$/.test(pin)) {
-      errorDiv.textContent = 'PIN must be 4-6 digits';
-      errorDiv.style.display = 'block';
-      return;
-    }
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Processing...';
-
-    try {
-      const formData = new FormData(this);
-      const response = await fetch('{% url "verify_payment_pin" %}', {
-        method: 'POST', body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-      const data = await response.json();
-      if (data.success) {
-        successDiv.textContent = data.message;
-        successDiv.style.display = 'block';
-        const paymentModal = document.getElementById('paymentPinModal');
-        paymentModal.style.display = 'none';
-        clearInterval(paymentTimerInterval);
-        const winnerOverlay = document.getElementById('winner-overlay');
-        const winnerNameEl = document.getElementById('winner-name');
-        const winnerPriceEl = document.getElementById('winner-price');
-        if (winnerOverlay) {
-          winnerNameEl.textContent = "{{ request.user.username }}";
-          winnerPriceEl.textContent = "₹{{ pending_payment.amount|floatformat:2 }}";
-          winnerOverlay.classList.remove('hidden');
-          if (typeof gsap !== 'undefined') {
-            gsap.to('#winner-card', { scale: 1, duration: .6, ease: 'back.out(1.7)' });
-          } else {
-            document.getElementById('winner-card').style.transform = 'scale(1)';
-          }
-        }
-        // Reload page after 2s so lot status, delivery code etc. all update
-        setTimeout(() => { window.location.reload(); }, 2000);
-      } else {
-        errorDiv.textContent = data.error || 'Payment verification failed';
-        errorDiv.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-check-circle" style="margin-right:8px;"></i>Confirm Payment';
-      }
-    } catch (error) {
-      errorDiv.textContent = 'An error occurred. Please try again.';
-      errorDiv.style.display = 'block';
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-check-circle" style="margin-right:8px;"></i>Confirm Payment';
-    }
-  });
-
-  document.getElementById('payment-pin').addEventListener('input', function (e) {
-    this.value = this.value.replace(/[^0-9]/g, '');
-  });
-</script>
-{% endif %}
-
 <!-- Dynamic modals container -->
 <div id="dynamic-modal-container"></div>
 
@@ -1902,6 +1868,7 @@
   </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script>
   // @ts-nocheck
@@ -1961,12 +1928,8 @@
 
       if (result.success) {
         showSuccess('Bid placed successfully!');
-        if (result.wallet_balance !== undefined) {
-          const walletBal = document.getElementById('wallet-balance');
-          if (walletBal) walletBal.textContent = '₹' + result.wallet_balance.toFixed(2);
-        }
         fetchUpdates();
-      } else { showError(result.error || 'Failed to place bid'); }
+      } else { showError(result.error || result.message || 'Failed to place bid'); }
     } catch (error) {
       showError('Network error. Please try again.');
       console.error(error);
@@ -2112,41 +2075,127 @@
   }
 
   function handleAuctionEnded(data) {
+    console.log("🏁 handleAuctionEnded called:", data);
     auctionEnded = true;
-    if (!mainTimerDisplay) mainTimerDisplay = document.getElementById('timer-display');
-    if (mainTimerDisplay) {
-      mainTimerDisplay.textContent = "ENDED";
-      mainTimerDisplay.style.opacity = '.6';
-      mainTimerDisplay.style.fontSize = '20px';
-      mainTimerDisplay.style.letterSpacing = '.2em';
-    }
+
+    // 1. Update All Timer Displays
+    const allTimers = [
+      document.getElementById('timer-display'),
+      document.getElementById('auction-header-timer'), // Header timer
+      ...document.querySelectorAll('.time-remaining-display')
+    ];
+
+    allTimers.forEach(el => {
+      if (!el) return;
+      el.textContent = "ENDED";
+      el.style.opacity = '.6';
+      el.style.fontSize = '20px';
+      el.style.letterSpacing = '.2em';
+      el.classList.add('ended-style');
+    });
+
+    // 2. Disable Bidding Buttons
     if (bidButton) {
       bidButton.disabled = true;
+      bidButton.classList.add('disabled');
       bidButton.innerHTML = '<i class="fas fa-flag-checkered" style="margin-right:8px;"></i>AUCTION ENDED';
+      bidButton.style.opacity = '0.55';
+      bidButton.style.cursor = 'not-allowed';
+      bidButton.style.background = 'linear-gradient(135deg, #64748b, #475569)';
     }
-    // disable mobile bar btn too
     const mbbBtn = document.querySelector('.mobile-bid-bar .mbb-btn');
-    if (mbbBtn) { mbbBtn.disabled = true; mbbBtn.innerHTML = '<i class="fas fa-flag-checkered" style="margin-right:6px;"></i>Ended'; }
+    if (mbbBtn) {
+      mbbBtn.disabled = true;
+      mbbBtn.classList.add('disabled');
+      mbbBtn.innerHTML = '<i class="fas fa-flag-checkered" style="margin-right:6px;"></i>Ended';
+      mbbBtn.style.opacity = '0.55';
+      mbbBtn.style.background = '#64748b';
+    }
 
+    // 3. Update Status Badges & Text
+    const statusText = data.status === 'pending_payment' ? 'PENDING PAYMENT' : (data.status === 'sold' ? 'SOLD' : 'ENDED');
+    const statusClass = `status-${data.status}`;
+
+    document.querySelectorAll('.status-badge').forEach(badge => {
+      badge.className = `status-badge ${statusClass}`;
+      const textEl = badge.querySelector('.status-text');
+      if (textEl) textEl.textContent = statusText;
+    });
+
+    document.querySelectorAll('.status-text').forEach(el => {
+      if (!el.parentElement.classList.contains('status-badge')) {
+        el.textContent = statusText;
+      }
+    });
+
+    // 4. Update Current Bid Label
     if (data.status === 'sold' && data.winner) {
       const currentBidLabel = document.querySelector('#current-bid')?.previousElementSibling;
-      if (currentBidLabel) { currentBidLabel.querySelector('.stat-label') && (currentBidLabel.querySelector('.stat-label').textContent = "Winning Bid"); }
+      if (currentBidLabel) {
+        const labelText = currentBidLabel.querySelector('.stat-label');
+        if (labelText) labelText.textContent = "Winning Bid";
+      }
     }
+
+    // 4. Show Winner Overlay
     if (!hasShownWinner) {
       if (data.status === 'sold' && data.winner) {
         window.showWinnerOverlay(data.winner, data.winning_bid);
         hasShownWinner = true;
       }
     }
-    const modalContainer = document.getElementById('dynamic-modal-container');
-    if (data.winner === currentUsername) {
+
+    // 5. Trigger Razorpay Modal for winner
+    const winningUser = (data.winner || "{{ lot.winning_bidder.username }}").toLowerCase();
+    const isWinner = winningUser === currentUsername.toLowerCase() && currentUsername !== "";
+
+    if (isWinner) {
       if (!document.getElementById('paymentPinModal')) {
+        console.log("💰 Fetching Razorpay modal...");
         fetch(`/bids/lot/${lotSlug}/payment-modal/`)
           .then(r => r.text())
-          .then(html => {
+          .then(async html => {
             if (html.trim()) {
-              if (modalContainer) { modalContainer.innerHTML = html; initPaymentModal(); }
-              else { const d = document.createElement('div'); d.id = 'dynamic-modal-container'; d.innerHTML = html; document.body.appendChild(d); initPaymentModal(); }
+              const modalContainer = document.getElementById('dynamic-modal-container') || document.createElement('div');
+              if (!modalContainer.id) {
+                modalContainer.id = 'dynamic-modal-container';
+                document.body.appendChild(modalContainer);
+              }
+              modalContainer.innerHTML = html;
+
+              // Helper to execute scripts in injected HTML with script dependency handling
+              const scripts = Array.from(modalContainer.querySelectorAll("script"));
+
+              async function loadScript(oldScript) {
+                return new Promise((resolve, reject) => {
+                  const newScript = document.createElement("script");
+                  Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+
+                  if (oldScript.src) {
+                    newScript.onload = resolve;
+                    newScript.onerror = reject;
+                  } else {
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                  }
+
+                  oldScript.parentNode.replaceChild(newScript, oldScript);
+
+                  if (!oldScript.src) {
+                    resolve();
+                  }
+                });
+              }
+
+              // Load scripts sequentially to ensure dependencies (like checkout.js) load first
+              for (const script of scripts) {
+                try {
+                  await loadScript(script);
+                } catch (err) {
+                  console.error("Error loading injected script:", err);
+                }
+              }
+
+              if (typeof initPaymentModal === 'function') initPaymentModal();
             }
           }).catch(err => console.error("Error fetching modal:", err));
       }
@@ -2360,6 +2409,13 @@
         // Important state change (like payment, delivery) happened.
         // Reload page to get fresh HTML for all status badges and OTP forms.
         setTimeout(() => { window.location.reload(); }, Math.random() * 1000); // jitter to prevent thundering herd
+      } else if (data.type === 'proxy_bid_exceeded') {
+        showError(`Your proxy bid limit of ₹${data.your_max.toLocaleString()} has been exceeded for this lot!`);
+        // Optionally update the proxy UI section to reflect it's no longer active
+        const proxyActiveBox = document.getElementById('proxy-active-info');
+        if (proxyActiveBox) proxyActiveBox.style.display = 'none';
+        const proxyInputGroup = document.getElementById('proxy-input-group');
+        if (proxyInputGroup) proxyInputGroup.style.display = 'block';
       } else if (data.type === 'error') {
         showError(data.message);
       }
@@ -2404,5 +2460,145 @@
 
     socket.onerror = function (err) { console.error("WS Error:", err); logMobile("❌ WS Error!"); };
   }
+</script>
+
+<script>
+  // ── Proxy Bid & Buyer Premium ──────────────────────────────────────────
+  const BUYER_PREMIUM_PCT = parseFloat("{{ lot.auction.buyer_premium_percentage|default:0 }}") || 0;
+
+  function updateBuyerPremiumBox(nextBidAmount) {
+    if (!BUYER_PREMIUM_PCT) return;
+    const premium = nextBidAmount * BUYER_PREMIUM_PCT / 100;
+    const total = nextBidAmount + premium;
+    const fmt = (v) => '₹' + v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const bpBid = document.getElementById('bp-bid-amount');
+    const bpPrem = document.getElementById('bp-premium-amount');
+    const bpTot = document.getElementById('bp-total');
+    if (bpBid) bpBid.textContent = fmt(nextBidAmount);
+    if (bpPrem) bpPrem.textContent = '+' + fmt(premium);
+    if (bpTot) bpTot.textContent = fmt(total);
+  }
+
+  // Initialize on page load
+  (function initBuyerPremium() {
+    const el = document.getElementById('next-bid-display');
+    if (!el) return;
+    const raw = el.textContent.replace(/[₹,]/g, '').trim();
+    const amount = parseFloat(raw) || 0;
+    updateBuyerPremiumBox(amount);
+
+    // Watch for updates via MutationObserver (when WS updates the element)
+    new MutationObserver(() => {
+      const r = el.textContent.replace(/[₹,]/g, '').trim();
+      updateBuyerPremiumBox(parseFloat(r) || 0);
+    }).observe(el, { childList: true, subtree: true, characterData: true });
+  })();
+
+  // Proxy Bid Functions
+  async function setProxyBid() {
+    const input = document.getElementById('proxy-max-input');
+    const msg = document.getElementById('proxy-msg');
+    if (!input || !msg) return;
+    const maxAmount = parseFloat(input.value);
+    if (!maxAmount || maxAmount <= 0) {
+      showProxyMsg('Please enter a valid amount.', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(`/bids/proxy/set/${lotSlug}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ max_amount: maxAmount })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showProxyMsg(data.message, 'success');
+        loadProxyBidStatus();
+        input.value = '';
+      } else {
+        showProxyMsg(data.error || 'Failed to set proxy bid.', 'error');
+      }
+    } catch (err) {
+      showProxyMsg('Network error. Please try again.', 'error');
+    }
+  }
+
+  async function cancelProxyBid() {
+    try {
+      const res = await fetch(`/bids/proxy/cancel/${lotSlug}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const stat = document.getElementById('proxy-bid-status');
+        if (stat) stat.style.display = 'none';
+        showProxyMsg('Proxy bid cancelled.', 'success');
+      } else {
+        showProxyMsg(data.error || 'Failed to cancel.', 'error');
+      }
+    } catch (err) {
+      showProxyMsg('Network error.', 'error');
+    }
+  }
+
+  async function loadProxyBidStatus() {
+    try {
+      const res = await fetch(`/bids/proxy/status/${lotSlug}/`);
+      const data = await res.json();
+      const stat = document.getElementById('proxy-bid-status');
+      const display = document.getElementById('proxy-max-display');
+      if (stat && data.has_proxy && data.is_active) {
+        stat.style.display = 'block';
+        if (display) {
+          const fmt = (v) => '₹' + parseFloat(v).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+          display.textContent = fmt(data.max_amount);
+        }
+      } else if (stat) {
+        stat.style.display = 'none';
+      }
+    } catch (e) { /* silent */ }
+  }
+
+  function showProxyMsg(text, type) {
+    const msg = document.getElementById('proxy-msg');
+    if (!msg) return;
+    msg.textContent = text;
+    msg.style.display = 'block';
+    msg.style.color = type === 'error' ? '#dc2626' : '#16a34a';
+    setTimeout(() => { msg.style.display = 'none'; }, 5000);
+  }
+
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+      c = c.trim();
+      if (c.startsWith(name + '=')) return decodeURIComponent(c.substring(name.length + 1));
+    }
+    return '';
+  }
+
+  // Handle proxy_bid_exceeded WS message
+  const _originalHandleWS = window.handleWebSocketMessage;
+  window.handleWebSocketMessage = function (data) {
+    if (_originalHandleWS) _originalHandleWS(data);
+    if (data.type === 'proxy_bid_exceeded') {
+      const banner = document.getElementById('proxy-exceeded-banner');
+      const msgEl = document.getElementById('proxy-exceeded-msg');
+      if (banner && msgEl) {
+        msgEl.textContent = data.message || 'Your proxy bid limit has been exceeded. Please bid manually.';
+        banner.style.display = 'block';
+        banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      // Refresh proxy bid status panel
+      loadProxyBidStatus();
+    }
+  };
+
+  // Load proxy bid status on page load (for authenticated users)
+  {% if request.user.is_authenticated %}
+  loadProxyBidStatus();
+  {% endif %}
 </script>
 {% endblock %}

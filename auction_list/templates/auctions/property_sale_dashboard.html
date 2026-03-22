@@ -1,0 +1,1246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Property Sale — {{ lot.title }}{% endblock %}
+
+{% block content %}
+
+<!-- Google Fonts: Poppins -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+                colors: {
+                    brand: { DEFAULT: '#7C3AED', light: '#EDE9FE', mid: '#A78BFA', dark: '#5B21B6' },
+                    gold: { DEFAULT: '#D97706', light: '#FEF3C7', mid: '#F59E0B' },
+                    sage: { DEFAULT: '#059669', light: '#D1FAE5', mid: '#34D399' },
+                    slate2: { DEFAULT: '#64748B', light: '#F8FAFC' },
+                },
+                boxShadow: {
+                    card: '0 1px 3px 0 rgba(0,0,0,.07), 0 4px 16px 0 rgba(0,0,0,.05)',
+                    active: '0 0 0 3px rgba(124,58,237,.18)',
+                    step: '0 4px 20px rgba(124,58,237,.22)',
+                },
+                animation: {
+                    'fade-up': 'fadeUp .4s ease both',
+                    'pulse-dot': 'pulseDot 2s ease infinite',
+                },
+                keyframes: {
+                    fadeUp: { '0%': { opacity: '0', transform: 'translateY(14px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                    pulseDot: { '0%,100%': { opacity: '1', transform: 'scale(1)' }, '50%': { opacity: '.4', transform: 'scale(1.5)' } },
+                }
+            }
+        }
+    }
+</script>
+
+<!-- Minimal style tweaks not possible in Tailwind utility classes alone -->
+<style>
+    * {
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #F8FAFC;
+    }
+
+    .step-panel {
+        display: none;
+    }
+
+    .step-panel.active {
+        display: block;
+    }
+
+    .stepper-line::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: calc(50% + 20px);
+        width: calc(100% - 40px);
+        height: 2px;
+        background: #E2E8F0;
+        z-index: 0;
+    }
+
+    .stepper-line.done::after {
+        background: #7C3AED;
+    }
+
+    .stepper-line:last-child::after {
+        display: none;
+    }
+
+    .upload-zone {
+        transition: border-color .2s, background .2s;
+    }
+
+    .upload-zone:hover {
+        border-color: #7C3AED;
+        background: #F5F3FF;
+    }
+
+    input:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, .15);
+    }
+
+    .ah-field-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: 'Poppins', sans-serif;
+        color: #0F172A;
+        background: #fff;
+        transition: border-color .18s;
+    }
+
+    .ah-field-input:focus {
+        border-color: #7C3AED;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, .1);
+        outline: none;
+    }
+
+    .ah-field-input::placeholder {
+        color: #CBD5E1;
+    }
+</style>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  OUTER PAGE WRAPPER                                      -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="min-h-screen bg-slate-50 font-poppins pb-20">
+    <div class="max-w-3xl mx-auto px-4 pt-8">
+
+        <!-- ── TOP BREADCRUMB ── -->
+        <div class="flex items-center gap-2 mb-6 flex-wrap">
+            <a href="{% url 'profile' %}"
+                class="inline-flex items-center gap-1.5 text-xs font-600 text-slate-500 hover:text-brand bg-white border border-slate-200 px-3 py-1.5 rounded-full transition-colors no-underline">
+                <i class="fas fa-arrow-left text-[10px]"></i> Profile
+            </a>
+            <i class="fas fa-chevron-right text-slate-300 text-[10px]"></i>
+            <a href="{% url 'lot_detail' lot.slug %}"
+                class="inline-flex items-center gap-1.5 text-xs font-600 text-brand bg-brand-light border border-brand/20 px-3 py-1.5 rounded-full transition-colors no-underline">
+                <i class="fas fa-gavel text-[10px]"></i> Lot #{{ lot.lot_number }}
+            </a>
+        </div>
+
+        <!-- ── PAGE HEADER ── -->
+        <div class="bg-white rounded-2xl shadow-card border border-slate-100 px-6 py-6 mb-6 animate-fade-up">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                    <p class="text-[10px] font-700 tracking-widest text-brand uppercase mb-1">Property Sale Agreement
+                    </p>
+                    <h1 class="text-xl font-800 text-slate-900 leading-tight mb-1">{{ lot.title }}</h1>
+                    <p class="text-xs text-slate-400 font-500">Lot #{{ lot.lot_number }} &nbsp;·&nbsp; Ref: {{ sale.id}}</p>
+                </div>
+                <div class="flex flex-col items-end gap-2 shrink-0">
+                    <span
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-light border border-brand/20 text-brand text-[10px] font-700 uppercase tracking-wider">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand animate-pulse-dot"></span>
+                        {{ sale.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Financial snapshot strip -->
+            <div class="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-slate-100">
+                <div class="text-center">
+                    <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-0.5">Winning Bid</p>
+                    <p class="text-base font-800 text-sage">₹{{ lot.current_bid|floatformat:2 }}</p>
+                </div>
+                <div class="text-center border-x border-slate-100">
+                    <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-0.5">EMD Paid</p>
+                    <p class="text-base font-800 text-brand">₹{{ sale.emd_amount|floatformat:2 }}</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-0.5">Remaining</p>
+                    <p class="text-base font-800 text-gold">₹{{ sale.remaining_amount|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════ -->
+        <!--  STEPPER                                             -->
+        <!-- ════════════════════════════════════════════════════ -->
+        <div class="bg-white rounded-2xl shadow-card border border-slate-100 px-5 py-5 mb-6 animate-fade-up"
+            style="animation-delay:.05s">
+            <!-- Progress bar -->
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-700 text-slate-400 uppercase tracking-widest">Progress</span>
+                <span class="text-xs font-800 text-brand">{{ progress }}%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-100 rounded-full mb-6 overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r from-brand to-violet-400 transition-all duration-700"
+                    style="width: {{ progress }}%;"></div>
+            </div>
+
+            <!-- Step nodes -->
+            <div class="flex overflow-x-auto pb-2" style="scrollbar-width:none;">
+                {% with s=step %}
+                {% for step_data in "12345678" %}
+                {% endfor %}
+
+                <!-- Step 1 -->
+                <div class="stepper-line {% if s > 1 %}done{% endif %} flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer group"
+                    onclick="goToStep(1)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s > 1 %}bg-brand text-white shadow-step
+            {% elif s == 1 %}bg-brand text-white ring-4 ring-brand/20 shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        {% if s > 1 %}<i class="fas fa-check text-xs"></i>{% else %}<i
+                            class="fas fa-money-bill-wave text-xs"></i>{% endif %}
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 1 %}text-brand{% else %}text-slate-400{% endif %}">EMD</span>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="stepper-line {% if s > 2 %}done{% endif %} flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer"
+                    onclick="goToStep(2)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s > 2 %}bg-brand text-white shadow-step
+            {% elif s == 2 %}bg-brand text-white ring-4 ring-brand/20 shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        {% if s > 2 %}<i class="fas fa-check text-xs"></i>{% else %}<i
+                            class="fas fa-file-alt text-xs"></i>{% endif %}
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 2 %}text-brand{% else %}text-slate-400{% endif %}">Docs</span>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="stepper-line {% if s > 3 %}done{% endif %} flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer"
+                    onclick="goToStep(3)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s > 3 %}bg-brand text-white shadow-step
+            {% elif s == 3 %}bg-brand text-white ring-4 ring-brand/20 shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        {% if s > 3 %}<i class="fas fa-check text-xs"></i>{% else %}<i
+                            class="fas fa-check-double text-xs"></i>{% endif %}
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 3 %}text-brand{% else %}text-slate-400{% endif %}">Verified</span>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="stepper-line {% if s > 4 %}done{% endif %} flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer"
+                    onclick="goToStep(4)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s > 4 %}bg-brand text-white shadow-step
+            {% elif s == 4 %}bg-brand text-white ring-4 ring-brand/20 shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        {% if s > 4 %}<i class="fas fa-check text-xs"></i>{% else %}<i
+                            class="fas fa-file-signature text-xs"></i>{% endif %}
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 4 %}text-brand{% else %}text-slate-400{% endif %}">Agreement</span>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="stepper-line {% if s > 5 %}done{% endif %} flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer"
+                    onclick="goToStep(5)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s > 5 %}bg-brand text-white shadow-step
+            {% elif s == 5 %}bg-brand text-white ring-4 ring-brand/20 shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        {% if s > 5 %}<i class="fas fa-check text-xs"></i>{% else %}<i
+                            class="fas fa-indian-rupee-sign text-xs"></i>{% endif %}
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 5 %}text-brand{% else %}text-slate-400{% endif %}">Final Pay</span>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="stepper-line {% if s > 6 %}done{% endif %} flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer"
+                    onclick="goToStep(6)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s > 6 %}bg-brand text-white shadow-step
+            {% elif s == 6 %}bg-brand text-white ring-4 ring-brand/20 shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        {% if s > 6 %}<i class="fas fa-check text-xs"></i>{% else %}<i
+                            class="fas fa-stamp text-xs"></i>{% endif %}
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 6 %}text-brand{% else %}text-slate-400{% endif %}">Registration</span>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="stepper-line {% if s > 7 %}done{% endif %} flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer"
+                    onclick="goToStep(7)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s > 7 %}bg-brand text-white shadow-step
+            {% elif s == 7 %}bg-brand text-white ring-4 ring-brand/20 shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        {% if s > 7 %}<i class="fas fa-check text-xs"></i>{% else %}<i class="fas fa-key text-xs"></i>{%endif %}
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 7 %}text-brand{% else %}text-slate-400{% endif %}">Possession</span>
+                </div>
+
+                <!-- Step 8 -->
+                <div class="flex-1 min-w-[72px] flex flex-col items-center relative cursor-pointer"
+                    onclick="goToStep(8)">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-700 z-10 relative transition-all duration-200
+            {% if s >= 8 %}bg-sage text-white shadow-step
+            {% else %}bg-slate-100 text-slate-400{% endif %}">
+                        <i class="fas fa-check text-xs"></i>
+                    </div>
+                    <span class="text-[9px] font-600 mt-1.5 text-center leading-tight
+            {% if s >= 8 %}text-sage{% else %}text-slate-400{% endif %}">Complete</span>
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════ -->
+        <!--  STEP PANELS                                         -->
+        <!-- ════════════════════════════════════════════════════ -->
+
+        <!-- ──────────────────── STEP 1: EMD ──────────────────── -->
+        <div id="panel-1" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <!-- Panel header -->
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-sage-light/60 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-sage/10 flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-sage text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400">Step 1 of 8</p>
+                            <h2 class="text-sm font-700 text-slate-800">Earnest Money Deposit</h2>
+                        </div>
+                    </div>
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 uppercase tracking-wider border border-sage/20">
+                        <i class="fas fa-check-circle text-[10px]"></i> Paid
+                    </span>
+                </div>
+                <div class="px-6 py-6">
+                    <!-- Success alert -->
+                    <div class="flex items-start gap-3 bg-sage-light border border-sage/20 rounded-xl p-4 mb-6">
+                        <i class="fas fa-check-circle text-sage mt-0.5 shrink-0"></i>
+                        <div>
+                            <p class="text-sm font-600 text-slate-700">EMD Payment Confirmed</p>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Amount: <strong class="text-sage">₹{{ sale.emd_amount|floatformat:2}}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;
+                                Payment ID: <strong class="font-mono text-slate-700">{{sale.emd_payment_id|default:"N/A" }}</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Details grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">EMD Percentage
+                            </p>
+                            <p class="text-xl font-800 text-brand">{{ sale.emd_percentage }}%</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">Amount
+                                Deposited</p>
+                            <p class="text-xl font-800 text-sage">₹{{ sale.emd_amount|floatformat:2 }}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">Buyer</p>
+                            <p class="text-sm font-600 text-slate-700">{{sale.buyer.get_full_name|default:sale.buyer.username}}</p>
+                            <p class="text-xs text-slate-400">{{ sale.buyer.email }}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">Seller</p>
+                            <p class="text-sm font-600 text-slate-700">{{sale.seller.get_full_name|default:sale.seller.username}}</p>
+                            <p class="text-xs text-slate-400">{{ sale.seller.email }}</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Panel footer nav -->
+                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(2)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        Next: Documents <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────── STEP 2: DOCUMENTS ──────────────── -->
+        {% if step >= 2 %}
+        <div id="panel-2" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-brand-light/60 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center">
+                            <i class="fas fa-file-alt text-brand text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400">Step 2 of 8</p>
+                            <h2 class="text-sm font-700 text-slate-800">Document Submission</h2>
+                        </div>
+                    </div>
+                    {% if sale.status == 'documents_verified' %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                            class="fas fa-check-circle"></i> Verified</span>
+                    {% elif sale.status == 'documents_submitted' %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-700 border border-amber-200"><i
+                            class="fas fa-clock"></i> Under Review</span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand text-[10px] font-700 border border-brand/20"><i
+                            class="fas fa-upload"></i> Upload Required</span>
+                    {% endif %}
+                </div>
+                <div class="px-6 py-6">
+
+                    {% if sale.documents_rejection_reason %}
+                    <div class="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
+                        <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 shrink-0"></i>
+                        <div>
+                            <p class="text-sm font-600 text-red-700">Documents Rejected</p>
+                            <p class="text-xs text-red-500 mt-0.5">{{ sale.documents_rejection_reason }} — please
+                                re-upload corrected files.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                        <!-- Buyer docs -->
+                        <div class="border border-slate-100 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-500 text-xs"></i>
+                                </div>
+                                <p class="text-xs font-700 text-slate-700">Buyer Documents</p>
+                                {% if is_buyer %}<span
+                                    class="ml-auto text-[9px] bg-blue-50 text-blue-500 px-2 py-0.5 rounded-full font-700">You</span>{% endif %}
+                            </div>
+                            <p class="text-[10px] text-slate-400 mb-3 ml-9">Aadhar · PAN · Address Proof · Payment Proof
+                            </p>
+                            {% if sale.buyer_documents %}
+                            <ul class="space-y-1.5 mb-3">
+                                {% for doc in sale.buyer_documents %}
+                                <li
+                                    class="flex items-center gap-2 bg-sage-light/60 border border-sage/15 rounded-lg px-3 py-2 text-xs font-500 text-slate-600">
+                                    <i class="fas fa-file-check text-sage text-[11px]"></i>
+                                    <a href="{{ doc }}" target="_blank" class="underline decoration-dotted">Document {{forloop.counter }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            {% if is_buyer and sale.status != 'documents_verified' %}
+                            <form id="buyer-doc-form" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="doc_type" value="buyer">
+                                <div class="upload-zone border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer"
+                                    onclick="document.getElementById('buyer-files').click()">
+                                    <i class="fas fa-cloud-upload-alt text-slate-300 text-2xl block mb-1"></i>
+                                    <p class="text-xs text-slate-400 font-500">Click to upload</p>
+                                    <input type="file" id="buyer-files" name="documents" multiple style="display:none"
+                                        onchange="uploadDocs('buyer')">
+                                </div>
+                            </form>
+                            {% endif %}
+                        </div>
+
+                        <!-- Seller docs -->
+                        <div class="border border-slate-100 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-7 h-7 rounded-lg bg-sage/10 flex items-center justify-center">
+                                    <i class="fas fa-building text-sage text-xs"></i>
+                                </div>
+                                <p class="text-xs font-700 text-slate-700">Seller Documents</p>
+                                {% if is_seller %}<span
+                                    class="ml-auto text-[9px] bg-sage-light text-sage px-2 py-0.5 rounded-full font-700">You</span>{%endif %}
+                            </div>
+                            <p class="text-[10px] text-slate-400 mb-3 ml-9">Title Deed · EC · Property Tax · ID Proof
+                            </p>
+                            {% if all_seller_docs %}
+                            <ul class="space-y-1.5 mb-3">
+                                {% for doc in all_seller_docs %}
+                                <li
+                                    class="flex items-center gap-2 bg-sage-light/60 border border-sage/15 rounded-lg px-3 py-2 text-xs font-500 text-slate-600">
+                                    <i class="fas fa-file-check text-sage text-[11px]"></i>
+                                    <a href="{{ doc }}" target="_blank" class="underline decoration-dotted">Document {{forloop.counter }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            {% if is_seller and sale.status != 'documents_verified' %}
+                            <form id="seller-doc-form" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="doc_type" value="seller">
+                                <div class="upload-zone border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer"
+                                    onclick="document.getElementById('seller-files').click()">
+                                    <i class="fas fa-cloud-upload-alt text-slate-300 text-2xl block mb-1"></i>
+                                    <p class="text-xs text-slate-400 font-500">Click to upload</p>
+                                    <input type="file" id="seller-files" name="documents" multiple style="display:none"
+                                        onchange="uploadDocs('seller')">
+                                </div>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Admin actions -->
+                    {% if is_admin and sale.status == 'documents_submitted' or is_admin and sale.status == 'documents_pending' %}
+                    <div class="mt-5 pt-5 border-t border-slate-100">
+                        <p class="text-xs font-700 text-slate-500 uppercase tracking-wider mb-3">Admin Actions</p>
+                        <div class="flex flex-wrap gap-3 items-center">
+                            <form method="post" action="{% url 'property_sale_verify_docs' sale.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-sage text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-sage-dark transition-colors">
+                                    <i class="fas fa-check-circle text-[11px]"></i> Verify Documents
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'property_sale_verify_docs' sale.id %}"
+                                class="flex items-center gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <input type="text" name="reason" placeholder="Rejection reason…" required
+                                    class="ah-field-input" style="width:200px;">
+                                <button type="submit"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-red-600 transition-colors">
+                                    <i class="fas fa-times-circle text-[11px]"></i> Reject
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(1)"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-600 hover:border-brand hover:text-brand transition-colors">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back
+                    </button>
+                    <button onclick="goToStep(3)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        Next: Verification <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ──────────────── STEP 3: VERIFIED ──────────────── -->
+        <div id="panel-3" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-sage-light/60 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-sage/10 flex items-center justify-center">
+                            <i class="fas fa-check-double text-sage text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400">Step 3 of 8</p>
+                            <h2 class="text-sm font-700 text-slate-800">Document Verification</h2>
+                        </div>
+                    </div>
+                    {% if sale.status == 'documents_verified' %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                            class="fas fa-check-circle"></i> Approved</span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-700 border border-amber-200"><i
+                            class="fas fa-clock"></i> Pending Admin</span>
+                    {% endif %}
+                </div>
+                <div class="px-6 py-6">
+                    {% if sale.status == 'documents_verified' %}
+                    <div class="flex flex-col items-center text-center py-8">
+                        <div class="w-16 h-16 rounded-2xl bg-sage-light flex items-center justify-center mb-4">
+                            <i class="fas fa-shield-alt text-sage text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-700 text-slate-800 mb-1">All Documents Verified</h3>
+                        <p class="text-sm text-slate-400 max-w-xs">The admin has reviewed and approved all submitted
+                            documents. You may now proceed to the Sale Agreement.</p>
+                    </div>
+                    {% else %}
+                    <div class="flex flex-col items-center text-center py-8">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
+                            <i class="fas fa-hourglass-half text-amber-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-700 text-slate-800 mb-1">Awaiting Verification</h3>
+                        <p class="text-sm text-slate-400 max-w-xs">Our team is reviewing the submitted documents. You'll
+                            be notified once verification is complete.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(2)"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-600 hover:border-brand hover:text-brand transition-colors">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back
+                    </button>
+                    {% if step >= 4 %}
+                    <button onclick="goToStep(4)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        Next: Agreement <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────── STEP 4: AGREEMENT ──────────────── -->
+        {% if step >= 4 %}
+        <div id="panel-4" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-violet-50/80 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center">
+                            <i class="fas fa-file-signature text-brand text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400">Step 4 of 8</p>
+                            <h2 class="text-sm font-700 text-slate-800">Sale Agreement</h2>
+                        </div>
+                    </div>
+                    {% if sale.agreement_signed_at %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                            class="fas fa-check-circle"></i> Signed</span>
+                    {% elif sale.agreement_file %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-700 border border-amber-200"><i
+                            class="fas fa-pen-nib"></i> Awaiting Signatures</span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand text-[10px] font-700 border border-brand/20"><i
+                            class="fas fa-file-contract"></i> Not Generated</span>
+                    {% endif %}
+                </div>
+                <div class="px-6 py-6">
+
+                    {% if not sale.agreement_file and is_admin %}
+                    <div class="text-center py-10">
+                        <div class="w-16 h-16 rounded-2xl bg-brand-light flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-file-contract text-brand text-2xl"></i>
+                        </div>
+                        <p class="text-sm font-600 text-slate-700 mb-1">No Agreement Generated Yet</p>
+                        <p class="text-xs text-slate-400 mb-5">Generate the official sale agreement for both parties to
+                            sign.</p>
+                        <a href="{% url 'property_sale_generate_agreement' sale.id %}"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step no-underline">
+                            <i class="fas fa-file-contract text-[11px]"></i> Generate Sale Agreement
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if sale.agreement_file %}
+                    <!-- Agreement document card -->
+                    <div class="border border-brand/15 rounded-xl overflow-hidden mb-5">
+                        <div
+                            class="flex items-center gap-4 bg-gradient-to-r from-violet-50 to-white px-5 py-4 border-b border-brand/10">
+                            <div class="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+                                <i class="fas fa-file-contract text-brand text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-700 text-slate-800">Sale Agreement</p>
+                                <p class="text-xs text-slate-400">
+                                    {% if sale.agreement_file|slice:":4" == 'http' %}
+                                    <a href="{{ sale.agreement_file }}" target="_blank"
+                                        class="text-brand underline decoration-dotted font-600">
+                                        <i class="fas fa-download mr-1 text-[10px]"></i> Download PDF
+                                    </a>
+                                    {% else %}
+                                    Ref: {{ sale.agreement_file }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Signature status -->
+                        <div class="grid grid-cols-2 gap-0 divide-x divide-slate-100">
+                            <div class="px-5 py-4">
+                                <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-2">Buyer
+                                    Signature</p>
+                                <p class="text-xs font-600 text-slate-700 mb-2">{{sale.buyer.get_full_name|default:sale.buyer.username }}</p>
+                                {% if sale.buyer_agreed %}
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                                        class="fas fa-check"></i> Signed</span>
+                                {% else %}
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-500 text-[10px] font-700 border border-amber-200"><i
+                                        class="fas fa-clock"></i> Pending</span>
+                                {% endif %}
+                            </div>
+                            <div class="px-5 py-4">
+                                <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-2">Seller
+                                    Signature</p>
+                                <p class="text-xs font-600 text-slate-700 mb-2">{{sale.seller.get_full_name|default:sale.seller.username }}</p>
+                                {% if sale.seller_agreed %}
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                                        class="fas fa-check"></i> Signed</span>
+                                {% else %}
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-500 text-[10px] font-700 border border-amber-200"><i
+                                        class="fas fa-clock"></i> Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if is_buyer and not sale.buyer_agreed and sale.status == 'agreement_pending' %}
+                    <div class="flex items-start gap-3 bg-brand-light/50 border border-brand/15 rounded-xl p-4 mb-4">
+                        <i class="fas fa-info-circle text-brand mt-0.5 shrink-0 text-sm"></i>
+                        <div>
+                            <p class="text-sm font-600 text-slate-700">Your signature is required</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Review the agreement carefully before signing. This
+                                is a legally binding document.</p>
+                        </div>
+                    </div>
+                    <button onclick="signAgreement()"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        <i class="fas fa-pen-fancy text-[11px]"></i> Sign as Buyer
+                    </button>
+                    {% endif %}
+
+                    {% if is_seller and not sale.seller_agreed and sale.status == 'agreement_pending' %}
+                    <div class="flex items-start gap-3 bg-sage-light/60 border border-sage/15 rounded-xl p-4 mb-4">
+                        <i class="fas fa-info-circle text-sage mt-0.5 shrink-0 text-sm"></i>
+                        <div>
+                            <p class="text-sm font-600 text-slate-700">Your signature is required</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Review the agreement carefully before signing. This
+                                is a legally binding document.</p>
+                        </div>
+                    </div>
+                    <button onclick="signAgreement()"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-sage text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-green-700 transition-colors">
+                        <i class="fas fa-pen-fancy text-[11px]"></i> Sign as Seller
+                    </button>
+                    {% endif %}
+                    {% endif %}
+
+                </div>
+                <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(3)"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-600 hover:border-brand hover:text-brand transition-colors">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back
+                    </button>
+                    {% if step >= 5 %}
+                    <button onclick="goToStep(5)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        Next: Final Payment <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ──────────────── STEP 5: FINAL PAYMENT ──────────────── -->
+        {% if step >= 5 %}
+        <div id="panel-5" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-amber-50/60 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gold/10 flex items-center justify-center">
+                            <i class="fas fa-indian-rupee-sign text-gold text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400">Step 5 of 8</p>
+                            <h2 class="text-sm font-700 text-slate-800">Final Payment</h2>
+                        </div>
+                    </div>
+                    {% if sale.final_payment_id %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                            class="fas fa-check-circle"></i> Paid</span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-700 border border-amber-200"><i
+                            class="fas fa-clock"></i> Pending</span>
+                    {% endif %}
+                </div>
+                <div class="px-6 py-6">
+                    {% if sale.final_payment_id %}
+                    <div class="flex items-start gap-3 bg-sage-light border border-sage/20 rounded-xl p-4">
+                        <i class="fas fa-check-circle text-sage mt-0.5 shrink-0 text-base"></i>
+                        <div>
+                            <p class="text-sm font-600 text-slate-700">Final Payment Received</p>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Amount: <strong class="text-sage">₹{{ sale.final_amount|floatformat:2}}</strong>&nbsp;&nbsp;|&nbsp;&nbsp;
+                                Ref: <strong class="font-mono text-slate-700">{{ sale.final_payment_id }}</strong>
+                            </p>
+                        </div>
+                    </div>
+                    {% elif is_buyer and sale.status == 'agreement_signed' or sale.status == 'final_payment_pending' %}
+                    <div class="text-center py-8">
+                        <p class="text-[10px] font-700 uppercase tracking-widest text-slate-400 mb-2">Balance Due</p>
+                        <p class="text-5xl font-800 text-gold mb-2">₹{{ sale.final_amount|floatformat:2 }}</p>
+                        <p class="text-xs text-slate-400 mb-6">This is the remaining amount after deducting your EMD
+                            payment.</p>
+                        <!-- Payment breakdown -->
+                        <div class="grid grid-cols-3 gap-3 text-left mb-7 max-w-md mx-auto">
+                            <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                <p class="text-[9px] text-slate-400 font-600 uppercase tracking-wider mb-0.5">Winning
+                                    Bid</p>
+                                <p class="text-sm font-700 text-slate-700">₹{{ lot.current_bid|floatformat:2 }}</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                <p class="text-[9px] text-slate-400 font-600 uppercase tracking-wider mb-0.5">EMD Paid
+                                </p>
+                                <p class="text-sm font-700 text-brand">− ₹{{ sale.emd_amount|floatformat:2 }}</p>
+                            </div>
+                            <div class="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                                <p class="text-[9px] text-amber-500 font-600 uppercase tracking-wider mb-0.5">Due Now
+                                </p>
+                                <p class="text-sm font-700 text-gold">₹{{ sale.final_amount|floatformat:2 }}</p>
+                            </div>
+                        </div>
+                        <button id="pay-final-btn" onclick="initiateFinalPayment()"
+                            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold to-amber-500 text-white rounded-xl text-sm font-700 uppercase tracking-wider hover:shadow-lg transition-all">
+                            <i class="fas fa-credit-card"></i> Pay Now via Razorpay
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <i class="fas fa-info-circle text-blue-400 mt-0.5 shrink-0"></i>
+                        <p class="text-xs text-blue-600 font-500">Waiting for the buyer to complete the final payment of
+                            <strong>₹{{ sale.final_amount|floatformat:2 }}</strong>.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(4)"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-600 hover:border-brand hover:text-brand transition-colors">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back
+                    </button>
+                    {% if step >= 6 %}
+                    <button onclick="goToStep(6)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        Next: Registration <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ──────────────── STEP 6: REGISTRATION ──────────────── -->
+        {% if step >= 6 %}
+        <div id="panel-6" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/60 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                            <i class="fas fa-stamp text-blue-500 text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400">Step 6 of 8</p>
+                            <h2 class="text-sm font-700 text-slate-800">Property Registration</h2>
+                        </div>
+                    </div>
+                    {% if sale.registration_number %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                            class="fas fa-check-circle"></i> Registered</span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-500 text-[10px] font-700 border border-blue-200"><i
+                            class="fas fa-clock"></i> Pending</span>
+                    {% endif %}
+                </div>
+                <div class="px-6 py-6">
+                    {% if sale.registration_number %}
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">Registration
+                                No.</p>
+                            <p class="text-base font-800 text-slate-800 font-mono">{{ sale.registration_number }}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">Registration
+                                Date</p>
+                            <p class="text-base font-700 text-slate-700">{{ sale.registration_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">Stamp Duty</p>
+                            <p class="text-base font-800 text-slate-800">₹{{ sale.stamp_duty|floatformat:2 }}</p>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400 mb-1">Registration
+                                Charges</p>
+                            <p class="text-base font-800 text-slate-800">₹{{ sale.registration_charges|floatformat:2 }}
+                            </p>
+                        </div>
+                    </div>
+                    {% elif is_admin %}
+                    <form method="post" action="{% url 'property_sale_update_registration' sale.id %}"
+                        enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 mb-5">
+                            <div>
+                                <label
+                                    class="block text-[10px] font-700 uppercase tracking-wider text-slate-500 mb-1.5">Registration
+                                    Number *</label>
+                                <input type="text" name="registration_number" required placeholder="REG-2025-XXXXXX"
+                                    class="ah-field-input">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-700 uppercase tracking-wider text-slate-500 mb-1.5">Stamp
+                                    Duty (₹)</label>
+                                <input type="number" name="stamp_duty" step="0.01" value="0" class="ah-field-input">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-700 uppercase tracking-wider text-slate-500 mb-1.5">Registration
+                                    Charges (₹)</label>
+                                <input type="number" name="registration_charges" step="0.01" value="0"
+                                    class="ah-field-input">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-700 uppercase tracking-wider text-slate-500 mb-1.5">Sale
+                                    Deed (PDF / Image)</label>
+                                <input type="file" name="sale_deed" accept=".pdf,.jpg,.png" class="ah-field-input">
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                            <i class="fas fa-stamp text-[11px]"></i> Record Registration
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <i class="fas fa-info-circle text-blue-400 mt-0.5 shrink-0"></i>
+                        <p class="text-xs text-blue-600 font-500">Property registration is being processed by the
+                            registrar. Details will appear here once complete.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(5)"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-600 hover:border-brand hover:text-brand transition-colors">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back
+                    </button>
+                    {% if step >= 7 %}
+                    <button onclick="goToStep(7)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        Next: Possession <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ──────────────── STEP 7: POSSESSION ──────────────── -->
+        {% if step >= 7 %}
+        <div id="panel-7" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <div
+                    class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-violet-50/60 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center">
+                            <i class="fas fa-key text-brand text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-700 uppercase tracking-widest text-slate-400">Step 7 of 8</p>
+                            <h2 class="text-sm font-700 text-slate-800">Possession Transfer</h2>
+                        </div>
+                    </div>
+                    {% if sale.possession_date %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage text-[10px] font-700 border border-sage/20"><i
+                            class="fas fa-check-circle"></i> Transferred</span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand text-[10px] font-700 border border-brand/20"><i
+                            class="fas fa-key"></i> Pending</span>
+                    {% endif %}
+                </div>
+                <div class="px-6 py-6">
+                    {% if sale.possession_date %}
+                    <div class="flex items-start gap-3 bg-sage-light border border-sage/20 rounded-xl p-4">
+                        <i class="fas fa-check-circle text-sage mt-0.5 shrink-0 text-base"></i>
+                        <div>
+                            <p class="text-sm font-600 text-slate-700">Possession Transferred — {{sale.possession_date|date:"M d, Y" }}</p>
+                            <p class="text-xs text-slate-500 mt-0.5">The property handover is complete and seller funds
+                                have been released.</p>
+                        </div>
+                    </div>
+                    {% elif is_admin or is_seller %}
+                    <div class="text-center py-6">
+                        <div class="w-16 h-16 rounded-2xl bg-brand-light flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-key text-brand text-2xl"></i>
+                        </div>
+                        <p class="text-base font-700 text-slate-800 mb-1">Confirm Possession Transfer</p>
+                        <p class="text-xs text-slate-400 mb-6 max-w-xs mx-auto">Upload the signed possession letter and
+                            confirm physical handover. Seller funds will be released upon confirmation.</p>
+                        <form method="post" action="{% url 'property_sale_confirm_possession' sale.id %}"
+                            enctype="multipart/form-data" class="inline-block text-left">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label
+                                    class="block text-[10px] font-700 uppercase tracking-wider text-slate-500 mb-1.5">Possession
+                                    Letter</label>
+                                <input type="file" name="possession_letter" accept=".pdf,.jpg,.png"
+                                    class="ah-field-input">
+                            </div>
+                            <button type="submit"
+                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-sage text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-green-700 transition-colors">
+                                <i class="fas fa-handshake text-[11px]"></i> Confirm &amp; Release Funds
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <i class="fas fa-info-circle text-blue-400 mt-0.5 shrink-0"></i>
+                        <p class="text-xs text-blue-600 font-500">Awaiting seller/admin confirmation of physical
+                            possession transfer.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(6)"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-600 hover:border-brand hover:text-brand transition-colors">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back
+                    </button>
+                    {% if step >= 8 %}
+                    <button onclick="goToStep(8)"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step">
+                        View Completion <i class="fas fa-arrow-right text-[10px]"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ──────────────── STEP 8: COMPLETE ──────────────── -->
+        <div id="panel-8" class="step-panel animate-fade-up" style="animation-delay:.08s">
+            <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                <div class="px-6 py-12 text-center">
+                    {% if sale.status == 'completed' or sale.status == 'possession_transferred' %}
+                    <div class="w-20 h-20 rounded-full bg-sage-light flex items-center justify-center mx-auto mb-5">
+                        <i class="fas fa-check-circle text-sage text-4xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-800 text-slate-900 mb-2">Transaction Complete!</h2>
+                    <p class="text-sm text-slate-400 max-w-sm mx-auto mb-6">All steps have been successfully concluded.
+                        The property has been transferred to the buyer and proceeds released to the seller.</p>
+                    <div class="grid grid-cols-3 gap-3 max-w-sm mx-auto">
+                        <div class="bg-sage-light rounded-xl p-3 border border-sage/20">
+                            <i class="fas fa-home text-sage block text-lg mb-1"></i>
+                            <p class="text-[10px] font-700 text-sage">Property Transferred</p>
+                        </div>
+                        <div class="bg-brand-light rounded-xl p-3 border border-brand/20">
+                            <i class="fas fa-coins text-brand block text-lg mb-1"></i>
+                            <p class="text-[10px] font-700 text-brand">Funds Released</p>
+                        </div>
+                        <div class="bg-amber-50 rounded-xl p-3 border border-amber-200">
+                            <i class="fas fa-certificate text-gold block text-lg mb-1"></i>
+                            <p class="text-[10px] font-700 text-gold">Deed Registered</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-hourglass text-slate-400 text-2xl"></i>
+                    </div>
+                    <p class="text-base font-700 text-slate-700 mb-1">Transaction In Progress</p>
+                    <p class="text-xs text-slate-400">Complete all preceding steps to finish the property sale.</p>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-center gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                    <button onclick="goToStep(7)"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-600 hover:border-brand hover:text-brand transition-colors">
+                        <i class="fas fa-arrow-left text-[10px]"></i> Back
+                    </button>
+                    <a href="{% url 'profile' %}"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-xl text-xs font-700 uppercase tracking-wider hover:bg-brand-dark transition-colors shadow-step no-underline">
+                        <i class="fas fa-home text-[10px]"></i> Go to Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /max-w-3xl -->
+</div><!-- /ah-page -->
+
+<!-- Razorpay + JS -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    // ── Active step state ──
+    const TOTAL_STEPS = 8;
+    const UNLOCKED = {{ step }};          // Django context: current highest unlocked step
+    let currentStep = UNLOCKED;           // Start on the active step
+
+    function goToStep(n) {
+        if (n < 1 || n > TOTAL_STEPS) return;
+        // hide all panels
+        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+        // show target
+        const target = document.getElementById('panel-' + n);
+        if (target) {
+            target.classList.add('active');
+            currentStep = n;
+        }
+        // scroll stepper into view on mobile
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Boot: show the active step
+    document.addEventListener('DOMContentLoaded', () => goToStep(UNLOCKED));
+
+    // ── Utilities ──
+    function getCookie(name) {
+        let v = null;
+        document.cookie.split(';').forEach(c => {
+            c = c.trim();
+            if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
+        });
+        return v;
+    }
+
+    // ── Upload documents ──
+    function uploadDocs(type) {
+        const form = document.getElementById(type + '-doc-form');
+        const fileInput = document.getElementById(type + '-files');
+        if (!fileInput.files.length) return;
+        const fd = new FormData(form);
+        fetch('{% url "property_sale_submit_docs" lot.id %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            body: fd
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) { alert(data.message); location.reload(); }
+                else { alert('Error: ' + data.error); }
+            })
+            .catch(e => alert('Upload failed: ' + e));
+    }
+
+    // ── Sign agreement ──
+    function signAgreement() {
+        fetch('{% url "property_sale_sign_agreement" sale.id %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({})
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) { alert(data.message); location.reload(); }
+                else { alert('Error: ' + data.error); }
+            });
+    }
+
+    // ── Final payment via Razorpay ──
+    function initiateFinalPayment() {
+        const btn = document.getElementById('pay-final-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+        fetch('{% url "property_sale_initiate_final_payment" sale.id %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({})
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Error: ' + data.error);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now via Razorpay';
+                    return;
+                }
+                if (data.simulated) {
+                    fetch('{% url "property_sale_verify_final_payment" sale.id %}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                        body: JSON.stringify({ simulated: true, razorpay_payment_id: 'pay_simulated_final' })
+                    })
+                        .then(r => r.json())
+                        .then(d => {
+                            if (d.success) { alert(d.message); location.reload(); }
+                            else { alert('Verification failed: ' + d.error); }
+                        });
+                    return;
+                }
+                const options = {
+                    key: data.razorpay_key_id,
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: 'Auction House',
+                    description: 'Final Payment: ' + data.lot_title,
+                    order_id: data.razorpay_order_id,
+                    prefill: { name: data.user_name, email: data.user_email },
+                    theme: { color: '#7C3AED' },
+                    handler: function (response) {
+                        fetch('{% url "property_sale_verify_final_payment" sale.id %}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        })
+                            .then(r => r.json())
+                            .then(d => {
+                                if (d.success) { alert(d.message); location.reload(); }
+                                else { alert('Verification failed: ' + d.error); }
+                            });
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now via Razorpay';
+                        }
+                    }
+                };
+                new Razorpay(options).open();
+            })
+            .catch(e => {
+                alert('Error: ' + e);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now via Razorpay';
+            });
+    }
+</script>
+
+<!-- Real-time Status Synchronization -->
+<script>
+    window.addEventListener('load', function () {
+        const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const saleDashboardWs = new WebSocket(wsProtocol + window.location.host + '/ws/status/');
+
+        saleDashboardWs.onmessage = function (e) {
+            try {
+                const parsedData = JSON.parse(e.data);
+                // Listen for Global Model Updates specific to this property sale
+                if (parsedData.type === 'global_model_update' &&
+                    parsedData.data.model === 'PropertySale' &&
+                    String(parsedData.data.pk) === "{{ sale.id }}") {
+
+                    // Refresh the page to show the latest step UI
+                    window.location.reload();
+                }
+            } catch (err) {
+                console.error('WS Sync Error:', err);
+            }
+        };
+    });
+</script>
+
+{% endblock %}

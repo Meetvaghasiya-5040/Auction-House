@@ -3,18 +3,15 @@ from . import views
 from . import invoice_generator
 
 urlpatterns = [
-    path('wallet/', views.wallet_dashboard, name='wallet_dashboard'),
-    path('wallet/add-funds/', views.add_funds, name='add_funds'),
-    path('wallet/add-funds/create-order/', views.create_wallet_add_funds_order, name='create_wallet_add_funds_order'),
-    path('wallet/add-funds/verify/', views.verify_wallet_add_funds, name='verify_wallet_add_funds'),
     path('deposit/create/', views.create_deposit_order, name='create_deposit_order'),
     path('deposit/verify/', views.verify_deposit, name='verify_deposit'),
+    path('deposit/status/', views.security_deposit_status, name='security_deposit_status'),
+    path('deposit/withdraw/', views.withdraw_deposit, name='withdraw_deposit'),
     path('my-bids/', views.my_bids, name='my_bids'),
     path('won-lots/', views.won_lots, name='won_lots'),
     path('place-bid/<slug:slug>/', views.place_bid_api, name='place_bid_api'),
     path('lot/<slug:slug>/updates/', views.get_bid_updates, name='get_bid_updates'),
     path('download-invoice/', invoice_generator.download_bid_history_pdf, name='download_invoice'),
-    path('download-transaction-invoice/', invoice_generator.transaction_invoice, name='transaction_invoice'),
     path('download-invoice/<int:invoice_id>/', invoice_generator.download_invoice_by_id, name='download_invoice-1'),
     path('my-invoices/', views.my_invoices, name='my_invoices'),
     path('invoices/<int:invoice_id>/', views.invoice_detail, name='invoice_detail'),
@@ -25,6 +22,10 @@ urlpatterns = [
     path('lot/<int:lot_id>/mark-shipped-to-buyer/', views.mark_shipped_to_buyer, name='mark_shipped_to_buyer'),
     path('lot/<int:lot_id>/confirm-delivery/', views.confirm_delivery, name='confirm_delivery'),
     path('verify-delivery-otp/', views.verify_delivery_otp, name='verify_delivery_otp'),
-    path('wallet/withdraw/', views.withdraw_funds, name='withdraw_funds'),
+    path('proxy/set/<slug:lot_slug>/', views.set_proxy_bid, name='set_proxy_bid'),
+    path('proxy/cancel/<slug:lot_slug>/', views.cancel_proxy_bid, name='cancel_proxy_bid'),
+    path('proxy/status/<slug:lot_slug>/', views.get_proxy_bid_status, name='get_proxy_bid_status'),
+    path('wallet/add-bank/', views.add_bank_account, name='add_bank_account'),
+    path('wallet/withdraw/', views.request_withdrawal, name='request_withdrawal'),
 ]
 

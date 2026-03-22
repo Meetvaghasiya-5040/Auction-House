@@ -1,0 +1,424 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="mb-6 flex flex-wrap justify-between items-center gap-3">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-1">Live overview of your Auction House &mdash; all data is real-time</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="?export=csv"
+            class="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm">
+            <i class="fas fa-download"></i> Export Report (CSV)
+        </a>
+        <a href="{% url 'admin_panel:auction_create' %}"
+            class="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+            <i class="fas fa-plus"></i> Create Auction
+        </a>
+    </div>
+</div>
+
+<!-- ─── Key Metrics Row ──────────────────────────────────────────────── -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+    <!-- Total Users -->
+    <div
+        class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between hover:border-indigo-300 transition-colors group">
+        <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Users</p>
+            <h3 class="text-3xl font-bold text-slate-800">{{ total_users }}</h3>
+            <p
+                class="text-xs mt-2 flex items-center font-medium
+                {% if users_pct is not None %}{% if users_pct >= 0 %}text-emerald-500{% else %}text-rose-500{% endif %}{% else %}text-slate-400{% endif %}">
+                {% if users_pct is not None %}
+                <i class="fas {% if users_pct >= 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %} mr-1"></i>
+                {{ users_pct|floatformat:1 }}% vs last month
+                {% else %}
+                <i class="fas fa-user-plus mr-1 text-emerald-500"></i>
+                {{ users_this_month }} this month
+                {% endif %}
+            </p>
+        </div>
+        <div
+            class="h-12 w-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
+            <i class="fas fa-users"></i>
+        </div>
+    </div>
+
+    <!-- Admin Wallet Balance -->
+    <div
+        class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between hover:border-emerald-300 transition-colors group">
+        <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Admin Wallet</p>
+            <h3 class="text-3xl font-bold text-slate-800">₹{{ total_revenue|floatformat:0 }}</h3>
+            <p class="text-xs mt-2 text-slate-400 font-medium">
+                +₹{{ total_premium|floatformat:0 }} buyer premium
+            </p>
+        </div>
+        <div
+            class="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0">
+            <i class="fas fa-wallet"></i>
+        </div>
+    </div>
+
+    <!-- Live Auctions -->
+    <div
+        class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between hover:border-rose-300 transition-colors group relative overflow-hidden">
+        <div class="absolute top-3 right-3">
+            <div class="live-dot"></div>
+        </div>
+        <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Live Auctions</p>
+            <h3 class="text-3xl font-bold text-slate-800">{{ live_auctions }}</h3>
+            <p class="text-xs mt-2 text-slate-400 font-medium">
+                <i class="fas fa-layer-group mr-1 text-rose-400"></i>{{ active_lots }} active lots
+            </p>
+        </div>
+        <div
+            class="h-12 w-12 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xl group-hover:bg-rose-600 group-hover:text-white transition-colors shrink-0">
+            <i class="fas fa-gavel"></i>
+        </div>
+    </div>
+
+    <!-- Pending Approvals -->
+    <div
+        class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between hover:border-amber-300 transition-colors group">
+        <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Pending Approvals</p>
+            <h3 class="text-3xl font-bold text-slate-800">{{ pending_approvals }}</h3>
+            <p class="text-xs mt-2 text-amber-500 font-medium flex items-center">
+                {% if pending_approvals > 0 %}
+                <i class="fas fa-exclamation-circle mr-1"></i> Action required
+                {% else %}
+                <i class="fas fa-check-circle mr-1 text-emerald-500"></i><span class="text-emerald-500">All clear</span>
+                {% endif %}
+            </p>
+        </div>
+        <div
+            class="h-12 w-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-colors shrink-0">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+    </div>
+
+</div>
+
+<!-- ─── Secondary Metrics ─────────────────────────────────────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-indigo-600 rounded-xl p-4 text-white flex items-center justify-between">
+        <div>
+            <p class="text-indigo-200 text-xs font-semibold uppercase">Total Bids</p>
+            <p class="text-2xl font-bold">{{ total_bids }}</p>
+            {% if bids_pct is not None %}
+            <p class="text-xs text-indigo-200 mt-1">
+                <i class="fas {% if bids_pct >= 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %} mr-1"></i>
+                {{ bids_pct|floatformat:1 }}% vs last month
+            </p>
+            {% else %}
+            <p class="text-xs text-indigo-200 mt-1">{{ bids_this_month }} this month</p>
+            {% endif %}
+        </div>
+        <i class="fas fa-hand-holding-usd text-4xl text-indigo-300"></i>
+    </div>
+
+    <div class="bg-emerald-600 rounded-xl p-4 text-white flex items-center justify-between">
+        <div>
+            <p class="text-emerald-200 text-xs font-semibold uppercase">Paid Invoices</p>
+            <p class="text-2xl font-bold">{{ total_invoices }}</p>
+            <p class="text-xs text-emerald-200 mt-1">₹{{ total_bid_revenue|floatformat:0 }} total</p>
+        </div>
+        <i class="fas fa-file-invoice text-4xl text-emerald-300"></i>
+    </div>
+
+    <div class="bg-amber-500 rounded-xl p-4 text-white flex items-center justify-between">
+        <div>
+            <p class="text-amber-100 text-xs font-semibold uppercase">Active Deposits</p>
+            <p class="text-2xl font-bold">{{ active_deposits }}</p>
+            <p class="text-xs text-amber-100 mt-1">Approved bidders</p>
+        </div>
+        <i class="fas fa-shield-alt text-4xl text-amber-200"></i>
+    </div>
+
+    <div class="bg-slate-800 rounded-xl p-4 text-white flex items-center justify-between">
+        <div>
+            <p class="text-slate-300 text-xs font-semibold uppercase">Pending Items</p>
+            <p class="text-2xl font-bold">{{ pending_items }}</p>
+            <a href="{% url 'admin_panel:items' %}?status=Pending+Approval"
+                class="text-xs text-slate-300 hover:text-white mt-1 flex items-center">
+                <i class="fas fa-arrow-right mr-1"></i> Review now
+            </a>
+        </div>
+        <i class="fas fa-box text-4xl text-slate-500"></i>
+    </div>
+</div>
+
+<!-- ─── Charts Row ─────────────────────────────────────────────────────── -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+    <!-- Revenue & Bids Trend Chart (2/3 width) -->
+    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-5">
+            <div>
+                <h3 class="text-base font-bold text-slate-800">Revenue & Bid Trends</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Last 6 months — live data from database</p>
+            </div>
+            <div class="flex gap-2 text-xs">
+                <span class="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 font-semibold">● Revenue</span>
+                <span class="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">● Premium</span>
+            </div>
+        </div>
+        <canvas id="revenueChart" height="120"></canvas>
+    </div>
+
+    <!-- Lot Status Doughnut -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+        <h3 class="text-base font-bold text-slate-800 mb-1">Lot Status</h3>
+        <p class="text-xs text-slate-400 mb-4">Distribution across all lots</p>
+        <canvas id="lotPieChart" height="200"></canvas>
+    </div>
+
+</div>
+
+<!-- ─── Bottom Row: Activity + Top Auctions ────────────────────────────── -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+    <!-- Recent Activity Feed (Real) -->
+    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-base font-bold text-slate-800">Recent Activity</h3>
+            <span class="flex items-center text-xs text-emerald-600 font-semibold">
+                <span class="live-dot mr-1"></span> Live
+            </span>
+        </div>
+
+        {% if activity %}
+        <div class="space-y-3">
+            {% for event in activity %}
+            <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                <div class="flex-shrink-0 mt-0.5">
+                    <div class="h-8 w-8 rounded-full flex items-center justify-center text-sm
+                        {% if event.color == 'indigo' %}bg-indigo-100 text-indigo-600
+                        {% elif event.color == 'amber' %}bg-amber-100 text-amber-600
+                        {% elif event.color == 'emerald' %}bg-emerald-100 text-emerald-600
+                        {% elif event.color == 'teal' %}bg-teal-100 text-teal-600
+                        {% else %}bg-slate-100 text-slate-600{% endif %}">
+                        <i class="fas {{ event.icon }}"></i>
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800">{{ event.title }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ event.detail }}</p>
+                </div>
+                <time class="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{{ event.time|timesince }}
+                    ago</time>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="py-10 text-center text-slate-400">
+            <i class="fas fa-history text-3xl mb-3 opacity-40"></i>
+            <p class="text-sm">No recent activity yet</p>
+        </div>
+        {% endif %}
+
+        <div class="mt-4 border-t border-slate-100 pt-3 flex gap-3 text-xs">
+            <a href="{% url 'admin_panel:moderation' %}" class="text-indigo-500 hover:underline font-medium">
+                <i class="fas fa-satellite-dish mr-1"></i>Live Moderation
+            </a>
+            <a href="{% url 'admin_panel:reports' %}" class="text-emerald-500 hover:underline font-medium">
+                <i class="fas fa-file-alt mr-1"></i>Full Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Top Auctions -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-base font-bold text-slate-800">Top Auctions</h3>
+            <a href="{% url 'admin_panel:analytics' %}" class="text-xs text-indigo-500 hover:underline font-medium">View
+                All</a>
+        </div>
+        <div class="space-y-3">
+            {% for a in top_auctions %}
+            <div class="flex items-center gap-3">
+                <div class="flex-shrink-0 text-xs font-bold text-slate-300 w-4">{{ forloop.counter }}</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ a.title }}</p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-xs font-medium px-1.5 py-0.5 rounded
+                            {% if a.status == 'live' %}bg-emerald-100 text-emerald-700
+                            {% elif a.status == 'completed' %}bg-slate-100 text-slate-600
+                            {% else %}bg-amber-100 text-amber-700{% endif %}">
+                            {{ a.get_status_display }}
+                        </span>
+                        <span class="text-xs text-slate-400">{{ a.sold|default:0 }} sold</span>
+                    </div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="text-sm font-bold text-indigo-600">₹{{ a.rev|default:0|floatformat:0 }}</p>
+                    <a href="{% url 'admin_panel:auction_analytics_detail' a.id %}"
+                        class="text-xs text-slate-400 hover:text-indigo-500">Analytics →</a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-slate-400 text-sm text-center py-8">No auction revenue data yet</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ─── Active Lots Table ──────────────────────────────────────────────── -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+        <div>
+            <h3 class="font-bold text-slate-800">Active Lots Right Now</h3>
+            <p class="text-xs text-slate-400 mt-0.5">{{ active_lots }} lot{% if active_lots != 1 %}s{% endif %}
+                currently accepting bids</p>
+        </div>
+        <a href="{% url 'admin_panel:auctions' %}" class="text-xs text-indigo-500 hover:underline font-medium">View all
+            auctions →</a>
+    </div>
+
+    {% if active_lot_list %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-100">
+                <tr class="text-xs text-slate-400 uppercase">
+                    <th class="text-left py-3 px-4">Lot</th>
+                    <th class="text-left py-3 px-4">Auction</th>
+                    <th class="text-right py-3 px-4">Current Bid</th>
+                    <th class="text-right py-3 px-4">Bids</th>
+                    <th class="text-center py-3 px-4">Ends</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for lot in active_lot_list %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-4">
+                        <p class="font-semibold text-slate-800">Lot #{{ lot.lot_number }}</p>
+                        <p class="text-xs text-slate-400 truncate max-w-xs">{{ lot.title }}</p>
+                    </td>
+                    <td class="py-3 px-4 text-slate-500">{{ lot.auction.title|truncatechars:30 }}</td>
+                    <td class="py-3 px-4 text-right font-bold text-indigo-700">₹{{ lot.current_bid|floatformat:0 }}</td>
+                    <td class="py-3 px-4 text-right text-slate-600 font-semibold">{{ lot.bids.count }}</td>
+                    <td class="py-3 px-4 text-center text-xs text-slate-400">
+                        {% if lot.end_time %}{{ lot.end_time|timesince }}{% else %}Open{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="py-12 text-center text-slate-400">
+        <i class="fas fa-gavel text-3xl mb-3 opacity-30"></i>
+        <p class="text-sm">No lots are currently active</p>
+        <a href="{% url 'admin_panel:auction_create' %}"
+            class="mt-3 inline-flex items-center gap-2 text-sm font-medium text-indigo-500 hover:text-indigo-700">
+            <i class="fas fa-plus"></i> Create an Auction
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const monthlyData = {{ monthly_data_json| safe }};
+    const lotStatusData = {{ lot_status_json| safe }};
+
+    // ── Revenue & Bids Bar/Line Chart ──────────────────────────────────────
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyData.map(d => d.month),
+            datasets: [
+                {
+                    label: 'Bid Revenue (₹)',
+                    data: monthlyData.map(d => d.revenue),
+                    backgroundColor: 'rgba(79,70,229,0.15)',
+                    borderColor: '#4f46e5',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    type: 'bar',
+                },
+                {
+                    label: 'Buyer Premium (₹)',
+                    data: monthlyData.map(d => d.premium),
+                    backgroundColor: 'rgba(16,185,129,0.15)',
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    type: 'bar',
+                },
+                {
+                    label: 'Bids Placed',
+                    data: monthlyData.map(d => d.bids),
+                    borderColor: '#f59e0b',
+                    borderWidth: 2.5,
+                    tension: 0.4,
+                    type: 'line',
+                    fill: false,
+                    pointBackgroundColor: '#f59e0b',
+                    pointRadius: 4,
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Revenue (₹)', font: { size: 10 } },
+                    ticks: { font: { size: 10 } }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: { display: true, text: 'Bids', font: { size: 10 } },
+                    grid: { drawOnChartArea: false },
+                    ticks: { font: { size: 10 }, stepSize: 1 }
+                }
+            }
+        }
+    });
+
+    // ── Lot Status Doughnut ───────────────────────────────────────────────
+    const pieCtx = document.getElementById('lotPieChart').getContext('2d');
+    const lotLabels = Object.keys(lotStatusData).filter(k => lotStatusData[k] > 0);
+    const lotValues = lotLabels.map(k => lotStatusData[k]);
+    new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: lotLabels,
+            datasets: [{
+                data: lotValues,
+                backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#64748b'],
+                borderWidth: 2,
+                borderColor: '#fff',
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 8 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

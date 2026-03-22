@@ -140,8 +140,7 @@
                 <div class="timer-card bg-white border-4 border-yellow-400 p-6">
                     <div class="text-center">
                         <div class="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3">
-                            {% if auction.status == 'live' %}Auction Ends In{% elif auction.status ==
-                            'scheduled'%}Auction Starts In{% else %}Auction Timeline{% endif %}
+                            {% if auction.status == 'live' %}Auction Ends In{% elif auction.status == 'scheduled'%}Auction Starts In{% else %}Auction Timeline{% endif %}
                         </div>
                         <div class="countdown-timer grid grid-cols-4 gap-3 mb-5">
                             <div class="timer-unit">

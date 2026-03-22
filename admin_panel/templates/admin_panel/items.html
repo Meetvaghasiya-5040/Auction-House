@@ -1,0 +1,334 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Item Approvals{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Item Management</h1>
+        <p class="text-sm text-slate-500 mt-1">Review user submissions, verify physical conditions, and approve items
+            for auction.</p>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100 flex items-center justify-between">
+        <div>
+            <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">Pending Review</p>
+            <h3 class="text-2xl font-bold text-slate-800">{{ pending_count }}</h3>
+        </div>
+        <div class="h-10 w-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-clipboard-check text-lg"></i>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-slate-200 flex items-center justify-between shadow-sm">
+        <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Items</p>
+            <h3 class="text-2xl font-bold text-slate-800">{{ items|length }}</h3>
+        </div>
+        <div class="h-10 w-10 bg-slate-100 text-slate-500 rounded-lg flex items-center justify-center">
+            <i class="fas fa-box text-lg"></i>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+
+    <!-- Table Toolbar -->
+    <form method="GET" action="{% url 'admin_panel:items' %}" class="p-4 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+            <select name="status" onchange="this.form.submit()"
+                class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none w-48">
+                <option value="">All Statuses</option>
+                <option value="Pending Approval" {% if status == 'Pending Approval' %}selected{% endif %}>Pending Approval</option>
+                <option value="Approved" {% if status == 'Approved' %}selected{% endif %}>Approved</option>
+                <option value="Rejected" {% if status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                <option value="Assigned to Lot" {% if status == 'Assigned to Lot' %}selected{% endif %}>Assigned to Lot</option>
+            </select>
+            <select name="category" onchange="this.form.submit()"
+                class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none w-48">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="relative w-64">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" name="q" id="item-search" value="{{ q }}"
+                class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                placeholder="Search item title, seller...">
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-slate-600">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-semibold">Item & Details</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Seller</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Values (Est / Reserve)</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-right">Review Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr class="bg-white border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    data-item-id="{{ item.id }}">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-4">
+                            {% if item.images %}
+                            <img src="{{ item.images.0 }}" alt="{{ item.title }}"
+                                class="w-12 h-12 object-cover rounded-lg border border-slate-200 shrink-0">
+                            {% else %}
+                            <div
+                                class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 border border-slate-200 shrink-0">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <a href="{% url 'admin_panel:item_detail' item.slug %}"
+                                    class="font-bold text-indigo-600 hover:underline line-clamp-1 block">{{ item.title }}</a>
+                                <div class="text-xs text-slate-500 flex items-center gap-2 mt-1">
+                                    <span class="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-medium">{{ item.item_catagory }}</span>
+                                    <span>Added: {{ item.created_at|date:"M d" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-800">{{ item.seller.username }}</div>
+                        <a href="mailto:{{ item.seller.email }}" class="text-xs text-indigo-600 hover:underline"><i
+                                class="far fa-envelope mr-1"></i>Contact</a>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-800">₹{{ item.estimated_value|default:"0" }}</div>
+                        <div class="text-xs text-slate-500 mt-1">Res: ₹{{ item.reserve_price|default:"0" }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if item.status == 'Pending Approval' %}
+                        <span
+                            class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-semibold bg-amber-100 text-amber-800 status-badge">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Pending
+                        </span>
+                        {% elif item.status == 'Approved' %}
+                        <span
+                            class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800 status-badge">
+                            Approved
+                        </span>
+                        {% elif item.status == 'Rejected' %}
+                        <span
+                            class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-semibold bg-rose-100 text-rose-800 status-badge">
+                            Rejected
+                        </span>
+                        {% elif item.status == 'Assigned to Lot' %}
+                        <span
+                            class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-800 status-badge">
+                            In Lot
+                        </span>
+                        {% else %}
+                        <span
+                            class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-800 status-badge">
+                            {{ item.status }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if item.status == 'Pending Approval' %}
+                        <div class="flex items-center justify-end gap-2 action-buttons">
+                            <button onclick="updateItemStatus('{{ item.id }}', 'Approved', this)"
+                                class="bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center shadow-sm">
+                                <i class="fas fa-check mr-1.5"></i> Approve
+                            </button>
+                            <button onclick="updateItemStatus('{{ item.id }}', 'Rejected', this)"
+                                class="bg-white text-rose-600 border border-slate-200 hover:bg-rose-50 hover:border-rose-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm">
+                                Reject
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-slate-400 font-medium action-buttons">
+                            No action needed
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                        <i class="fas fa-box-open text-3xl mb-3 text-slate-300"></i>
+                        <p>No items found matching your criteria.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    async function updateItemStatus(itemId, newStatus, btnElement) {
+        try {
+            // Disable buttons during request
+            const container = btnElement.closest('.action-buttons');
+            const buttons = container.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            // Show loading state on clicked button
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = `<i class="fas fa-circle-notch fa-spin mr-1.5"></i> Processing...`;
+
+            const response = await fetch(`/custom-admin/items/${itemId}/status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(`Item ${newStatus}`, `The item has been successfully marked as ${newStatus}.`, newStatus === 'Approved' ? 'success' : 'warning');
+                // The DOM Updates (badges, removing buttons, decrementing counts) 
+                // are now handled globally via the `status_update` WebSocket listener below.
+            } else {
+                throw new Error(data.error || 'Server error');
+            }
+        } catch (err) {
+            console.error('Update status error:', err);
+            showToast('Action Failed', err.message, 'error');
+            // Reset button on error
+            btnElement.innerHTML = originalText;
+            btnElement.closest('.action-buttons').querySelectorAll('button').forEach(b => b.disabled = false);
+        }
+    }
+
+    // Live DOM updates for new items
+    document.addEventListener('adminLiveUpdate', function(e) {
+        const data = e.detail;
+        if (data.type === 'admin_notification' && data.notification_type === 'item_submitted') {
+            
+            // Extract item title from message, e.g. "Title" submitted by ...
+            const titleMatch = data.message.match(/"([^"]+)"/);
+            const itemTitle = titleMatch ? titleMatch[1] : 'New Item';
+            
+            const tbody = document.querySelector('table tbody');
+            const noItemsRow = tbody.querySelector('td[colspan="5"]');
+            
+            if (noItemsRow) {
+                noItemsRow.parentElement.remove();
+            }
+
+            // Create new row
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-item-id', data.item_id);
+            tr.className = 'bg-indigo-50 border-b border-indigo-100 hover:bg-indigo-100 transition-colors duration-500';
+            tr.innerHTML = `
+                <td class="px-6 py-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-400 border border-indigo-200 shrink-0">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div>
+                            <a href="/custom-admin/items/${data.item_slug}/" class="font-bold text-indigo-700 hover:underline line-clamp-1 block">${itemTitle}</a>
+                            <div class="text-xs text-slate-500 flex items-center gap-2 mt-1">
+                                <span class="bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded text-[10px] font-medium">New</span>
+                                <span>Added: just now</span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="font-medium text-slate-800">${data.triggered_by}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="font-medium text-slate-800">Review Required</div>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-semibold bg-amber-100 text-amber-800 status-badge">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Pending
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end gap-2 action-buttons">
+                        <button onclick="updateItemStatus('${data.item_id}', 'Approved', this)"
+                            class="bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center shadow-sm">
+                            <i class="fas fa-check mr-1.5"></i> Approve
+                        </button>
+                        <button onclick="updateItemStatus('${data.item_id}', 'Rejected', this)"
+                            class="bg-white text-rose-600 border border-slate-200 hover:bg-rose-50 hover:border-rose-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm">
+                            Reject
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            // Insert at the top of the table
+            tbody.prepend(tr);
+            
+            // Remove highlight effect after a few seconds
+            setTimeout(() => {
+                tr.classList.remove('bg-indigo-50', 'border-indigo-100', 'hover:bg-indigo-100');
+                tr.classList.add('bg-white', 'border-slate-100', 'hover:bg-slate-50');
+            }, 3000);
+
+            // Update stats
+            const statsCards = document.querySelectorAll('.grid > div');
+            statsCards.forEach(card => {
+                if(card.textContent.includes('Pending Review')) {
+                    const h3 = card.querySelector('h3');
+                    if(h3) h3.textContent = parseInt(h3.textContent) + 1;
+                }
+                if(card.textContent.includes('Total Items')) {
+                    const h3 = card.querySelector('h3');
+                    if(h3) h3.textContent = parseInt(h3.textContent) + 1;
+                }
+            });
+        } else if (data.type === 'status_update' && data.data.model === 'item') {
+            const tr = document.querySelector(`tr[data-item-id="${data.data.id}"]`);
+            if (tr) {
+                const status = data.data.status;
+                const badgeContainer = tr.querySelector('.status-badge');
+                
+                if (badgeContainer) {
+                    const parent = badgeContainer.parentElement;
+                    if (status === 'Approved') {
+                        parent.innerHTML = `<span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800 status-badge">Approved</span>`;
+                    } else if (status === 'Rejected') {
+                        parent.innerHTML = `<span class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-semibold bg-rose-100 text-rose-800 status-badge">Rejected</span>`;
+                    }
+                }
+
+                // Remove the action buttons if the status is no longer Pending
+                const actionContainer = tr.querySelector('.action-buttons');
+                if (actionContainer && status !== 'Pending Approval') {
+                    actionContainer.innerHTML = `<div class="text-xs text-slate-400 font-medium action-buttons">No action needed</div>`;
+                }
+                
+                // Pulse the row to show it was updated
+                tr.classList.add('bg-indigo-50', 'transition-colors', 'duration-500');
+                setTimeout(() => tr.classList.remove('bg-indigo-50'), 3000);
+
+                // Update counters natively via WS
+                const pendingCountEl = document.querySelector('h3.text-2xl.font-bold.text-slate-800'); // the Pending Review counter
+                if (pendingCountEl && pendingCountEl.parentElement.textContent.includes('Pending Review')) {
+                     let currentCount = parseInt(pendingCountEl.textContent) || 0;
+                     if (currentCount > 0 && status !== 'Pending Approval') {
+                         pendingCountEl.textContent = currentCount - 1;
+                     }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

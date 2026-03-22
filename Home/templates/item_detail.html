@@ -38,18 +38,18 @@
       <div class="th-left">
         <div class="th-badges">
           {% if item.status == 'Available' %}
-          <span class="badge bg-green-100 text-green-800 ring-1 ring-green-300" data-status-model="item"
+          <span class="badge bg-green-100 text-green-800 ring-1 ring-green-300" data-status-model="Item"
             data-status-id="{{ item.id }}"><i class="fas fa-circle-check"></i> <span
               class="status-text">Available</span></span>
           {% elif item.status == 'Lotted' %}
-          <span class="badge bg-blue-100 text-blue-800 ring-1 ring-blue-300" data-status-model="item"
+          <span class="badge bg-blue-100 text-blue-800 ring-1 ring-blue-300" data-status-model="Item"
             data-status-id="{{ item.id }}"><i class="fas fa-box"></i> <span class="status-text">Lotted</span></span>
           {% elif item.status == 'Sold' %}
-          <span class="badge bg-slate-100 text-slate-700 ring-1 ring-slate-300" data-status-model="item"
+          <span class="badge bg-slate-100 text-slate-700 ring-1 ring-slate-300" data-status-model="Item"
             data-status-id="{{ item.id }}"><i class="fas fa-check-double"></i> <span
               class="status-text">Sold</span></span>
           {% else %}
-          <span class="badge bg-slate-100 text-slate-800 ring-1 ring-slate-500/30" data-status-model="item"
+          <span class="badge bg-slate-100 text-slate-800 ring-1 ring-slate-500/30" data-status-model="Item"
             data-status-id="{{ item.id }}"><i class="fas fa-info-circle"></i> <span class="status-text">{{ item.status
               }}</span></span>
           {% endif %}
@@ -107,7 +107,7 @@
         <div class="ss-val">{{ item.get_image_urls|length|default:0 }}</div>
         <div class="ss-lbl">Photos</div>
       </div>
-      <div class="ss-card {% if item.status != 'Available' %}hidden{% endif %}" data-visibility-model="item"
+      <div class="ss-card {% if item.status != 'Available' %}hidden{% endif %}" data-visibility-model="Item"
         data-visibility-id="{{ item.id }}" data-show-on="available">
         <div class="ss-icon" style="background:#DCFCE7;">
           <i class="fas fa-circle-check" style="color:#16A34A;"></i>
@@ -115,7 +115,7 @@
         <div class="ss-val" style="font-size:13px;padding-top:3px;color:#16A34A;">Available</div>
         <div class="ss-lbl">Status</div>
       </div>
-      <div class="ss-card {% if item.status != 'Lotted' %}hidden{% endif %}" data-visibility-model="item"
+      <div class="ss-card {% if item.status != 'Lotted' %}hidden{% endif %}" data-visibility-model="Item"
         data-visibility-id="{{ item.id }}" data-show-on="lotted">
         <div class="ss-icon" style="background:#DBEAFE;">
           <i class="fas fa-box" style="color:#1D4ED8;"></i>
@@ -124,11 +124,11 @@
         <div class="ss-lbl">Status</div>
       </div>
       <div class="ss-card {% if item.status == 'Available' or item.status == 'Lotted' %}hidden{% endif %}"
-        data-visibility-model="item" data-visibility-id="{{ item.id }}" data-hide-on="available,lotted">
+        data-visibility-model="Item" data-visibility-id="{{ item.id }}" data-hide-on="available,lotted">
         <div class="ss-icon" style="background:#F1F5F9;">
           <i class="fas fa-check-double" style="color:#475569;"></i>
         </div>
-        <div class="ss-val" style="font-size:13px;padding-top:3px;color:#475569;" data-text-status-model="item"
+        <div class="ss-val" style="font-size:13px;padding-top:3px;color:#475569;" data-text-status-model="Item"
           data-text-status-id="{{ item.id }}">{{ item.status }}</div>
         <div class="ss-lbl">Status</div>
       </div>
@@ -176,11 +176,11 @@
             <!-- Overlay info -->
             <div class="img-overlay-tl">
               <span class="ov-chip green {% if item.status != 'Available' %}hidden{% endif %}"
-                data-visibility-model="item" data-visibility-id="{{ item.id }}" data-show-on="available"><i
+                data-visibility-model="Item" data-visibility-id="{{ item.id }}" data-show-on="available"><i
                   class="fas fa-circle-check"></i>Available</span>
               <span class="ov-chip dark {% if item.status == 'Available' %}hidden{% endif %}"
-                data-visibility-model="item" data-visibility-id="{{ item.id }}" data-hide-on="available"><i
-                  class="fas fa-gavel"></i><span data-text-status-model="item" data-text-status-id="{{ item.id }}">{{item.status }}</span></span>
+                data-visibility-model="Item" data-visibility-id="{{ item.id }}" data-hide-on="available"><i
+                  class="fas fa-gavel"></i><span data-text-status-model="Item" data-text-status-id="{{ item.id }}">{{item.status }}</span></span>
             </div>
             <div class="img-overlay-tr">
               <span class="ov-chip dark"><i class="fas fa-magnifying-glass-plus"></i>Zoom</span>
@@ -415,7 +415,7 @@
             {% else %}
             <div
               style="background:#F8F9FC;border:1.5px solid #E8ECF4;border-radius:12px;padding:14px;margin-top:14px;text-align:center;"
-              data-visibility-model="item" data-visibility-id="{{ item.id }}" data-hide-on="sold"
+              data-visibility-model="Item" data-visibility-id="{{ item.id }}" data-hide-on="sold"
               class="{% if item.status == 'Sold' %}hidden{% endif %}">
               <i class="fas fa-gavel" style="color:#EC4899;font-size:20px;margin-bottom:6px;"></i>
               <p style="font-size:12px;font-weight:600;color:#6B7280;">This item has not been sold yet.</p>
@@ -436,7 +436,7 @@
             <div class="det-table">
               <div class="det-row">
                 <span class="det-key"><i class="fas fa-toggle-on"></i>Status</span>
-                <span class="det-val" style="color:#64748B;" data-text-status-model="item"
+                <span class="det-val" style="color:#64748B;" data-text-status-model="Item"
                   data-text-status-id="{{ item.id }}">{{ item.status }}</span>
               </div>
               <div class="det-row">

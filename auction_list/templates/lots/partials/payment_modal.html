@@ -35,45 +35,50 @@
                         <span class="text-sm font-bold text-slate-900">{{ lot.title }}</span>
                     </div>
 
-                    {% if pending_payment.amount_to_pay < pending_payment.amount %}
-                    <div class="flex justify-between items-center mb-2">
+                    {% if pending_payment.amount_to_pay < pending_payment.amount %} <div
+                        class="flex justify-between items-center mb-2">
                         <span class="text-sm text-slate-600">Total Bid Amount:</span>
-                        <span class="text-sm font-bold text-slate-900 line-through">₹{{ pending_payment.amount|floatformat:2 }}</span>
-                    </div>
-                    {% endif %}
+                        <span
+                            class="text-sm font-bold text-slate-900 line-through">₹{{pending_payment.amount|floatformat:2}}</span>
+                </div>
+                {% endif %}
 
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-slate-600">Amount Due Items:</span>
-                        <span class="text-sm font-bold text-slate-900">₹{{ pending_payment.amount_to_pay|floatformat:2 }}</span>
-                    </div>
-
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-slate-600">Shipping Fee:</span>
-                        <span class="text-sm font-bold text-slate-900">+ ₹{{ lot.shipping_fee|floatformat:2 }}</span>
-                    </div>
-
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-                        <span class="text-md font-bold text-slate-800">Total Charge:</span>
-                        <span class="text-2xl font-black text-green-600">₹{{ total_amount|floatformat:2 }}</span>
-                    </div>
-                    {% if pending_payment.amount_to_pay < pending_payment.amount %}
-                    <p class="text-xs text-orange-600 font-bold mt-2 text-right">* 5% initial token amount required for bids over ₹5,00,000.</p>
-                    {% endif %}
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-slate-600">Amount Due Items:</span>
+                    <span class="text-sm font-bold text-slate-900">₹{{pending_payment.amount_to_pay|floatformat:2}}</span>
                 </div>
 
-                <div id="paymentError" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
-                <div id="paymentSuccess" class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"></div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-slate-600">Shipping Fee:</span>
+                    <span class="text-sm font-bold text-slate-900">+ ₹{{ lot.shipping_fee|floatformat:2 }}</span>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                    <span class="text-md font-bold text-slate-800">Total Charge:</span>
+                    <span class="text-2xl font-black text-green-600">₹{{ total_amount|floatformat:2 }}</span>
+                </div>
+                {% if pending_payment.amount_to_pay < pending_payment.amount %} <p
+                    class="text-xs text-orange-600 font-bold mt-2 text-right">* 5% initial token amount required for
+                    bids over ₹5,00,000.</p>
+                    {% endif %}
             </div>
 
-            <button id="rzp-button1" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
-                <i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}
-            </button>
-
-            <p class="text-xs text-slate-500 text-center mt-4">
-                <i class="fas fa-shield-alt mr-1"></i>Secure payment powered by Razorpay
-            </p>
+            <div id="paymentError"
+                class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"></div>
+            <div id="paymentSuccess"
+                class="hidden mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"></div>
         </div>
+
+        <button id="rzp-button1"
+            class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center">
+            <i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}
+        </button>
+
+        <p class="text-xs text-slate-500 text-center mt-4">
+            <i class="fas fa-shield-alt mr-1"></i>Secure payment powered by Razorpay
+        </p>
     </div>
+</div>
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -119,13 +124,13 @@
         window.currentPaymentInterval = setInterval(updatePaymentTimer, 60000);
 
         const options = {
-            "key": "{{ razorpay_key_id }}", 
-            "amount": "{{ amount_in_paise }}", 
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ amount_in_paise }}",
             "currency": "INR",
             "name": "Auction House",
             "description": "Payment for won lot - {{ lot.title }}",
-            "order_id": "{{ razorpay_order_id }}", 
-            "handler": function (response){
+            "order_id": "{{ razorpay_order_id }}",
+            "handler": function (response) {
                 // Callback function when payment succeeds
                 const errorDiv = document.getElementById('paymentError');
                 const successDiv = document.getElementById('paymentSuccess');
@@ -147,43 +152,48 @@
                         razorpay_signature: response.razorpay_signature
                     })
                 }).then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        successDiv.textContent = data.message;
-                        successDiv.classList.remove('hidden');
+                    .then(data => {
+                        if (data.success) {
+                            successDiv.textContent = data.message;
+                            successDiv.classList.remove('hidden');
 
-                        const paymentModal = document.getElementById('paymentPinModal');
-                        if (paymentModal) {
-                            paymentModal.classList.add('hidden');
-                            paymentModal.remove();
-                        }
+                            const paymentModal = document.getElementById('paymentPinModal');
+                            if (paymentModal) {
+                                paymentModal.classList.add('hidden');
+                                paymentModal.remove();
+                            }
 
-                        if (window.currentPaymentInterval) clearInterval(window.currentPaymentInterval);
+                            if (window.currentPaymentInterval) clearInterval(window.currentPaymentInterval);
 
-                        const mainTimerDisplay = document.getElementById('timer-display');
-                        if (mainTimerDisplay) {
-                            mainTimerDisplay.textContent = "PAID";
-                            mainTimerDisplay.classList.remove('text-red-600');
-                            mainTimerDisplay.classList.add('text-green-600');
-                        }
+                            const mainTimerDisplay = document.getElementById('timer-display');
+                            if (mainTimerDisplay) {
+                                mainTimerDisplay.textContent = "PAID";
+                                mainTimerDisplay.classList.remove('text-red-600');
+                                mainTimerDisplay.classList.add('text-green-600');
+                            }
 
-                        if (window.showWinnerOverlay) {
-                            window.showWinnerOverlay("{{ request.user.username }}", "₹{{ total_amount|floatformat:2 }}");
+                            // Property Sale: redirect to property sale dashboard
+                            if (data.is_property_sale && data.property_sale_url) {
+                                setTimeout(() => {
+                                    window.location.href = data.property_sale_url;
+                                }, 1500);
+                            } else if (window.showWinnerOverlay) {
+                                window.showWinnerOverlay("{{ request.user.username }}", "₹{{ total_amount|floatformat:2 }}");
+                            } else {
+                                window.location.reload();
+                            }
                         } else {
-                            window.location.reload();
+                            errorDiv.textContent = data.error || 'Payment verification failed server-side.';
+                            errorDiv.classList.remove('hidden');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}';
                         }
-                    } else {
-                        errorDiv.textContent = data.error || 'Payment verification failed server-side.';
+                    }).catch(err => {
+                        errorDiv.textContent = 'Server connection error verifying payment.';
                         errorDiv.classList.remove('hidden');
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}';
-                    }
-                }).catch(err => {
-                    errorDiv.textContent = 'Server connection error verifying payment.';
-                    errorDiv.classList.remove('hidden');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay ₹{{ total_amount|floatformat:2 }}';
-                });
+                    });
             },
             "prefill": {
                 "name": "{{ request.user.get_full_name|default:request.user.username }}",
@@ -194,16 +204,28 @@
             }
         };
 
-        const rzp1 = new Razorpay(options);
-        rzp1.on('payment.failed', function (response){
-            const errorDiv = document.getElementById('paymentError');
-            errorDiv.textContent = "Payment failed: " + response.error.description;
-            errorDiv.classList.remove('hidden');
-        });
-
-        document.getElementById('rzp-button1').onclick = function(e){
-            e.preventDefault();
+        function openRazorpay() {
+            if (typeof Razorpay === 'undefined') {
+                const errorDiv = document.getElementById('paymentError');
+                if (errorDiv) {
+                    errorDiv.textContent = 'Razorpay library is still loading. Please wait a moment and try again.';
+                    errorDiv.classList.remove('hidden');
+                }
+                setTimeout(openRazorpay, 1000); // Optional: auto-retry
+                return;
+            }
+            const rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response) {
+                const errorDiv = document.getElementById('paymentError');
+                errorDiv.textContent = "Payment failed: " + response.error.description;
+                errorDiv.classList.remove('hidden');
+            });
             rzp1.open();
+        }
+
+        document.getElementById('rzp-button1').onclick = function (e) {
+            e.preventDefault();
+            openRazorpay();
         }
     })();
 </script>

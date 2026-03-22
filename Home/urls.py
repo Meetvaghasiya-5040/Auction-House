@@ -18,5 +18,6 @@ urlpatterns = [
     path("verify-account-password/", views.verify_account_password, name="verify_account_password"),
     path("change-transaction-pin/", views.change_transaction_pin, name="change_transaction_pin"),
     path("terms-and-condition/", views.terms_and_condition_view, name="terms_and_condition"),
+    path("wallet/", views.seller_wallet, name="seller_wallet"),
 ]
 

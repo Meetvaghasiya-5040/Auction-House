@@ -6,7 +6,7 @@ from channels.db import database_sync_to_async
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
-from .models import Bid, Wallet
+from .models import Bid
 from auction_list.models import Lot
 from django.db import transaction
 from django.conf import settings
@@ -105,18 +105,8 @@ class BiddingConsumer(AsyncWebsocketConsumer):
             rem = await database_sync_to_async(lot.get_time_remaining)()
             time_rem = rem.total_seconds() if rem else None
 
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'bid_update', 
-                    'bid': result['bid_data'],
-                    'time_remaining': time_rem,
-                    'minimum_bid': result['bid_data']['minimum_bid'],
-                    'bid_count': await database_sync_to_async(lot.bids.count)()
-                }
-            )
-            # Private wallet update
-            await self.channel_layer.group_send(f"user_{user.id}", {'type': 'wallet_update', 'balance': result['wallet_balance']})
+            # Broadcast not needed here anymore as Bid.save handles it centrally via on_commit
+            pass
         else:
             await self.send(text_data=json.dumps({'type': 'error', 'message': result['error']}))
 
@@ -148,8 +138,15 @@ class BiddingConsumer(AsyncWebsocketConsumer):
             'time_remaining': event.get('time_remaining')
         }))
 
-    async def wallet_update(self, event):
-        await self.send(text_data=json.dumps({'type': 'wallet_update', 'balance': event['balance']}))
+    async def proxy_bid_exceeded(self, event):
+        """Handler for proxy_bid_exceeded message type"""
+        await self.send(text_data=json.dumps({
+            'type': 'proxy_bid_exceeded',
+            'lot_id': event.get('lot_id'),
+            'lot_title': event.get('lot_title'),
+            'your_max': event.get('your_max')
+        }))
+
 
     async def timer_update(self, event):
         await self.send(text_data=json.dumps({'type': 'timer_update', 'data': event['data']}))
@@ -159,6 +156,9 @@ class BiddingConsumer(AsyncWebsocketConsumer):
 
     async def lot_closed(self, event):
         await self.send(text_data=json.dumps({'type': 'lot_closed', 'data': event['data']}))
+
+    async def status_changed_refresh(self, event):
+        await self.send(text_data=json.dumps({'type': 'status_changed_refresh', 'data': event.get('data', {})}))
 
     async def lot_tick_loop(self):
         print(f"[Loop] Starting tick loop for Lot {self.lot_id}")
@@ -279,19 +279,16 @@ class BiddingConsumer(AsyncWebsocketConsumer):
             from bids.models import PendingPayment
             if PendingPayment.objects.filter(lot=lot, status='pending').exists():
                 return {'success': False, 'error': 'Payment pending'}
-            wallet, _ = Wallet.objects.get_or_create(user=user)
             min_bid = lot.get_minimum_bid()
             if Decimal(str(amount)) < min_bid: return {'success': False, 'error': f'Min ₹{min_bid}'}
-            if not wallet.has_sufficient_balance(amount): return {'success': False, 'error': 'Insufficient funds'}
             Bid.objects.filter(lot=lot, is_winning=True).update(is_winning=False)
             bid = Bid.objects.create(lot=lot, user=user, amount=Decimal(str(amount)), is_winning=True)
-            wallet.refresh_from_db()
             
             # Lot time extension logic should be HERE if it's not in the model save()
             # Assuming model handles it or we need to reload lot to get new end time if it changed
             lot.refresh_from_db() 
             
-            return {'success': True, 'bid_data': {'user': user.username, 'amount': float(bid.amount), 'timestamp': bid.timestamp.isoformat(), 'minimum_bid': float(lot.get_minimum_bid())}, 'wallet_balance': float(wallet.balance)}
+            return {'success': True, 'bid_data': {'user': user.username, 'amount': float(bid.amount), 'timestamp': bid.timestamp.isoformat(), 'minimum_bid': float(lot.get_minimum_bid())}}
 
     @database_sync_to_async
     def get_lot_data(self):
@@ -312,6 +309,22 @@ class GlobalStatusConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         
+        # Join user specific updates group even if inactive (using session)
+        user_id = None
+        if self.scope['user'].is_authenticated:
+            user_id = self.scope['user'].id
+        elif 'session' in self.scope:
+            user_id = dict(self.scope['session']).get('_auth_user_id')
+            
+        if user_id:
+            await self.channel_layer.group_add(
+                f"user_updates_{user_id}",
+                self.channel_name
+            )
+            self.user_updates_group = f"user_updates_{user_id}"
+        else:
+            self.user_updates_group = None
+        
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -320,11 +333,29 @@ class GlobalStatusConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 self.channel_name
             )
+        if getattr(self, 'user_updates_group', None):
+            await self.channel_layer.group_discard(
+                self.user_updates_group,
+                self.channel_name
+            )
 
     async def status_update(self, event):
         await self.send(text_data=json.dumps({
             'type': 'status_update',
             'data': event['data']
+        }))
+
+    async def global_model_update(self, event):
+        """Fired by the core.signals when any tracked model changes"""
+        await self.send(text_data=json.dumps({
+            'type': 'global_model_update',
+            'data': event['data']
+        }))
+
+    async def user_status_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'user_status_update',
+            'is_active': event['is_active']
         }))
 
 class AdminVerificationConsumer(AsyncWebsocketConsumer):

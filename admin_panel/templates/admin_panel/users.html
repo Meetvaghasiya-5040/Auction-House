@@ -1,0 +1,232 @@
+{% extends 'admin_panel/admin_base.html' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">User Management</h1>
+        <p class="text-sm text-slate-500 mt-1">Manage platform users, suspensions, and verifications.</p>
+    </div>
+
+    <div class="flex gap-3">
+        <button
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+            <i class="fas fa-plus mr-1"></i> Add User
+        </button>
+    </div>
+</div>
+
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-8">
+
+    <!-- Table Toolbar -->
+    <form method="GET" action="{% url 'admin_panel:users' %}" class="p-4 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+            <select name="is_active" onchange="this.form.submit()"
+                class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none w-40">
+                <option value="">All Statuses</option>
+                <option value="true" {% if is_active == 'true' %}selected{% endif %}>Active</option>
+                <option value="false" {% if is_active == 'false' %}selected{% endif %}>Suspended</option>
+            </select>
+            <select name="role" onchange="this.form.submit()"
+                class="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 outline-none w-40">
+                <option value="">All Roles</option>
+                <option value="staff" {% if role == 'staff' %}selected{% endif %}>Admin</option>
+                <option value="user" {% if role == 'user' %}selected{% endif %}>User</option>
+            </select>
+        </div>
+
+        <div class="relative w-64">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" name="q" id="user-search" value="{{ q }}"
+                class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
+                placeholder="Search by name, email...">
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-slate-600">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-semibold w-12">
+                        <div class="flex items-center">
+                            <input type="checkbox"
+                                class="w-4 h-4 text-indigo-600 bg-white border-slate-300 rounded focus:ring-indigo-500">
+                        </div>
+                    </th>
+                    <th scope="col" class="px-6 py-4 font-semibold">User</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Role</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Joined Date</th>
+                    <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                    <th scope="col" class="px-6 py-4 font-semibold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr class="bg-white border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    data-user-id="{{ u.id }}">
+                    <td class="px-6 py-4 w-12">
+                        <div class="flex items-center">
+                            <input type="checkbox"
+                                class="w-4 h-4 text-indigo-600 bg-white border-slate-300 rounded focus:ring-indigo-500">
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shrink-0">
+                                {{ u.username.0|upper }}
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-900">{{ u.get_full_name|default:u.username }}</div>
+                                <div class="text-xs text-slate-500">{{ u.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if u.is_superuser %}
+                        <span
+                            class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-semibold bg-purple-100 text-purple-800">
+                            <i class="fas fa-crown text-[10px]"></i> Superadmin
+                        </span>
+                        {% elif u.is_staff %}
+                        <span
+                            class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-800">
+                            <i class="fas fa-shield-alt text-[10px]"></i> Staff
+                        </span>
+                        {% else %}
+                        <span
+                            class="inline-flex items-center py-1 px-2.5 rounded-md text-xs font-medium text-slate-600">
+                            User
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{ u.date_joined|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <label class="relative inline-flex items-center cursor-pointer status-toggle"
+                            data-uid="{{ u.id }}" data-active="{{ u.is_active|yesno:'true,false' }}">
+                            <!-- Custom Tailwind Toggle Switch -->
+                            <input type="checkbox" class="sr-only peer" {% if u.is_active %}checked{% endif %} {% if request.user == u %}disabled{% endif %}>
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 {% if request.user == u %}opacity-50 cursor-not-allowed{% endif %}">
+                            </div>
+                            <span
+                                class="ml-3 text-sm font-medium {% if u.is_active %}text-emerald-600{% else %}text-rose-500{% endif %} status-label">
+                                {% if u.is_active %}Active{% else %}Suspended{% endif %}
+                            </span>
+                        </label>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button
+                                class="text-slate-400 hover:text-indigo-600 p-2 rounded-lg hover:bg-indigo-50 transition-colors"
+                                title="View Profile">
+                                <i class="far fa-eye"></i>
+                            </button>
+                            <button
+                                class="text-slate-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                                title="Edit User">
+                                <i class="far fa-edit"></i>
+                            </button>
+                            <button
+                                class="text-slate-400 hover:text-amber-600 p-2 rounded-lg hover:bg-amber-50 transition-colors"
+                                title="View Transactions">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                        No users found matching your criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="p-4 border-t border-slate-200 bg-white flex items-center justify-between">
+        <span class="text-sm text-slate-500">
+            Showing <span class="font-semibold text-slate-900">1</span> to <span class="font-semibold text-slate-900">{{users|length }}</span> of <span class="font-semibold text-slate-900">{{ users|length }}</span> entries
+        </span>
+        <div class="inline-flex shadow-sm rounded-md">
+            <button
+                class="px-4 py-2 text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded-l-lg hover:bg-slate-50 focus:z-10 focus:ring-1 focus:ring-indigo-500">Prev</button>
+            <button
+                class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-50 border-t border-b border-r border-slate-200 hover:bg-slate-100 focus:z-10 focus:ring-1 focus:ring-indigo-500">1</button>
+            <button
+                class="px-4 py-2 text-sm font-medium text-slate-500 bg-white border-t border-b border-slate-200 hover:bg-slate-50 focus:z-10 focus:ring-1 focus:ring-indigo-500">Next</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Handle User Suspend/Activate Toggles via AJAX
+        const toggles = document.querySelectorAll('.status-toggle');
+
+        toggles.forEach(toggle => {
+            const input = toggle.querySelector('input');
+            const label = toggle.querySelector('.status-label');
+
+            input.addEventListener('change', async (e) => {
+                const uid = toggle.dataset.uid;
+                const isActive = e.target.checked;
+                const originalState = !isActive;
+
+                try {
+                    // Temporarily disable while updating
+                    input.disabled = true;
+
+                    const response = await fetch(`/custom-admin/users/${uid}/toggle/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken
+                        },
+                        body: JSON.stringify({ is_active: isActive })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Update UI to match new state
+                        toggle.dataset.active = data.is_active;
+
+                        if (data.is_active) {
+                            label.textContent = 'Active';
+                            label.classList.remove('text-rose-500');
+                            label.classList.add('text-emerald-600');
+                            showToast('User Activated', 'User account is now active.', 'success');
+                        } else {
+                            label.textContent = 'Suspended';
+                            label.classList.remove('text-emerald-600');
+                            label.classList.add('text-rose-500');
+                            showToast('User Suspended', 'User account suspended. Active sessions invalidated.', 'warning');
+                        }
+                    } else {
+                        throw new Error(data.error || 'Server error');
+                    }
+                } catch (err) {
+                    console.error('Toggle error:', err);
+                    showToast('Action Failed', err.message, 'error');
+                    // Revert UI toggle on error
+                    input.checked = originalState;
+                } finally {
+                    input.disabled = false;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

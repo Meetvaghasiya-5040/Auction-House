@@ -1,0 +1,94 @@
+{% extends "admin_panel/admin_base.html" %}
+{% block title %}Delivery Report{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+    <div>
+        <a href="{% url 'admin_panel:reports' %}" class="text-indigo-500 text-sm hover:underline"><i
+                class="fas fa-arrow-left mr-1"></i>Reports</a>
+        <h1 class="text-2xl font-bold text-slate-800 mt-1">Delivery Report</h1>
+    </div>
+    <a href="?status={{ status_filter }}&date_from={{ date_from }}&date_to={{ date_to }}&export=csv"
+        class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+        <i class="fas fa-download"></i> Export CSV
+    </a>
+</div>
+
+<!-- Filters -->
+<form method="get"
+    class="bg-white rounded-xl border border-slate-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end">
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">Delivery Status</label>
+        <select name="status"
+            class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+            <option value="">All Statuses</option>
+            {% for k, v in delivery_statuses %}<option value="{{ k }}" {% if status_filter == k %}selected{% endif %}>{{ v }}</option>{% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">From Date</label>
+        <input type="date" name="date_from" value="{{ date_from }}"
+            class="border border-slate-200 rounded-lg px-3 py-2 text-sm">
+    </div>
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1">To Date</label>
+        <input type="date" name="date_to" value="{{ date_to }}"
+            class="border border-slate-200 rounded-lg px-3 py-2 text-sm">
+    </div>
+    <button type="submit"
+        class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">Apply</button>
+    <a href="{% url 'admin_panel:report_delivery' %}"
+        class="text-slate-500 px-4 py-2 rounded-lg text-sm hover:text-indigo-600">Clear</a>
+</form>
+
+<!-- Table -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+    <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 border-b border-slate-100">
+            <tr class="text-xs text-slate-400 uppercase">
+                <th class="text-left py-3 px-4">Lot</th>
+                <th class="text-left py-3 px-4">Auction</th>
+                <th class="text-left py-3 px-4">Winner</th>
+                <th class="text-center py-3 px-4">Lot Status</th>
+                <th class="text-center py-3 px-4">Delivery</th>
+                <th class="text-left py-3 px-4">Tracking #</th>
+                <th class="text-right py-3 px-4">Shipping Fee</th>
+                <th class="text-left py-3 px-4">Updated</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+            {% for lot in lots %}
+            {% with delivery=lot.delivery %}
+            <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4">
+                    <p class="font-medium text-slate-800">Lot #{{ lot.lot_number }}</p>
+                    <p class="text-xs text-slate-400">{{ lot.title|truncatechars:30 }}</p>
+                </td>
+                <td class="py-3 px-4 text-slate-500 text-xs">{{ lot.auction.title|truncatechars:25 }}</td>
+                <td class="py-3 px-4 font-medium text-slate-700">{{ lot.winning_bidder.username|default:"—" }}</td>
+                <td class="py-3 px-4 text-center">
+                    <span class="px-2 py-0.5 text-xs rounded-full font-medium
+                        {% if lot.status == 'sold' %}bg-emerald-100 text-emerald-700
+                        {% elif lot.status == 'shipped' %}bg-blue-100 text-blue-700
+                        {% elif lot.status == 'paid' %}bg-amber-100 text-amber-700
+                        {% else %}bg-slate-100 text-slate-600{% endif %}">
+                        {{ lot.get_status_display }}
+                    </span>
+                </td>
+                <td class="py-3 px-4 text-center text-xs text-slate-600">
+                    {% if delivery %}{{ delivery.get_status_display }}{% else %}—{% endif %}
+                </td>
+                <td class="py-3 px-4 font-mono text-xs text-slate-500">{{ delivery.tracking_number|default:"—" }}</td>
+                <td class="py-3 px-4 text-right font-semibold text-slate-800">₹{{ lot.shipping_fee|floatformat:0 }}</td>
+                <td class="py-3 px-4 text-xs text-slate-400">{{ lot.updated_at|date:"M d, Y" }}</td>
+            </tr>
+            {% endwith %}
+            {% empty %}
+            <tr>
+                <td colspan="8" class="py-12 text-center text-slate-400">No delivery records found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

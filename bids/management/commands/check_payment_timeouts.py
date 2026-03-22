@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db import transaction
-from bids.models import PendingPayment, Bid, Wallet
+from bids.models import PendingPayment, Bid
 from decimal import Decimal
 from django.conf import settings
 
@@ -76,13 +76,7 @@ class Command(BaseCommand):
         if first_winner_bid:
             first_winner_bid.is_winning = False
             first_winner_bid.save()
-            
-            # Refund the amount
-            wallet = Wallet.objects.get(user=payment.user)
-            wallet.add_funds(
-                amount=first_winner_bid.amount,
-                description=f"Refund: Payment timeout for Lot #{lot.lot_number}"
-            )
+            # Refund logic removed as payments are now handled via Razorpay on-demand.
         
         # Find second highest bidder
         second_bid = Bid.objects.filter(lot=lot).exclude(
@@ -137,25 +131,10 @@ class Command(BaseCommand):
             bid.is_winning = False
             bid.save()
             
-            # Refund the amount
-            try:
-                wallet = Wallet.objects.get(user=bid.user)
-                wallet.add_funds(
-                    amount=bid.amount,
-                    description=f"Refund: Lot #{lot.lot_number} unsold"
-                )
-                
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f'Refunded ₹{bid.amount} to {bid.user.username}'
-                    )
-                )
-            except Wallet.DoesNotExist:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f'Wallet not found for user {bid.user.username}'
-                    )
-                )
+        for bid in all_bids:
+            bid.is_winning = False
+            bid.save()
+            # Refund logic removed as payments are now handled via Razorpay on-demand.
         
         # Mark all items as available
         for item in lot.items.all():

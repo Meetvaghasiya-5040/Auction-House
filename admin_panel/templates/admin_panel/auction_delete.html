@@ -1,0 +1,74 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Delete Auction{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto mt-12">
+    <div class="bg-white border border-rose-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-rose-100 bg-rose-50 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-500">
+                <i class="fas fa-exclamation-triangle text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-rose-900">Delete Auction</h1>
+                <p class="text-sm text-rose-600">This action cannot be undone</p>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <p class="text-slate-700 mb-4">
+                Are you sure you want to permanently delete the auction:
+            </p>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+                <p class="font-bold text-slate-900 text-lg">{{ auction.title }}</p>
+                <div class="flex flex-wrap gap-3 mt-2 text-sm text-slate-500">
+                    <span><i class="fas fa-box mr-1"></i> {{ auction.lots.count }} lot{{ auction.lots.count|pluralize}}</span>
+                    <span><i class="far fa-calendar mr-1"></i> Created {{ auction.created_at|date:"M d, Y" }}</span>
+                    <span>
+                        <i class="fas fa-circle mr-1 text-xs
+                            {% if auction.status == 'completed' %}text-slate-400
+                            {% elif auction.status == 'cancelled' %}text-rose-400
+                            {% else %}text-amber-400{% endif %}"></i>
+                        {{ auction.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            {% if auction.lots.count > 0 %}
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+                <i class="fas fa-exclamation-circle text-amber-500 mt-0.5 shrink-0"></i>
+                <p class="text-sm text-amber-800">
+                    <strong>Warning:</strong> This auction has {{ auction.lots.count }} lot{{auction.lots.count|pluralize }}.
+                    All lots and their bid history will also be permanently deleted.
+                </p>
+            </div>
+            {% endif %}
+
+            <div class="flex gap-3">
+                <a href="{% url 'admin_panel:auctions' %}"
+                    class="flex-1 text-center bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 py-3 rounded-xl font-semibold text-sm transition-colors">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+                <form method="POST" class="flex-1" id="delete-form">
+                    {% csrf_token %}
+                    <button type="submit" id="delete-btn"
+                        class="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-xl font-bold text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-trash-alt"></i> Yes, Delete Auction
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.getElementById('delete-form').addEventListener('submit', () => {
+        const btn = document.getElementById('delete-btn');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Deleting...';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}

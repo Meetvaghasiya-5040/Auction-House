@@ -1,0 +1,53 @@
+
+{% block branding %}
+<h1 class="font-bold text-center text-xl tracking-tight mb-2 uppercase border-b-2 inline-block border-primary-600 transition-colors dark:text-gray-200"
+    style="margin-left: 10px;">
+    EasyBid<br /> Superuser Logic
+</h1>
+
+{% endblock %}
+
+{% block alert %}
+{% if messages %}
+<div class="mb-5 flex flex-col gap-2 relative z-10">
+    {% for message in messages %}
+    <div
+        class="px-3 py-2 border rounded-md {% if message.tags == 'error' %}border-red-600 font-bold bg-white text-red-600 dark:border-red-500 dark:bg-gray-800{% else %}border-emerald-600 font-bold bg-white text-emerald-600 dark:border-emerald-500 dark:bg-gray-800{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+
+{% block form %}
+<form action="{% url 'admin_panel:login' %}" method="post">
+    {% csrf_token %}
+
+    <div class="mb-6 flex flex-col gap-2">
+        <label for="username" class="font-semibold text-sm text-gray-700 dark:text-gray-300">Username or Email</label>
+        <div class="relative w-full">
+            <input type="text" name="username" id="username" autofocus="autofocus"
+                placeholder="Enter your superuser credential" required
+                class="bg-white border text-gray-900 border-gray-300 rounded-md shadow-sm w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200">
+        </div>
+    </div>
+
+    <div class="mb-6 flex flex-col gap-2">
+        <label for="password" class="font-semibold text-sm text-gray-700 dark:text-gray-300">Password</label>
+        <div class="relative w-full">
+            <input type="password" name="password" id="password" required placeholder="•••••••••"
+                class="bg-white border text-gray-900 border-gray-300 rounded-md shadow-sm w-full dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200">
+        </div>
+    </div>
+
+    <div class="mt-8 relative z-10">
+        <button type="submit"
+            class="bg-primary-600 border mx-auto px-3 py-2 rounded-md font-semibold text-sm text-center border-transparent shadow shadow-primary-700/50 block text-white w-full dark:bg-primary-500 hover:bg-black transition-colors dark:hover:bg-primary-600">
+            Log in to Dashboard
+        </button>
+    </div>
+</form>
+
+{% endblock %}

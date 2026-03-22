@@ -50,6 +50,25 @@
                     <!-- Payment Status Banner -->
                     <tr>
                         <td style="padding: 25px 30px 15px 30px;">
+                            {% if invoice_status == 'pending' %}
+                            <table width="100%" border="0" cellspacing="0" cellpadding="15"
+                                style="background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 6px;">
+                                <tr>
+                                    <td>
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td style="color: #856404; font-size: 15px; font-weight: 700;">
+                                                    ⚠️ ACTION REQUIRED: PENDING PAYMENT
+                                                </td>
+                                                <td align="right" style="color: #856404; font-size: 13px;">
+                                                    Invoice ID: {{ invoice_number }}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% else %}
                             <table width="100%" border="0" cellspacing="0" cellpadding="15"
                                 style="background-color: #d4edda; border-left: 4px solid #28a745; border-radius: 6px;">
                                 <tr>
@@ -67,6 +86,7 @@
                                     </td>
                                 </tr>
                             </table>
+                            {% endif %}
                         </td>
                     </tr>
 
@@ -156,12 +176,14 @@
                                                     Payment Method:</td>
                                                 <td align="right"
                                                     style="color: #2c3e50; font-weight: 600; font-size: 13px; padding-bottom: 8px;">
-                                                    Digital Wallet</td>
+                                                    Razorpay / Security Deposit</td>
                                             </tr>
                                             <tr>
                                                 <td style="color: #6c757d; font-size: 13px;">Payment Status:</td>
                                                 <td align="right"
-                                                    style="color: #28a745; font-weight: 700; font-size: 13px;">PAID</td>
+                                                    style="{% if invoice_status == 'pending' %}color: #ffc107;{% else %}color: #28a745;{% endif %} font-weight: 700; font-size: 13px;">
+                                                    {% if invoice_status == 'pending' %}PENDING{% else %}PAID{% endif %}
+                                                </td>
                                             </tr>
                                         </table>
                                     </td>
@@ -212,7 +234,8 @@
                                                     <div
                                                         style="font-size: 11px; text-transform: uppercase; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
                                                         🏆 WINNING BID</div>
-                                                    <div style="color: #28a745; font-size: 18px; font-weight: 700;">₹{{winning_bid|floatformat:2 }}</div>
+                                                    <div style="color: #28a745; font-size: 18px; font-weight: 700;">
+                                                        ₹{{winning_bid|floatformat:2 }}</div>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -220,13 +243,15 @@
                                                     <div
                                                         style="font-size: 11px; text-transform: uppercase; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
                                                         ⏰ AUCTION START</div>
-                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">{{auction.start_date|date:"d M Y, h:i A" }}</div>
+                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">
+                                                        {{auction.start_date|date:"d M Y, h:i A" }}</div>
                                                 </td>
                                                 <td width="50%">
                                                     <div
                                                         style="font-size: 11px; text-transform: uppercase; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
                                                         🏁 AUCTION END</div>
-                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">{{auction.end_date|date:"d M Y, h:i A" }}</div>
+                                                    <div style="color: #2c3e50; font-size: 15px; font-weight: 600;">
+                                                        {{auction.end_date|date:"d M Y, h:i A" }}</div>
                                                 </td>
                                             </tr>
                                         </table>
@@ -297,8 +322,10 @@
                                                 <td style="color: #856404; font-size: 13px;">Your Final Bid:</td>
                                             </tr>
                                             <tr>
-                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">₹{{lot.reserve_price|default:"Not Set"|floatformat:2 }}</td>
-                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">₹{{winning_bid|floatformat:2 }}</td>
+                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">
+                                                    ₹{{lot.reserve_price|default:"Not Set"|floatformat:2 }}</td>
+                                                <td style="color: #856404; font-size: 15px; font-weight: 600;">
+                                                    ₹{{winning_bid|floatformat:2 }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -345,15 +372,18 @@
                                         {{ forloop.counter }}</td>
                                     <td
                                         style="padding: 16px 12px; font-size: 13px; color: #2c3e50; vertical-align: top; word-break: break-word; border-right: 1px solid #dee2e6;">
-                                        <div style="font-weight: 600; margin-bottom: 5px; color: #2c3e50;">{{ item.title}}</div>
+                                        <div style="font-weight: 600; margin-bottom: 5px; color: #2c3e50;">{{
+                                            item.title}}</div>
                                         {% if item.description %}
-                                        <div style="color: #6c757d; font-size: 12px; line-height: 1.5;">{{item.description|truncatewords:15 }}</div>
+                                        <div style="color: #6c757d; font-size: 12px; line-height: 1.5;">
+                                            {{item.description|truncatewords:15 }}</div>
                                         {% endif %}
                                     </td>
                                     <td
                                         style="padding: 16px 12px; font-size: 13px; color: #2c3e50; vertical-align: top; border-right: 1px solid #dee2e6;">
                                         <span
-                                            style="background-color: #e7f3ff; color: #004085; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{item.condition|default:"N/A" }}</span>
+                                            style="background-color: #e7f3ff; color: #004085; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">{{item.condition|default:"N/A"
+                                            }}</span>
                                     </td>
                                     <td
                                         style="padding: 16px 12px; font-size: 13px; color: #2c3e50; vertical-align: top; text-align: center; border-right: 1px solid #dee2e6; font-weight: 600;">
@@ -455,7 +485,8 @@
                                                         <tr>
                                                             <td
                                                                 style="color: #ffffff; font-size: 17px; font-weight: 700;">
-                                                                🧾 TOTAL AMOUNT PAID</td>
+                                                                {% if invoice_status == 'pending' %}🧾 TOTAL AMOUNT
+                                                                DUE{% else %}🧾 TOTAL AMOUNT PAID{% endif %}</td>
                                                             <td align="right"
                                                                 style="color: #ffffff; font-weight: 700; font-size: 20px;">
                                                                 ₹{{ total_amount|floatformat:2 }}</td>
@@ -463,13 +494,14 @@
                                                     </table>
                                                 </td>
                                             </tr>
+                                            {% if invoice_status == 'paid' %}
                                             <tr>
                                                 <td style="background-color: #e7f3ff; padding: 12px 18px;">
                                                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                                         <tr>
                                                             <td
                                                                 style="color: #004085; font-size: 13px; font-weight: 600;">
-                                                                💳 Paid via Digital Wallet</td>
+                                                                💳 Paid via Razorpay / Security Deposit</td>
                                                             <td align="right"
                                                                 style="color: #28a745; font-weight: 700; font-size: 13px;">
                                                                 ✓ CONFIRMED</td>
@@ -477,6 +509,7 @@
                                                     </table>
                                                 </td>
                                             </tr>
+                                            {% endif %}
                                         </table>
                                     </td>
                                 </tr>

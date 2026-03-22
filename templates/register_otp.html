@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - Auction House</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clip-corner {
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        }
+
+        .otp-input {
+            width: 100%;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+            border: 2px solid #e2e8f0;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .otp-input:focus {
+            border-color: #667eea;
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+    </style>
+</head>
+
+<body class="p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-white/95 backdrop-blur-sm shadow-2xl overflow-hidden clip-corner">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8 text-center">
+                <div class="inline-block bg-white/20 backdrop-blur-md p-3 mb-4 rounded-full">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-white mb-1">Verify Your Email</h1>
+                <p class="text-indigo-100 text-sm">We've sent a code to <span class="font-semibold">{{ email }}</span>
+                </p>
+            </div>
+
+            <div class="p-8">
+                <form action="" method="post" class="space-y-6">
+                    {% csrf_token %}
+                    <div>
+                        <label
+                            class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 text-center">Enter
+                            6-Digit OTP</label>
+                        <input type="text" name="otp" maxlength="6" pattern="\d{6}" required
+                            autocomplete="one-time-code" class="otp-input clip-corner text-gray-900 font-bold"
+                            placeholder="000000">
+                    </div>
+
+                    <div class="flex items-center justify-between text-sm">
+                        <span id="timer" class="text-indigo-600 font-semibold flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            02:00
+                        </span>
+                        <button type="button" id="resendBtn" onclick="resendOTP()" disabled
+                            class="text-gray-400 font-medium hover:text-indigo-600 disabled:cursor-not-allowed transition-colors">
+                            Resend Code
+                        </button>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+                        Verify & Complete Registration
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <a href="{% url 'register' %}"
+                        class="text-xs text-gray-500 hover:text-indigo-600 transition-colors">Entered wrong email? Back
+                        to register</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="fixed bottom-6 right-6 z-50 space-y-3 max-w-sm w-full">
+        {% for message in messages %}
+        <div class="flex items-start p-4 bg-gray-900/95 text-white shadow-2xl clip-corner">
+            <span class="flex-1 text-sm font-medium">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <script>
+        let timeLeft = 120;
+        const timerDisplay = document.getElementById('timer');
+        const resendBtn = document.getElementById('resendBtn');
+
+        function startTimer() {
+            const interval = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.innerHTML = `<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    timerDisplay.classList.replace('text-indigo-600', 'text-red-500');
+                    resendBtn.disabled = false;
+                    resendBtn.classList.replace('text-gray-400', 'text-indigo-600');
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        async function resendOTP() {
+            resendBtn.disabled = true;
+            resendBtn.innerText = 'Sending...';
+            try {
+                const response = await fetch("{% url 'resend_registration_otp' %}", {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    timeLeft = 120;
+                    resendBtn.innerText = 'Resend Code';
+                    timerDisplay.classList.replace('text-red-500', 'text-indigo-600');
+                    startTimer();
+                } else {
+                    alert(data.message);
+                    resendBtn.disabled = false;
+                }
+            } catch (error) {
+                alert('Connection error. Try again.');
+                resendBtn.disabled = false;
+            }
+        }
+
+        startTimer();
+    </script>
+</body>
+
+</html>

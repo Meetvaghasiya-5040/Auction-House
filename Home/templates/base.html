@@ -11,6 +11,10 @@
         integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        [data-visibility-model].hidden {
+            display: none !important;
+        }
+
         @keyframes pulse {
 
             0%,
@@ -81,6 +85,14 @@
         .transition-transform {
             transition: transform 0.3s ease;
         }
+        #hide{
+            display: block;
+        }
+        @media (max-width:760px){
+            #hide{
+                display: none;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -88,9 +100,10 @@
 <body class="bg-slate-50 font-sans antialiased">
 
     <!-- Top Header Bar - Hidden on mobile -->
-    <div class="hidden md:block bg-slate-800 text-slate-300 px-4 md:px-6 py-2 fixed top-0 left-0 right-0 z-50">
+    <div id="hide"
+    class=" md:block bg-slate-800 text-slate-300 px-4 md:px-6 py-2 fixed top-0 left-0 right-0 z-50 ">
         <div
-            class="max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs md:text-sm space-y-2 sm:space-y-0">
+            class=" max-w-screen-2xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs md:text-sm space-y-2 sm:space-y-0">
             <div class="flex items-center space-x-3 md:space-x-6">
                 <span class="flex items-center"><i class="far fa-clock mr-1 md:mr-2"></i><span
                         class="hidden sm:inline">Mon - Sat : </span> 24/7</span>
@@ -120,11 +133,6 @@
                             <i class="fas fa-user mr-3 text-blue-600"></i>My Profile
                         </a>
 
-                        <a href="{% url 'wallet_dashboard' %}"
-                            class="block px-4 py-3 text-sm text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-100">
-                            <i class="fas fa-wallet mr-3 text-green-600"></i>My Wallet
-                        </a>
-
                         <a href="{% url 'my_bids' %}"
                             class="block px-4 py-3 text-sm text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-100">
                             <i class="fas fa-gavel mr-3 text-purple-600"></i>My Bids
@@ -136,19 +144,6 @@
                         </a>
 
                         {% if user.is_superuser %}
-                        <div class="border-t-2 border-purple-200"></div>
-                        <a href=""
-                            class="block px-4 py-3 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-bold border-b border-slate-100">
-                            <i class="fas fa-shield-alt mr-3 text-purple-600"></i>Admin Panel
-                        </a>
-                        <a href="{% url 'delivery_dashboard' %}"
-                            class="block px-4 py-3 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-bold border-b border-slate-100">
-                            <i class="fas fa-truck mr-3 text-purple-600"></i>Delivery Dashboard
-                        </a>
-                        <a href="{% url 'verification_dashboard' %}"
-                            class="block px-4 py-3 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-bold border-b border-slate-100">
-                            <i class="fas fa-file-signature mr-3 text-purple-600"></i>Verification Dashboard
-                        </a>
                         {% endif %}
 
                         <div class="border-t-2 border-slate-200"></div>
@@ -169,7 +164,7 @@
     </div>
 
     <!-- Main Navigation -->
-    <nav class="bg-white border-b-2 border-slate-200 fixed md:top-[35px] top-0 left-0 right-0 z-40 shadow-sm">
+    <nav id="main" class="bg-white border-b-2 border-slate-200 fixed md:top-[35px] top-0 left-0 right-0 z-40 shadow-sm">
         <div class="max-w-screen-2xl mx-auto px-4 md:px-6">
             <div class="flex items-center justify-between">
                 <!-- Logo -->
@@ -293,10 +288,6 @@
                                 class="block px-8 py-2.5 text-sm text-slate-700 hover:bg-slate-200 transition">
                                 <i class="fas fa-user mr-3 text-blue-600"></i>My Profile
                             </a>
-                            <a href="{% url 'wallet_dashboard' %}"
-                                class="block px-8 py-2.5 text-sm text-slate-700 hover:bg-slate-200 transition">
-                                <i class="fas fa-wallet mr-3 text-green-600"></i>My Wallet
-                            </a>
                             <a href="{% url 'my_bids' %}"
                                 class="block px-8 py-2.5 text-sm text-slate-700 hover:bg-slate-200 transition">
                                 <i class="fas fa-gavel mr-3 text-purple-600"></i>My Bids
@@ -306,18 +297,6 @@
                                 <i class="fas fa-file-invoice mr-3 text-orange-600"></i>My Invoices
                             </a>
                             {% if user.is_superuser %}
-                            <a href=""
-                                class="block px-8 py-2.5 text-sm text-purple-700 hover:bg-purple-100 transition font-bold">
-                                <i class="fas fa-shield-alt mr-3 text-purple-600"></i>Admin Panel
-                            </a>
-                            <a href="{% url 'delivery_dashboard' %}"
-                                class="block px-8 py-2.5 text-sm text-purple-700 hover:bg-purple-100 transition font-bold">
-                                <i class="fas fa-truck mr-3 text-purple-600"></i>Delivery Dashboard
-                            </a>
-                            <a href="{% url 'verification_dashboard' %}"
-                                class="block px-8 py-2.5 text-sm text-purple-700 hover:bg-purple-100 transition font-bold">
-                                <i class="fas fa-file-signature mr-3 text-purple-600"></i>Verification Dashboard
-                            </a>
                             {% endif %}
                         </div>
                     </div>
@@ -445,9 +424,6 @@
                     <h4 class="font-bold mb-4">Account</h4>
                     <ul class="space-y-2 text-slate-400 text-sm">
                         {% if user.is_authenticated %}
-                        <li><a href="{% url 'profile' %}" class="hover:text-white transition">My Profile</a></li>
-                        <li><a href="{% url 'wallet_dashboard' %}" class="hover:text-white transition">My Wallet</a>
-                        </li>
                         <li><a href="{% url 'my_bids' %}" class="hover:text-white transition">My Bids</a></li>
                         {% else %}
                         <li><a href="{% url 'login' %}" class="hover:text-white transition">Login</a></li>
@@ -730,104 +706,171 @@
 
         globalStatusWS.onmessage = function (e) {
             const parsedData = JSON.parse(e.data);
+            console.log("WS Receive: ", parsedData);
+
             if (parsedData.type === 'status_update') {
+                console.log("Legacy status update received:", parsedData);
+            }
+            else if (parsedData.type === 'user_status_update') {
+                if (!parsedData.is_active) {
+                    if (window.location.pathname !== "{% url 'suspended' %}") {
+                        window.location.href = "{% url 'suspended' %}";
+                    }
+                } else {
+                    if (window.location.pathname === "{% url 'suspended' %}") {
+                        window.location.href = "{% url 'home' %}";
+                    }
+                }
+            }
+            else if (parsedData.type === 'global_model_update') {
                 const data = parsedData.data;
                 const model = data.model;
-                const objId = data.id;
-                const newStatus = data.status;
-                const newStatusDisplay = data.status_display;
+                const objId = data.pk;
+                const action = data.action;
+                const fields = data.fields;
 
-                // Find all badges that track this specific model and ID
-                const selector = `[data-status-model="${model}"][data-status-id="${objId}"]`;
-                const badges = document.querySelectorAll(selector);
+                // 1. Text updates: data-live-text="Model.field:ID"
+                for (const [key, value] of Object.entries(fields)) {
+                    let textTargets = document.querySelectorAll(`[data-live-text="${model}.${key}:${objId}"]`);
+                    // Fallback for general model ID (not strict syntax, just data-model="Model" data-id="ID" data-field="field")
+                    if (textTargets.length === 0) {
+                        textTargets = document.querySelectorAll(`[data-model="${model}"][data-id="${objId}"][data-field="${key}"]`);
+                    }
+                    textTargets.forEach(el => {
+                        el.innerText = value;
+                        triggerPulse(el);
+                    });
+                }
 
-                badges.forEach(badge => {
-                    // Update text inside the badge
+                // 2. Class updates (like status badges)
+                // data-live-class="Model.field:ID" data-class-mapping='{"active": "bg-green text-white", "pending": "bg-yellow"}'
+                for (const [key, value] of Object.entries(fields)) {
+                    let classTargets = document.querySelectorAll(`[data-live-class="${model}.${key}:${objId}"]`);
+                    if (classTargets.length === 0) {
+                        classTargets = document.querySelectorAll(`[data-model="${model}"][data-id="${objId}"][data-class-field="${key}"]`);
+                    }
+                    classTargets.forEach(el => {
+                        try {
+                            const mappingAttr = el.getAttribute('data-class-mapping');
+                            if (mappingAttr) {
+                                const mapping = JSON.parse(mappingAttr);
+                                // Remove all mapped classes first
+                                Object.values(mapping).forEach(clsStr => {
+                                    clsStr.split(' ').forEach(cls => {
+                                        if (cls) el.classList.remove(cls);
+                                    });
+                                });
+                                // Add new classes
+                                const newClasses = mapping[String(value).toLowerCase()];
+                                if (newClasses) {
+                                    newClasses.split(' ').forEach(cls => {
+                                        if (cls) el.classList.add(cls);
+                                    });
+                                    triggerPulse(el);
+                                }
+                            }
+                        } catch (e) { console.error("Error parsing class mapping", e); }
+                    });
+                }
 
-                    // If the badge has a specific child element for the text (like a span), update that
-                    const textSpan = badge.querySelector('.status-text') || badge;
+                // 3. Status explicit handling (backward compatibility for existing code)
+                if (fields.status) {
+                    const newStatus = fields.status;
+                    const newStatusDisplay = fields.status_display || newStatus;
 
-                    if (badge.querySelector('.status-text')) {
-                        badge.querySelector('.status-text').innerText = newStatusDisplay;
-                    } else {
-                        // Just replace text but preserve icons if they exist at the beginning
-                        const html = badge.innerHTML;
-                        const iconMatch = html.match(/(<i[^>]+><\/i>|&bull;)/i);
-                        if (iconMatch) {
-                            badge.innerHTML = iconMatch[0] + ' ' + newStatusDisplay;
-                        } else {
-                            badge.innerText = newStatusDisplay;
+                    const selector = `[data-status-model="${model}"][data-status-id="${objId}"]`;
+                    const badges = document.querySelectorAll(selector);
+
+                    badges.forEach(badge => {
+                        if (badge.hasAttribute('data-class-mapping')) {
+                            // If it has modern mapping, only update the text if it doesn't have its own data-live-text
+                            const textSpan = badge.querySelector('.status-text') || badge;
+                            if (!textSpan.hasAttribute('data-live-text')) {
+                                textSpan.innerText = newStatusDisplay;
+                                triggerPulse(textSpan);
+                            }
+                            return; // Skip retro color changes
                         }
-                    }
 
-                    // For colors, we can define a generic color map or let the templates pass data attributes
-                    const colors = {
-                        // Example dynamic mappings based on typical values
-                        'pending': 'bg-amber-100 text-amber-800 ring-amber-500/30',
-                        'approved': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30',
-                        'live': 'bg-rose-100 text-rose-800 ring-rose-500/30 anime-pulse',
-                        'completed': 'bg-slate-100 text-slate-800 ring-slate-500/30',
-                        'cancelled': 'bg-slate-100 text-slate-800 ring-slate-500/30',
-                        'draft': 'bg-slate-100 text-slate-800 ring-slate-500/30',
-                        'active': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30',
-                        'sold': 'bg-blue-100 text-blue-800 ring-blue-500/30',
-                        'unsold': 'bg-slate-100 text-slate-800 ring-slate-500/30',
-                        'shipped_to_warehouse': 'bg-violet-100 text-violet-800 ring-violet-500/30',
-                        'at_warehouse': 'bg-fuchsia-100 text-fuchsia-800 ring-fuchsia-500/30',
-                        'shipped': 'bg-blue-100 text-blue-800 ring-blue-500/30',
-                        'delivered': 'bg-green-100 text-green-800 ring-green-500/30',
-                        'picked_up': 'bg-indigo-100 text-indigo-800 ring-indigo-500/30',
-                        'paid': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30'
-                    };
+                        if (badge.querySelector('.status-text')) {
+                            badge.querySelector('.status-text').innerText = newStatusDisplay;
+                        } else {
+                            const html = badge.innerHTML;
+                            const iconMatch = html.match(/(<i[^>]+><\/i>|&bull;)/i);
+                            if (iconMatch) {
+                                badge.innerHTML = iconMatch[0] + ' ' + newStatusDisplay;
+                            } else {
+                                badge.innerText = newStatusDisplay;
+                            }
+                        }
 
-                    const rawStatus = String(newStatus).toLowerCase();
-                    const newClasses = colors[rawStatus] || 'bg-slate-100 text-slate-800 ring-slate-500/30';
+                        const colors = {
+                            'pending': 'bg-amber-100 text-amber-800 ring-amber-500/30',
+                            'approved': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30',
+                            'live': 'bg-rose-100 text-rose-800 ring-rose-500/30 anime-pulse',
+                            'completed': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                            'cancelled': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                            'draft': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                            'active': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30',
+                            'returned': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                            'sold': 'bg-blue-100 text-blue-800 ring-blue-500/30',
+                            'unsold': 'bg-slate-100 text-slate-800 ring-slate-500/30',
+                            'shipped_to_warehouse': 'bg-violet-100 text-violet-800 ring-violet-500/30',
+                            'at_warehouse': 'bg-fuchsia-100 text-fuchsia-800 ring-fuchsia-500/30',
+                            'shipped': 'bg-blue-100 text-blue-800 ring-blue-500/30',
+                            'delivered': 'bg-green-100 text-green-800 ring-green-500/30',
+                            'picked_up': 'bg-indigo-100 text-indigo-800 ring-indigo-500/30',
+                            'paid': 'bg-emerald-100 text-emerald-800 ring-emerald-500/30'
+                        };
 
-                    // Remove all existing color classes (simple approximation: remove all bg-, text-, ring-)
-                    badge.className = badge.className.replace(/\bbg-[a-z]+-\d+\b/g, '')
-                        .replace(/\btext-[a-z]+-\d+\b/g, '')
-                        .replace(/\bring-[a-z]+-\d+(\/\d+)?\b/g, '');
+                        const rawStatus = String(newStatus).toLowerCase();
+                        const newClasses = colors[rawStatus] || 'bg-slate-100 text-slate-800 ring-slate-500/30';
 
-                    badge.className += ' ' + newClasses;
+                        badge.className = badge.className.replace(/\bbg-[a-z]+-\d+\b/g, '')
+                            .replace(/\btext-[a-z]+-\d+\b/g, '')
+                            .replace(/\bring-[a-z]+-\d+(\/\d+)?\b/g, '');
 
-                    // Add a tiny animation to highlight the change
-                    badge.classList.remove('pulse-animation');
-                    void badge.offsetWidth; // trigger reflow
-                    badge.classList.add('pulse-animation');
-                    setTimeout(() => badge.classList.remove('pulse-animation'), 2000);
-                });
+                        badge.className += ' ' + newClasses;
+                        triggerPulse(badge);
+                    });
 
-                // Generic visibility toggle API based on status
-                const visibilityElements = document.querySelectorAll(`[data-visibility-model="${model}"][data-visibility-id="${objId}"]`);
-                visibilityElements.forEach(el => {
-                    const rawStatusStr = String(newStatus).toLowerCase();
-                    const showOnStr = el.getAttribute('data-show-on');
-                    const hideOnStr = el.getAttribute('data-hide-on');
+                    // Visibility toggling
+                    const visibilityElements = document.querySelectorAll(`[data-visibility-model="${model}"][data-visibility-id="${objId}"]`);
+                    visibilityElements.forEach(el => {
+                        const rawStatusStr = String(newStatus).toLowerCase();
+                        const showOnStr = el.getAttribute('data-show-on');
+                        const hideOnStr = el.getAttribute('data-hide-on');
 
-                    let shouldShow = !el.classList.contains('hidden');
+                        let shouldShow = !el.classList.contains('hidden');
 
-                    if (showOnStr) {
-                        const showList = showOnStr.split(',').map(s => s.trim().toLowerCase());
-                        shouldShow = showList.includes(rawStatusStr);
-                    } else if (hideOnStr) {
-                        const hideList = hideOnStr.split(',').map(s => s.trim().toLowerCase());
-                        shouldShow = !hideList.includes(rawStatusStr);
-                    }
+                        if (showOnStr) {
+                            shouldShow = showOnStr.split(',').map(s => s.trim().toLowerCase()).includes(rawStatusStr);
+                        } else if (hideOnStr) {
+                            shouldShow = !hideOnStr.split(',').map(s => s.trim().toLowerCase()).includes(rawStatusStr);
+                        }
 
-                    if (shouldShow) {
-                        el.classList.remove('hidden');
-                    } else {
-                        el.classList.add('hidden');
-                    }
-                });
+                        if (shouldShow) {
+                            el.classList.remove('hidden');
+                        } else {
+                            el.classList.add('hidden');
+                        }
+                    });
 
-                // Text-only status update API
-                const textElements = document.querySelectorAll(`[data-text-status-model="${model}"][data-text-status-id="${objId}"]`);
-                textElements.forEach(el => {
-                    el.innerText = newStatusDisplay;
-                });
-            }
+                    // Text-only status update backward compatibility
+                    document.querySelectorAll(`[data-text-status-model="${model}"][data-text-status-id="${objId}"]`).forEach(el => {
+                        el.innerText = newStatusDisplay;
+                        triggerPulse(el);
+                    });
+                }
+            } // end of global_model_update handling
         };
+
+        function triggerPulse(el) {
+            el.classList.remove('pulse-animation');
+            void el.offsetWidth; // trigger reflow
+            el.classList.add('pulse-animation');
+            setTimeout(() => el.classList.remove('pulse-animation'), 2000);
+        }
 
         globalStatusWS.onclose = function (e) {
             console.error('Global Status socket closed unexpectedly');

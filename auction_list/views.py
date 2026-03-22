@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Auction, Item, Lot, AuctionRegister, LotRegister, Catagory, LotChatMessage
-from bids.models import Bid, Wallet
+from bids.models import Bid, SecurityDeposit
 from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -255,10 +255,19 @@ def lot_detail(request, slug):
             status='pending'
         ).first()
     
+    # Check if user has active security deposit
+    active_deposit = False
+    if request.user.is_authenticated:
+        active_deposit = SecurityDeposit.objects.filter(
+            user=request.user, 
+            status='active'
+        ).exists()
+    
     import os
     return render(request, "lots/lot_detail.html", {
         "lot": lot,
         "pending_payment": pending_payment,
+        "active_deposit": active_deposit,
         "server_pid": os.getpid()
     })
 
@@ -309,8 +318,7 @@ def place_bid(request, slug):
 
                 return JsonResponse({
                     'success': True, 
-                    'message': 'Bid placed successfully',
-                    'new_balance': float(request.user.wallet.balance)
+                    'message': 'Bid placed successfully'
                 })
                 
         except ValidationError as e:
@@ -405,8 +413,7 @@ def get_lot_updates(request, slug):
         'chat': chat_data,
         'time_remaining': lot.get_time_remaining().total_seconds() if lot.get_time_remaining() else None,
         'countdown': countdown_val,
-        'winner': winner or (lot.winning_bidder.username if lot.winning_bidder else None),
-        'user_balance': float(request.user.wallet.balance) if hasattr(request.user, 'wallet') else 0.00
+        'winner': winner or (lot.winning_bidder.username if lot.winning_bidder else None)
     })
 
 

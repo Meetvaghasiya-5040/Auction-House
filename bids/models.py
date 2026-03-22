@@ -6,61 +6,6 @@ from decimal import Decimal
 from django.db import transaction
 
 
-class Wallet(models.Model):
-    """User wallet for managing bidding funds"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
-    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        verbose_name = 'Wallet'
-        verbose_name_plural = 'Wallets'
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"{self.user.username}'s Wallet - ₹{self.balance}"
-    
-    def add_funds(self, amount, description="Funds added"):
-        """Add funds to wallet"""
-        if amount <= 0:
-            raise ValidationError("Amount must be positive")
-        
-        self.balance = Decimal(str(self.balance)) + Decimal(str(amount))
-        self.save()
-        
-        # Create transaction record
-        Transaction.objects.create(
-            wallet=self,
-            transaction_type='deposit',
-            amount=amount,
-            description=description
-        )
-        return self.balance
-    
-    def deduct_funds(self, amount, description="Funds deducted"):
-        """Deduct funds from wallet"""
-        if amount <= 0:
-            raise ValidationError("Amount must be positive")
-        
-        if self.balance < Decimal(str(amount)):
-            raise ValidationError("Insufficient balance")
-        
-        self.balance = Decimal(str(self.balance)) - Decimal(str(amount))
-        self.save()
-        
-        # Create transaction record
-        Transaction.objects.create(
-            wallet=self,
-            transaction_type='deduction',
-            amount=-amount,
-            description=description
-        )
-        return self.balance
-    
-    def has_sufficient_balance(self, amount):
-        """Check if wallet has sufficient balance"""
-        return self.balance >= Decimal(str(amount))
 
 
 class SecurityDeposit(models.Model):
@@ -148,8 +93,27 @@ class Bid(models.Model):
         if not active_deposit:
             raise ValidationError("You must pay the ₹10,000 security deposit before placing a bid.")
     
+    def _trigger_proxy_bids(self):
+        """
+        Final robust trigger using on_commit and a thread to ensure context isolation.
+        """
+        import threading
+        from bids.utils import fire_proxy_bids
+        from django.db import transaction as django_db
+        
+        lot_id = self.lot_id
+        def run_proxy():
+            try:
+                print(f"\n[PROXY TRIGGER] Bid {self.id} (Winner: {self.user.username}) -> Switching to Thread for Lot {lot_id}")
+                fire_proxy_bids(lot_id)
+            except Exception as e:
+                print(f"[PROXY TRIGGER] Thread Error: {e}")
+        
+        # Use on_commit to ensure the DB has actually saved this bid before we look for it in the thread
+        django_db.on_commit(lambda: threading.Thread(target=run_proxy, daemon=True).start())
+
     def save(self, *args, **kwargs):
-        """Override save to update lot and create transaction"""
+        """Override save to update lot statistics"""
         is_new = self.pk is None
         
         if is_new:
@@ -158,97 +122,147 @@ class Bid(models.Model):
             
             with transaction.atomic():
                 previous_winner_bid = Bid.objects.filter(lot=self.lot, is_winning=True).first()
-                
                 if previous_winner_bid:
-                    if previous_winner_bid.user == self.user:
-                        previous_winner_bid.is_winning = False
-                        previous_winner_bid.save()
-                    else:
-                        previous_winner_bid.is_winning = False
-                        previous_winner_bid.save()
+                    previous_winner_bid.is_winning = False
+                    previous_winner_bid.save()
                 
-                # 3. This bid is now winning
                 self.is_winning = True
-                
-                # 4. Update lot current bid and stats
                 self.lot.current_bid = self.amount
                 self.lot.winning_bidder = self.user
                 self.lot.last_bid_time = timezone.now()
-                self.lot.idle_timer_started = False  # Reset idle timer
+                self.lot.idle_timer_started = False
                 self.lot.save(update_fields=['current_bid', 'last_bid_time', 'idle_timer_started', 'winning_bidder'])
 
         super().save(*args, **kwargs)
         
         if is_new:
-            # Broadcast bid update via WebSocket
+            # Trigger proxy bids for other users
+            if not self.is_auto_bid:
+                self._trigger_proxy_bids()
+            
+            # Broadcast updates (WebSockets etc.)
+            self._broadcast_bid_updates()
+            self._update_hot_status()
+
+    def _broadcast_bid_updates(self):
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        from django.db import transaction as django_db
+        
+        channel_layer = get_channel_layer()
+        if not channel_layer:
+            return
+
+        def do_broadcast():
+            try:
+                # Get fresh data but avoid deep relationship lookups if possible
+                lot = self.lot
+                current_bid_val = float(self.amount)
+                
+                bid_summary = {
+                    'user': self.user.username,
+                    'amount': current_bid_val,
+                    'current_bid': float(lot.current_bid),
+                    'minimum_bid': float(lot.get_minimum_bid()),
+                    'timestamp': self.timestamp.isoformat(),
+                    'is_winning': self.is_winning,
+                    'bid_id': self.id,
+                    'lot_id': lot.id,
+                    'lot_title': lot.title,
+                }
+
+                # Calculate fields for frontend compatibility
+                time_rem = None
+                try:
+                    rem = lot.get_time_remaining()
+                    if rem: time_rem = rem.total_seconds()
+                except: pass
+
+                broadcast_data = {
+                    'type': 'bid_update',
+                    'bid': bid_summary,
+                    'minimum_bid': bid_summary['minimum_bid'],
+                    'bid_count': lot.bids.count(),
+                    'time_remaining': time_rem
+                }
+
+                async_to_sync(channel_layer.group_send)(f'lot_{lot.id}', broadcast_data)
+                async_to_sync(channel_layer.group_send)('admin_updates', {
+                    'type': 'live_bid_update', 
+                    'bid': bid_summary
+                })
+            except Exception as e:
+                print(f"[WS Broadcast Error] Bid {self.id}: {e}")
+
+        # If it's an automated bid, we're likely in a background thread already,
+        # so we broadcast immediately but safely.
+        # For manual bids, wait for the transaction to commit.
+        if self.is_auto_bid:
+            do_broadcast()
+        else:
+            django_db.on_commit(do_broadcast)
+
+    def _update_hot_status(self):
+        from auction_list.utils import update_lot_hot_status, update_hot_status, get_hot_bid_count
+        lot_is_hot = update_lot_hot_status(self.lot)
+        auction_is_hot = update_hot_status(self.lot.auction)
+        if lot_is_hot or auction_is_hot:
             from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
-            
             channel_layer = get_channel_layer()
             if channel_layer:
-                async_to_sync(channel_layer.group_send)(
-                    f'lot_{self.lot.id}',
-                    {
-                        'type': 'bid_update',
-                        'bid': {
-                            'user': self.user.username,
-                            'amount': float(self.amount),
-                            'current_bid': float(self.lot.current_bid),
-                            'minimum_bid': float(self.lot.get_minimum_bid()),
-                            'timestamp': self.timestamp.isoformat(),
-                            'is_winning': self.is_winning
-                        }
-                    }
-                )
-            
-            # Update hot status for lot and auction
-            from auction_list.utils import update_lot_hot_status, update_hot_status, get_hot_bid_count
-            
-            lot_is_hot = update_lot_hot_status(self.lot)
-            auction_is_hot = update_hot_status(self.lot.auction)
-            hot_bid_count = get_hot_bid_count(self.lot)
-            
-            # Broadcast hot status update if changed
-            if channel_layer and (lot_is_hot or auction_is_hot):
-                async_to_sync(channel_layer.group_send)(
-                    f'lot_{self.lot.id}',
-                    {
-                        'type': 'hot_status_update',
-                        'lot_is_hot': lot_is_hot,
-                        'auction_is_hot': auction_is_hot,
-                        'hot_bid_count': hot_bid_count
-                    }
-                )
+                async_to_sync(channel_layer.group_send)(f'lot_{self.lot.id}', {
+                    'type': 'hot_status_update',
+                    'lot_is_hot': lot_is_hot,
+                    'auction_is_hot': auction_is_hot,
+                    'hot_bid_count': get_hot_bid_count(self.lot)
+                })
 
 
 
-class Transaction(models.Model):
-    """Wallet transaction history"""
-    TRANSACTION_TYPES = [
-        ('deposit', 'Deposit'),
-        ('deduction', 'Deduction'),
-        ('bid_placed', 'Bid Placed'),
-        ('bid_refund', 'Bid Refund'),
-        ('winning_payment', 'Winning Payment'),
-    ]
-    
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    description = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-    related_bid = models.ForeignKey(Bid, on_delete=models.SET_NULL, null=True, blank=True)
-    
+class ProxyBid(models.Model):
+    """Proxy / automatic bid: user sets max amount they are willing to pay.
+    The system auto-bids on their behalf up to this limit."""
+    lot = models.ForeignKey('auction_list.Lot', on_delete=models.CASCADE, related_name='proxy_bids')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='proxy_bids')
+    max_amount = models.DecimalField(max_digits=12, decimal_places=2,
+                                     help_text="Maximum amount user is willing to bid")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Any change to a proxy bid (activation, max_amount update) should trigger the engine
+        self._trigger_proxy_engine()
+
+    def _trigger_proxy_engine(self):
+        """
+        Runs the proxy bidding war in a separate thread.
+        Uses on_commit for reliability.
+        """
+        import threading
+        from bids.utils import fire_proxy_bids
+        from django.db import transaction as django_db
+        
+        lot_id = self.lot_id
+        def run_proxy():
+            try:
+                print(f"\n[PROXY TRIGGER] Proxy {self.id} Update -> Switching to Thread for Lot {lot_id}")
+                fire_proxy_bids(lot_id)
+            except Exception as e:
+                print(f"[PROXY TRIGGER] Error: {e}")
+        
+        django_db.on_commit(lambda: threading.Thread(target=run_proxy, daemon=True).start())
+
     class Meta:
-        verbose_name = 'Transaction'
-        verbose_name_plural = 'Transactions'
-        ordering = ['-timestamp']
-        indexes = [
-            models.Index(fields=['wallet', '-timestamp']),
-        ]
-    
+        verbose_name = 'Proxy Bid'
+        verbose_name_plural = 'Proxy Bids'
+        unique_together = ['lot', 'user']
+        ordering = ['-max_amount']
+
     def __str__(self):
-        return f"{self.wallet.user.username} - {self.get_transaction_type_display()} - ₹{self.amount}"
+        return f"{self.user.username} proxy on {self.lot.title} — max ₹{self.max_amount}"
 
 
 class PendingPayment(models.Model):
@@ -295,3 +309,148 @@ class PendingPayment(models.Model):
         remaining = self.expires_at - timezone.now()
         return remaining if remaining.total_seconds() > 0 else None
 
+
+class Transaction(models.Model):
+    """Record of financial activities for a user"""
+    TRANSACTION_TYPES = [
+        ("deposit", "Security Deposit"),
+        ("deduction", "Deduction"),
+        ("bid_placed", "Bid Placed"),
+        ("bid_refund", "Bid Refund"),
+        ("winning_payment", "Winning Payment"),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    description = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    related_bid = models.ForeignKey('Bid', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'Transaction'
+        verbose_name_plural = 'Transactions'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', '-timestamp']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.transaction_type} - ₹{self.amount}"
+
+
+# ─────────────────────────────────────────────────────────────
+# SELLER WALLET SYSTEM
+# ─────────────────────────────────────────────────────────────
+
+class UserWallet(models.Model):
+    """Wallet for sellers to receive funds from sold items"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Wallet - ₹{self.balance}"
+
+    def credit(self, amount, description):
+        """Credit the wallet and log transaction"""
+        with transaction.atomic():
+            # Refresh from db to avoid race conditions if needed
+            self.refresh_from_db()
+            self.balance += Decimal(str(amount))
+            self.save(update_fields=['balance', 'updated_at'])
+            
+            WalletTransaction.objects.create(
+                wallet=self,
+                amount=amount,
+                transaction_type='credit',
+                description=description
+            )
+            return self.balance
+
+    def debit(self, amount, description):
+        """Debit the wallet and log transaction. Raises ValueError if insufficient balance."""
+        with transaction.atomic():
+            self.refresh_from_db()
+            if self.balance < Decimal(str(amount)):
+                raise ValueError("Insufficient wallet balance")
+            
+            self.balance -= Decimal(str(amount))
+            self.save(update_fields=['balance', 'updated_at'])
+            
+            WalletTransaction.objects.create(
+                wallet=self,
+                amount=amount,
+                transaction_type='debit',
+                description=description
+            )
+            return self.balance
+
+
+class WalletTransaction(models.Model):
+    """Log of all credits and debits to a UserWallet"""
+    TRANSACTION_TYPES = [
+        ('credit', 'Credit'),
+        ('debit', 'Debit'),
+    ]
+    wallet = models.ForeignKey(UserWallet, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    description = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        prefix = "+" if self.transaction_type == 'credit' else "-"
+        return f"{self.wallet.user.username} {prefix}₹{self.amount} ({self.description})"
+
+
+class SellerBankAccount(models.Model):
+    """Bank account details for seller withdrawals, linked to Razorpay Fund Account"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bank_accounts')
+    bank_name = models.CharField(max_length=100)
+    account_number = models.CharField(max_length=50)
+    ifsc_code = models.CharField(max_length=20)
+    account_holder_name = models.CharField(max_length=100)
+    
+    # Razorpay Integration Fields
+    razorpay_contact_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_fund_account_id = models.CharField(max_length=100, blank=True, null=True)
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.bank_name} - {self.account_number[-4:]} ({self.user.username})"
+
+
+class WithdrawalRequest(models.Model):
+    """Record of a seller requesting a payout from their wallet"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='withdrawal_requests')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    bank_account = models.ForeignKey(SellerBankAccount, on_delete=models.SET_NULL, null=True, related_name='withdrawals')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Razorpay Payout ID
+    razorpay_payout_id = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Failure reason if any
+    notes = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Withdrawal #{self.id} for {self.user.username} - ₹{self.amount} ({self.get_status_display()})"

@@ -1,0 +1,629 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Seller Wallet — Auction House{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/profilepage.css' %}">
+<style>
+    /* Premium Wallet Styles */
+    .wallet-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #3b82f6 100%);
+        color: white;
+        border-radius: var(--r-xl);
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 30px rgba(30, 58, 138, 0.3);
+        margin-bottom: var(--gap);
+    }
+
+    .wallet-hero::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -10%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    
+    .wallet-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -20%;
+        left: -10%;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(96,165,250,0.2) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .wh-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 8px;
+    }
+
+    .wh-balance {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .wh-balance span {
+        font-size: 1.8rem;
+        margin-right: 8px;
+        opacity: 0.9;
+    }
+
+    .wh-actions {
+        display: flex;
+        gap: 16px;
+    }
+
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.9);
+        color: #1e3a8a;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--r-md);
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-glass:hover:not(:disabled) {
+        transform: translateY(-2px);
+        background: white;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-glass:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-outline-glass {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 12px 24px;
+        border-radius: var(--r-md);
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-outline-glass:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Info Card */
+    .formula-card {
+        background: var(--accent-soft);
+        border: 1px solid rgba(30, 58, 95, 0.1);
+        border-radius: var(--r-xl);
+        padding: 24px;
+        margin-bottom: var(--gap);
+        position: relative;
+    }
+    
+    .fc-icon {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        font-size: 2rem;
+        color: var(--accent);
+        opacity: 0.1;
+    }
+
+    .formula-equation {
+        background: white;
+        padding: 16px;
+        border-radius: var(--r-md);
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: var(--accent);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        margin: 16px 0;
+        border: 1px dashed rgba(30, 58, 95, 0.2);
+    }
+    
+    .formula-equation strong {
+        color: var(--green);
+    }
+
+    /* Bank Cards */
+    .bank-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        background: white;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+    }
+    
+    .bank-item:hover {
+        border-color: var(--accent);
+        box-shadow: var(--sh-xs);
+    }
+
+    .bi-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .bi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--blue-soft);
+        color: var(--blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .bi-details h4 {
+        margin: 0 0 4px;
+        font-size: 1rem;
+        color: var(--text-1);
+    }
+
+    .bi-details p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--text-2);
+        font-family: monospace;
+    }
+
+    /* Transactions */
+    .tx-wrap {
+        margin-top: 10px;
+    }
+
+    .tx-row {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid var(--border-soft);
+        transition: background 0.2s;
+    }
+
+    .tx-row:hover {
+        background: var(--bg);
+    }
+
+    .tx-row:last-child {
+        border-bottom: none;
+    }
+
+    .tx-ic {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
+
+    .tx-ic.in { background: var(--green-soft); color: var(--green); }
+    .tx-ic.out { background: var(--red-soft); color: var(--red); }
+    .tx-ic.pend { background: var(--amber-soft); color: var(--amber); }
+
+    .tx-info {
+        flex-grow: 1;
+    }
+
+    .tx-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-1);
+        margin-bottom: 4px;
+    }
+
+    .tx-date {
+        font-size: 0.75rem;
+        color: var(--text-3);
+    }
+
+    .tx-amt {
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-align: right;
+    }
+
+    .tx-amt.in { color: var(--green); }
+    .tx-amt.out { color: var(--text-1); }
+</style>
+
+<div class="db-wrap">
+    <div class="db-layout" style="grid-template-columns: 1fr;">
+        <main class="main-col" style="max-width: 1000px; margin: 0 auto; width: 100%;">
+
+            <div class="mb-5 flex items-center gap-3">
+                <a href="{% url 'profile' %}" class="btn btn-ghost"
+                    style="padding: 8px; color: var(--text-muted);">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h2 style="margin:0; font-size: 1.5rem; font-weight: 700;">Seller Wallet</h2>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-row mb-5">
+                <div class="stat-card card">
+                    <div class="sc-icon" style="background: var(--green-soft); color: var(--green);">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="sc-lbl">Total Earned</div>
+                    <div class="sc-num">₹{{ total_earned|floatformat:2 }}</div>
+                    <div class="sc-sub" style="color: var(--green);">
+                        <i class="fas fa-check-circle"></i> Lifetime Earnings
+                    </div>
+                    <div class="sc-blob" style="background: var(--green);"></div>
+                </div>
+                
+                <div class="stat-card card">
+                    <div class="sc-icon" style="background: var(--amber-soft); color: var(--amber);">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="sc-lbl">Pending Payouts</div>
+                    <div class="sc-num">₹{{ pending_payout|floatformat:2 }}</div>
+                    <div class="sc-sub" style="color: var(--amber);">
+                        <i class="fas fa-truck"></i> Awaiting Delivery
+                    </div>
+                    <div class="sc-blob" style="background: var(--amber);"></div>
+                </div>
+                
+                <div class="stat-card card">
+                    <div class="sc-icon" style="background: var(--blue-soft); color: var(--blue);">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="sc-lbl">Total Withdrawn</div>
+                    <div class="sc-num">₹{{ total_withdrawn|floatformat:2 }}</div>
+                    <div class="sc-sub" style="color: var(--text-3);">
+                        <i class="fas fa-university"></i> Transferred to Bank
+                    </div>
+                    <div class="sc-blob" style="background: var(--blue);"></div>
+                </div>
+            </div>
+
+            <!-- Main Wallet Hero -->
+            <div class="wallet-hero">
+                <div class="wh-label">Available Balance</div>
+                <div class="wh-balance">
+                    <span>₹</span> {{ wallet.balance|default:"0.00"|floatformat:2 }}
+                </div>
+                <div class="wh-actions">
+                    {% if bank_accounts %}
+                    <button class="btn-glass" onclick="openWithdrawModal()" {% if not wallet or wallet.balance <= 0 %}disabled{% endif %}>
+                        <i class="fas fa-paper-plane"></i> Withdraw Funds
+                    </button>
+                    {% else %}
+                    <button class="btn-glass" onclick="openAddBankModal()">
+                        <i class="fas fa-plus"></i> Add Bank Account
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap);">
+                
+                <!-- Left Column -->
+                <div>
+                    <!-- Bank Accounts -->
+                    <div class="card mb-5" style="padding: 24px;">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 style="margin:0; font-size: 1.1rem;"><i class="fas fa-landmark mr-2" style="color:var(--text-3);"></i> Bank Accounts</h3>
+                            {% if bank_accounts %}
+                            <button class="btn btn-ghost" style="padding:6px 12px; font-size:.8rem;" onclick="openAddBankModal()">
+                                <i class="fas fa-plus"></i> Add New
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        {% if bank_accounts %}
+                            {% for bank in bank_accounts %}
+                            <div class="bank-item">
+                                <div class="bi-left">
+                                    <div class="bi-icon"><i class="fas fa-university"></i></div>
+                                    <div class="bi-details">
+                                        <h4>{{ bank.bank_name }}</h4>
+                                        <p>A/C: &bull;&bull;&bull;&bull; {{ bank.account_number|slice:"-4:" }} | {{ bank.ifsc_code }}</p>
+                                    </div>
+                                </div>
+                                <div class="badge-verified" style="background: var(--green-soft); color: var(--green); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                    <i class="fas fa-check-circle"></i> Linked
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty" style="padding: 30px 20px; text-align: center; border: 1px dashed var(--border); border-radius: var(--r-md);">
+                                <div style="font-size:2rem; margin-bottom:10px; color: var(--text-3);"><i class="fas fa-piggy-bank"></i></div>
+                                <p style="font-size:.9rem; color: var(--text-2); margin-bottom: 15px;">No bank account linked yet.</p>
+                                <button class="btn" style="background: var(--accent); color: white; padding: 8px 20px; border-radius: 6px; border: none; font-size: 0.85rem; cursor: pointer;" onclick="openAddBankModal()">
+                                    Link Bank Account
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Withdrawals -->
+                    <div class="card" style="padding: 24px;">
+                        <h3 style="margin:0 0 16px; font-size: 1.1rem;"><i class="fas fa-money-check-alt mr-2" style="color:var(--text-3);"></i> Withdrawal History</h3>
+                        
+                        {% if withdrawals %}
+                        <div class="tx-wrap">
+                            {% for w in withdrawals %}
+                            <div class="tx-row">
+                                <div class="tx-ic {% if w.status == 'completed' %}in{% elif w.status == 'failed' %}out{% else %}pend{% endif %}">
+                                    <i class="fas {% if w.status == 'completed' %}fa-check{% elif w.status == 'failed' %}fa-times{% else %}fa-clock{% endif %}"></i>
+                                </div>
+                                <div class="tx-info">
+                                    <div class="tx-title">Transfer to {{ w.bank_account.bank_name }}</div>
+                                    <div class="tx-date">{{ w.created_at|date:"d M Y, h:i a" }} &bull; 
+                                        <span style="color: {% if w.status == 'completed' %}var(--green){% elif w.status == 'failed' %}var(--red){% else %}var(--amber){% endif %}; font-weight: 600;">
+                                            {{ w.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="tx-amt out">₹{{ w.amount|floatformat:2 }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div style="padding: 20px; text-align: center; color: var(--text-3); font-size: 0.9rem;">
+                            No withdrawal requests yet.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div>
+                    <!-- Payout Formula Explainer -->
+                    <div class="formula-card">
+                        <i class="fas fa-info-circle fc-icon"></i>
+                        <h3 style="margin:0 0 10px; font-size: 1.05rem; color: var(--accent);">How Payouts Work</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-2); line-height: 1.6; margin: 0;">
+                            When your items are sold as part of a lot, funds are automatically distributed 
+                            upon successful delivery to the buyer. Your share is calculated proportionally based on your item's value:
+                        </p>
+                        
+                        <div class="formula-equation">
+                            Payout = <br>
+                            (Item Price / Lot Starting Price) <br>
+                            × <strong>(Winning Bid - Commission)</strong>
+                        </div>
+                        
+                        <p style="font-size: 0.8rem; color: var(--text-3); margin: 0;">
+                            <i class="fas fa-shield-alt mr-1"></i> Admin commission is 10% (or 2% for Real Estate).
+                        </p>
+                    </div>
+
+                    <!-- Wallet Transactions -->
+                    <div class="card" style="padding: 24px;">
+                        <h3 style="margin:0 0 16px; font-size: 1.1rem;"><i class="fas fa-history mr-2" style="color:var(--text-3);"></i> Wallet Transactions</h3>
+
+                        {% if transactions %}
+                        <div class="tx-wrap">
+                            {% for tx in transactions %}
+                            <div class="tx-row">
+                                <div class="tx-ic {% if tx.transaction_type == 'credit' %}in{% else %}out{% endif %}">
+                                    <i class="fas {% if tx.transaction_type == 'credit' %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i>
+                                </div>
+                                <div class="tx-info">
+                                    <div class="tx-title" style="word-break: break-word; line-height: 1.4;">{{ tx.description }}</div>
+                                    <div class="tx-date">{{ tx.created_at|date:"d M Y, h:i a" }}</div>
+                                </div>
+                                <div class="tx-amt {% if tx.transaction_type == 'credit' %}in{% else %}out{% endif %}">
+                                    {% if tx.transaction_type == 'credit' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2}}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div style="padding: 40px 20px; text-align: center;">
+                            <div style="font-size:2.5rem; margin-bottom:15px; color:var(--border);"><i class="fas fa-receipt"></i></div>
+                            <p style="font-weight: 500; color: var(--text-2); margin-bottom: 5px;">No transactions yet</p>
+                            <p style="font-size:.85rem; color:var(--text-3);">Funds from your sold items will appear here once delivered.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Add Bank Modal -->
+<div id="addBankModal" class="modal-bg">
+    <div class="modal-box" style="max-width: 500px;">
+        <div class="m-head">
+            <div class="m-title">
+                <div class="m-title-ic"><i class="fas fa-university"></i></div>
+                Add Bank Account
+            </div>
+            <button class="m-close" onclick="closeAddBankModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="m-body">
+            <div class="alert alert-w mb-4">
+                <i class="fas fa-shield-alt mt-1"></i>
+                <div>Please ensure these details belong to you. Withdrawals are processed immediately to this account.</div>
+            </div>
+            <form id="addBankForm">
+                {% csrf_token %}
+                <label class="f-lbl">Account Holder Name</label>
+                <input type="text" name="name" class="f-inp" required placeholder="As per bank records"
+                    value="{{ request.user.get_full_name|default:request.user.username }}">
+
+                <label class="f-lbl">Bank Name</label>
+                <input type="text" name="bank_name" class="f-inp" required placeholder="e.g. HDFC Bank, SBI">
+
+                <label class="f-lbl">Account Number</label>
+                <input type="text" name="account_number" class="f-inp" required placeholder="Your account number">
+
+                <label class="f-lbl">IFSC Code</label>
+                <input type="text" name="ifsc_code" class="f-inp" required placeholder="e.g. HDFC0001234"
+                    style="text-transform: uppercase;">
+
+                <div id="bankError" class="alert alert-r hidden mt-3"></div>
+                <button type="submit" id="addBankBtn" class="sbm-btn mt-4">
+                    <i class="fas fa-link"></i> Link Account securely
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="modal-bg">
+    <div class="modal-box" style="max-width: 450px;">
+        <div class="m-head">
+            <div class="m-title">
+                <div class="m-title-ic" style="background:var(--accent-soft); color:var(--accent);"><i class="fas fa-paper-plane"></i></div>
+                Withdraw Funds
+            </div>
+            <button class="m-close" onclick="closeWithdrawModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="m-body">
+            <div style="text-align:center; margin-bottom: 24px;">
+                <p style="color:var(--text-3); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; margin:0 0 8px 0;">Available Balance</p>
+                <h2 style="margin:0; font-size: 2.8rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <span style="font-size: 1.5rem; opacity: 0.8;">₹</span>{{wallet.balance|default:"0.00"|floatformat:2 }}
+                </h2>
+            </div>
+
+            <form id="withdrawForm">
+                {% csrf_token %}
+                <label class="f-lbl">Transfer To</label>
+                <select name="bank_account_id" class="f-inp" style="appearance: auto;" required>
+                    {% for bank in bank_accounts %}
+                    <option value="{{ bank.id }}">{{ bank.bank_name }} - &bull;&bull;&bull;&bull; {{ bank.account_number|slice:"-4:" }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <label class="f-lbl">Amount (₹)</label>
+                <input type="number" name="amount" class="f-inp" required min="100" max="{{ wallet.balance|default:0 }}"
+                    step="0.01" value="{{ wallet.balance|floatformat:2 }}" placeholder="Enter amount">
+                <p style="font-size: 0.75rem; color:var(--text-3); margin-top:6px;"><i class="fas fa-info-circle"></i> Minimum withdrawal is ₹100.</p>
+
+                <div class="alert alert-w mt-4" style="font-size: 0.8rem; padding: 12px; border-radius: var(--r-md);">
+                    <i class="fas fa-bolt mt-1" style="color: var(--amber);"></i>
+                    <div>Payouts are processed instantly via IMPS/NEFT using RazorpayX.</div>
+                </div>
+
+                <div id="withdrawError" class="alert alert-r hidden mt-3"></div>
+                <button type="submit" id="withdrawBtn" class="sbm-btn mt-4">
+                    Confirm Withdrawal
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAddBankModal() { document.getElementById('addBankModal').classList.add('open'); }
+    function closeAddBankModal() { document.getElementById('addBankModal').classList.remove('open'); }
+    function openWithdrawModal() { document.getElementById('withdrawModal').classList.add('open'); }
+    function closeWithdrawModal() { document.getElementById('withdrawModal').classList.remove('open'); }
+
+    document.getElementById('addBankForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('addBankBtn');
+        const err = document.getElementById('bankError');
+        err.classList.add('hidden');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Linking...';
+
+        try {
+            const res = await fetch("{% url 'add_bank_account' %}", {
+                method: "POST",
+                body: new FormData(e.target),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                err.textContent = data.error || "Failed to link bank account.";
+                err.classList.remove('hidden');
+            }
+        } catch (e) {
+            err.textContent = "A network error occurred.";
+            err.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-link"></i> Link Account securely';
+        }
+    });
+
+    document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('withdrawBtn');
+        const err = document.getElementById('withdrawError');
+        err.classList.add('hidden');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        try {
+            const res = await fetch("{% url 'request_withdrawal' %}", {
+                method: "POST",
+                body: new FormData(e.target),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("Withdrawal request successful! Funds should arrive shortly.");
+                location.reload();
+            } else {
+                err.textContent = data.error || "Failed to process withdrawal.";
+                err.classList.remove('hidden');
+            }
+        } catch (e) {
+            err.textContent = "A network error occurred.";
+            err.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirm Withdrawal';
+        }
+    });
+
+    // Close modals on background click
+    document.querySelectorAll('.modal-bg').forEach(bg => {
+        bg.addEventListener('click', e => {
+            if (e.target === bg) bg.classList.remove('open');
+        });
+    });
+</script>
+{% endblock %}

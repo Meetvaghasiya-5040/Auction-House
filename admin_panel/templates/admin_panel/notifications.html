@@ -1,0 +1,215 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Notifications</h1>
+        <p class="text-sm text-slate-500 mt-1">Real-time alerts — auto-archived after 24h</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="{% url 'admin_panel:notification_history' %}"
+            class="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm">
+            <i class="fas fa-history"></i> View History
+        </a>
+        {% if unread_count > 0 %}
+        <button id="mark-all-read-btn"
+            class="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+            <i class="fas fa-check-double"></i> Mark All Read
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+        <div class="h-10 w-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center"><i
+                class="fas fa-bell"></i></div>
+        <div>
+            <p class="text-xs text-slate-400 font-semibold uppercase">Unread</p>
+            <p class="text-2xl font-bold text-slate-800" id="page-unread-count">{{ unread_count }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+        <div class="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i
+                class="fas fa-inbox"></i></div>
+        <div>
+            <p class="text-xs text-slate-400 font-semibold uppercase">Today Total</p>
+            <p class="text-2xl font-bold text-slate-800">{{ notifications|length }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
+        <div class="h-10 w-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center"><i
+                class="fas fa-archive"></i></div>
+        <div>
+            <p class="text-xs text-slate-400 font-semibold uppercase">Archived</p>
+            <a href="{% url 'admin_panel:notification_history' %}"
+                class="text-2xl font-bold text-indigo-600 hover:underline">→</a>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Feed -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="notif-feed">
+    <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+        <h3 class="font-bold text-slate-700 text-sm">Today's Notifications</h3>
+        <span class="live-dot"></span>
+    </div>
+
+    {% if notifications %}
+    <div class="divide-y divide-slate-50" id="notif-list">
+        {% for n in notifications %}
+        <div id="notif-{{ n.id }}"
+            class="flex items-start gap-4 p-4 transition-colors {% if not n.is_read %}bg-indigo-50/40 hover:bg-indigo-50{% else %}hover:bg-slate-50{% endif %}">
+            <!-- Icon -->
+            <div class="flex-shrink-0 mt-0.5">
+                <div class="h-9 w-9 rounded-full flex items-center justify-center text-sm {{ n.level_color_class }}">
+                    <i class="fas {{ n.level_icon }}"></i>
+                </div>
+            </div>
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-0.5">
+                    <p class="font-semibold text-slate-800 text-sm">{{ n.title }}</p>
+                    {% if not n.is_read %}
+                    <span class="h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0"></span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-slate-500 mb-1">{{ n.message }}</p>
+                <div class="flex items-center gap-3 text-xs text-slate-400">
+                    <span><i class="fas fa-clock mr-1"></i>{{ n.created_at|timesince }} ago</span>
+                    {% if n.triggered_by %}
+                    <span><i class="fas fa-user mr-1"></i>{{ n.triggered_by.username }}</span>
+                    {% endif %}
+                    {% if n.notification_type %}
+                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">{{ n.get_notification_type_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Actions -->
+            <div class="flex-shrink-0 flex items-center gap-2">
+                {% if n.item %}
+                <a href="{% url 'admin_panel:item_detail' n.item.slug %}"
+                    class="text-xs text-indigo-500 hover:text-indigo-700 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition-colors">
+                    View Item →
+                </a>
+                {% endif %}
+                {% if not n.is_read %}
+                <button onclick="markRead({{ n.id }})"
+                    class="text-xs text-slate-400 hover:text-emerald-600 font-medium px-2 py-1 rounded hover:bg-emerald-50 transition-colors mark-read-btn"
+                    data-id="{{ n.id }}">
+                    Mark Read
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="py-16 text-center text-slate-400">
+        <i class="fas fa-bell-slash text-4xl mb-3 opacity-30"></i>
+        <p class="font-semibold">No notifications today</p>
+        <p class="text-sm mt-1">New item submissions and approval actions will appear here in real-time.</p>
+        <a href="{% url 'admin_panel:notification_history' %}"
+            class="mt-4 inline-flex items-center gap-2 text-sm text-indigo-500 hover:underline">
+            <i class="fas fa-history"></i> View notification history
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const csrftoken = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';
+
+    async function markRead(notifId) {
+        const res = await fetch(`/custom-admin/notifications/${notifId}/read/`, {
+            method: 'POST', headers: { 'X-CSRFToken': csrftoken }
+        });
+        const data = await res.json();
+        if (data.success) {
+            const row = document.getElementById(`notif-${notifId}`);
+            if (row) {
+                row.classList.remove('bg-indigo-50/40', 'hover:bg-indigo-50');
+                row.classList.add('hover:bg-slate-50');
+                // Remove unread dot + mark read button
+                row.querySelectorAll('.mark-read-btn, .rounded-full.bg-indigo-500').forEach(el => el.remove());
+            }
+            // Update counter
+            const counter = document.getElementById('page-unread-count');
+            if (counter) counter.textContent = data.unread_count;
+        }
+    }
+
+    // Mark All Read
+    const btn = document.getElementById('mark-all-read-btn');
+    if (btn) {
+        btn.addEventListener('click', async () => {
+            const res = await fetch('/custom-admin/notifications/mark-all-read/', {
+                method: 'POST', headers: { 'X-CSRFToken': csrftoken }
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.querySelectorAll('.mark-read-btn').forEach(b => b.remove());
+                document.querySelectorAll('.rounded-full.bg-indigo-500').forEach(dot => dot.remove());
+                document.querySelectorAll('[id^="notif-"]').forEach(row => {
+                    row.classList.remove('bg-indigo-50/40', 'hover:bg-indigo-50');
+                    row.classList.add('hover:bg-slate-50');
+                });
+                const counter = document.getElementById('page-unread-count');
+                if (counter) counter.textContent = '0';
+                btn.remove();
+            }
+        });
+    }
+
+    // Real-time: listen to admin WS
+    window.addEventListener('admin_ws_notification', (e) => {
+        const n = e.detail;
+        const list = document.getElementById('notif-list');
+        if (!list) {
+            // No list yet — reload to show
+            location.reload();
+            return;
+        }
+        const typeLabels = {
+            item_submitted: 'Item Submitted', item_approved: 'Item Approved',
+            item_rejected: 'Item Rejected', item_status: 'Status Changed', general: 'General'
+        };
+        const row = document.createElement('div');
+        row.id = `notif-${n.notification_id}`;
+        row.className = 'flex items-start gap-4 p-4 bg-indigo-50/70 hover:bg-indigo-50 transition-colors border-b border-slate-50';
+        row.innerHTML = `
+        <div class="flex-shrink-0 mt-0.5">
+            <div class="h-9 w-9 rounded-full flex items-center justify-center text-sm text-blue-500 bg-blue-50">
+                <i class="fas fa-info-circle"></i>
+            </div>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+                <p class="font-semibold text-slate-800 text-sm">${n.title}</p>
+                <span class="h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0"></span>
+            </div>
+            <p class="text-xs text-slate-500 mb-1">${n.message}</p>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+                <span><i class="fas fa-clock mr-1"></i>just now</span>
+                ${n.triggered_by ? `<span><i class="fas fa-user mr-1"></i>${n.triggered_by}</span>` : ''}
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">${typeLabels[n.notification_type] || 'General'}</span>
+            </div>
+        </div>
+        <div class="flex-shrink-0 flex items-center gap-2">
+            ${n.item_slug ? `<a href="/custom-admin/items/${n.item_slug}/" class="text-xs text-indigo-500 hover:text-indigo-700 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition-colors">View Item →</a>` : ''}
+            <button onclick="markRead(${n.notification_id})" class="text-xs text-slate-400 hover:text-emerald-600 font-medium px-2 py-1 rounded hover:bg-emerald-50 transition-colors mark-read-btn" data-id="${n.notification_id}">Mark Read</button>
+        </div>
+    `;
+        list.prepend(row);
+        // Bump page counter
+        const counter = document.getElementById('page-unread-count');
+        if (counter) counter.textContent = parseInt(counter.textContent || '0') + 1;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Notification History{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Notification History</h1>
+        <p class="text-sm text-slate-500 mt-1">Archived notifications — auto-moved here after 24 hours</p>
+    </div>
+    <a href="{% url 'admin_panel:notifications' %}"
+        class="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm">
+        <i class="fas fa-bell"></i> Current Notifications
+    </a>
+</div>
+
+<!-- Filters -->
+<form method="get" class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 mb-6">
+    <div class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Type</label>
+            <select name="type"
+                class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                <option value="">All Types</option>
+                {% for val, label in type_choices %}
+                <option value="{{ val }}" {% if type_filter == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Date</label>
+            <input type="date" name="date" value="{{ date_filter }}"
+                class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+        </div>
+        <button type="submit"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+            <i class="fas fa-filter mr-1"></i> Filter
+        </button>
+        {% if type_filter or date_filter %}
+        <a href="{% url 'admin_panel:notification_history' %}"
+            class="text-slate-500 hover:text-rose-600 text-sm font-medium px-2 py-2">
+            <i class="fas fa-times mr-1"></i> Clear
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Grouped History -->
+{% if grouped_display %}
+{% for date_label, notifs in grouped_display %}
+<div class="mb-6">
+    <!-- Day Header -->
+    <div class="flex items-center gap-3 mb-3">
+        <div class="h-px flex-1 bg-slate-200"></div>
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2">{{ date_label }}</span>
+        <div class="h-px flex-1 bg-slate-200"></div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="divide-y divide-slate-50">
+            {% for n in notifs %}
+            <div class="flex items-start gap-4 p-4 hover:bg-slate-50 transition-colors">
+                <!-- Icon -->
+                <div class="flex-shrink-0 mt-0.5">
+                    <div
+                        class="h-9 w-9 rounded-full flex items-center justify-center text-sm {{ n.level_color_class }}">
+                        <i class="fas {{ n.level_icon }}"></i>
+                    </div>
+                </div>
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <p class="font-semibold text-slate-700 text-sm">{{ n.title }}</p>
+                        <span class="text-xs px-1.5 py-0.5 rounded font-medium bg-slate-100 text-slate-500">
+                            {{ n.get_notification_type_display }}
+                        </span>
+                        {% if n.is_read %}
+                        <span class="text-xs text-emerald-500 font-medium"><i
+                                class="fas fa-check mr-0.5"></i>Read</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-slate-500 mb-1">{{ n.message }}</p>
+                    <div class="flex items-center gap-3 text-xs text-slate-400">
+                        <span><i class="fas fa-clock mr-1"></i>{{ n.created_at|date:"H:i" }}</span>
+                        {% if n.triggered_by %}
+                        <span><i class="fas fa-user mr-1"></i>{{ n.triggered_by.username }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Action -->
+                {% if n.item %}
+                <div class="flex-shrink-0">
+                    <a href="{% url 'admin_panel:item_detail' n.item.slug %}"
+                        class="text-xs text-indigo-500 hover:text-indigo-700 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition-colors">
+                        View Item →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm py-16 text-center text-slate-400">
+    <i class="fas fa-history text-4xl mb-3 opacity-30"></i>
+    <p class="font-semibold text-slate-600">No archived notifications yet</p>
+    <p class="text-sm mt-1">Notifications from today will appear here after 24 hours.</p>
+    <a href="{% url 'admin_panel:notifications' %}"
+        class="mt-4 inline-flex items-center gap-2 text-sm text-indigo-500 hover:underline">
+        <i class="fas fa-bell"></i> View today's notifications
+    </a>
+</div>
+{% endif %}
+{% endblock %}

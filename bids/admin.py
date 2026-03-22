@@ -1,30 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import Wallet, Bid, Transaction,AdminWallet
-
-
-@admin.register(Wallet)
-class WalletAdmin(ModelAdmin):
-    list_filter_submit = True
-    list_display = ['user', 'balance', 'created_at', 'updated_at']
-    list_filter = ('user', 'created_at', 'updated_at')
-    actions = ["delete_selected"]
-    search_fields = ['user__username', 'user__email']
-    readonly_fields = ['created_at', 'updated_at']
-    list_per_page = 20
-    
-    fieldsets = (
-        ('User Information', {
-            'fields': ('user',)
-        }),
-        ('Balance', {
-            'fields': ('balance',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
+from .models import Bid, AdminWallet, Transaction,UserWallet
 
 
 @admin.register(Bid)
@@ -54,8 +30,8 @@ class BidAdmin(ModelAdmin):
 @admin.register(Transaction)
 class TransactionAdmin(ModelAdmin):
     list_filter_submit = True
-    list_display = ['transaction_type', 'amount', 'timestamp']
-    search_fields = ['wallet__user__username', 'description']
+    list_display = ['user', 'transaction_type', 'amount', 'timestamp']
+    search_fields = ['user__username', 'description']
     readonly_fields = ['timestamp']
     list_filter = ('transaction_type', 'amount', 'timestamp')
     actions = ["delete_selected"]
@@ -63,7 +39,7 @@ class TransactionAdmin(ModelAdmin):
     list_per_page = 20    
     fieldsets = (
         ('Transaction Information', {
-            'fields': ('wallet', 'transaction_type', 'amount', 'description')
+            'fields': ('user', 'transaction_type', 'amount', 'description')
         }),
         ('Related', {
             'fields': ('related_bid',)
@@ -83,3 +59,7 @@ class AdminWalletAdmin(ModelAdmin):
     search_fields = ['balance']
     readonly_fields = ['balance']
     list_per_page = 20
+
+@admin.register(UserWallet)
+class UserWalletAdmin(ModelAdmin):
+    list_display = ['user', 'balance']

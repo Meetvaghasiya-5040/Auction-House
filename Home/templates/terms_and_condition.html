@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Karla:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -81,6 +83,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -91,12 +94,35 @@
             animation: fadeInUp 0.8s ease-out forwards;
         }
 
-        .stagger-1 { animation-delay: 0.1s; opacity: 0; }
-        .stagger-2 { animation-delay: 0.2s; opacity: 0; }
-        .stagger-3 { animation-delay: 0.3s; opacity: 0; }
-        .stagger-4 { animation-delay: 0.4s; opacity: 0; }
-        .stagger-5 { animation-delay: 0.5s; opacity: 0; }
-        .stagger-6 { animation-delay: 0.6s; opacity: 0; }
+        .stagger-1 {
+            animation-delay: 0.1s;
+            opacity: 0;
+        }
+
+        .stagger-2 {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .stagger-3 {
+            animation-delay: 0.3s;
+            opacity: 0;
+        }
+
+        .stagger-4 {
+            animation-delay: 0.4s;
+            opacity: 0;
+        }
+
+        .stagger-5 {
+            animation-delay: 0.5s;
+            opacity: 0;
+        }
+
+        .stagger-6 {
+            animation-delay: 0.6s;
+            opacity: 0;
+        }
 
         .decorative-line {
             height: 2px;
@@ -153,6 +179,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Scroll Progress Indicator -->
     <div class="scroll-indicator" id="scrollProgress"></div>
@@ -169,10 +196,13 @@
                     Please read these terms carefully before using our auction services
                 </p>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'home' %}" class="contact-badge inline-block px-6 py-2 rounded-full mt-6 text-sm">Explore Auctions</a>
+                <a href="{% url 'home' %}"
+                    class="contact-badge inline-block px-6 py-2 rounded-full mt-6 text-sm">Explore Auctions</a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="contact-badge inline-block px-6 py-2 rounded-full mt-6 text-sm">Login</a>
-                    <a href="{% url 'register' %}" class="contact-badge inline-block px-6 py-2 rounded-full mt-6 text-sm">Register</a>
+                <a href="{% url 'login' %}"
+                    class="contact-badge inline-block px-6 py-2 rounded-full mt-6 text-sm">Login</a>
+                <a href="{% url 'register' %}"
+                    class="contact-badge inline-block px-6 py-2 rounded-full mt-6 text-sm">Register</a>
                 {% endif %}
             </div>
         </div>
@@ -180,48 +210,48 @@
 
     <!-- Main Content -->
     <main class="max-w-5xl mx-auto px-6 md:px-8 py-12 md:py-16">
-        
+
         <!-- Introduction -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8 animate-fadeInUp stagger-1">
             <h2 class="section-title text-3xl font-bold mb-6">Welcome to Auction House</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-                Welcome! These Terms and Conditions explain how to use the Auction House platform. By using our 
-                services, you agree to follow these rules. Please read them carefully before participating in any auctions.
+                Welcome! These Terms and Conditions explain how to use the Auction House platform. By using our
+                services, you agree to follow these rules. Please read them carefully before participating in any
+                auctions.
             </p>
             <p class="text-gray-700 leading-relaxed">
-                Auction House is an online platform connecting buyers and sellers for auction-based transactions. 
+                Auction House is an online platform connecting buyers and sellers for auction-based transactions.
                 We operate within India and all transactions are in Indian Rupees (₹).
             </p>
         </section>
 
-        <!-- Wallet & Bidding Requirements -->
+        <!-- Security Deposit & Bidding Requirements -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8 animate-fadeInUp stagger-2">
-            <h2 class="section-title text-3xl font-bold mb-6">Wallet & Bidding Requirements</h2>
-            
+            <h2 class="section-title text-3xl font-bold mb-6">Security Deposit & Bidding Requirements</h2>
+
             <div class="highlight-box rounded-xl p-6 mb-6">
-                <h3 class="font-semibold text-xl mb-3 text-gray-800">Mandatory Wallet Balance</h3>
+                <h3 class="font-semibold text-xl mb-3 text-gray-800">Mandatory Security Deposit</h3>
                 <p class="text-gray-700 leading-relaxed">
-                    All users must maintain sufficient funds in their Auction House wallet before placing any bid. 
-                    Bids placed without adequate wallet balance will be automatically rejected by the system.
+                    All users must have an active Security Deposit before placing any bid.
+                    This ensures a committed and secure bidding environment for all participants.
                 </p>
             </div>
 
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>Fund Blocking:</strong> When you win an auction, the winning bid amount is immediately 
-                    blocked (reserved) in your wallet. These funds cannot be withdrawn or used for other bids until 
-                    the transaction is completed or cancelled.
+                    <strong>Payment Methods:</strong> We accept payments through Razorpay, which supports UPI,
+                    Net Banking, Debit/Credit Cards, and popular Digital Wallets in India.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Fund Release to Seller:</strong> Blocked funds are released to the seller only after 
-                    successful delivery of the lot to your registered address and confirmation of receipt.
+                    <strong>Winning an Auction:</strong> When you win an auction, you must complete the final payment
+                    via Razorpay within the specified timeframe.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Wallet Top-Up:</strong> You may add funds to your wallet through our approved payment 
-                    methods including UPI, Net Banking, Debit/Credit Cards, and other methods accepted in India.
+                    <strong>Deposit Refund:</strong> Security deposits are managed according to platform policy,
+                    typically ensuring that winners complete their transactions responsibly.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Bid Increments:</strong> Minimum bid increments vary by lot value and will be clearly 
+                    <strong>Bid Increments:</strong> Minimum bid increments vary by lot value and will be clearly
                     displayed during auction participation.
                 </div>
             </div>
@@ -230,13 +260,13 @@
         <!-- Delivery & Shipping -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8 animate-fadeInUp stagger-3">
             <h2 class="section-title text-3xl font-bold mb-6">Delivery & Shipping Terms</h2>
-            
+
             <div class="highlight-box rounded-xl p-6 mb-6">
                 <h3 class="font-semibold text-xl mb-3 text-gray-800">Mandatory Address Registration</h3>
                 <p class="text-gray-700 leading-relaxed">
-                    All users must enter and maintain a complete, accurate delivery address in their profile. 
-                    This information is essential for our delivery partners to ensure smooth and timely delivery 
-                    of auction items. Incomplete or incorrect addresses may result in delivery failures and 
+                    All users must enter and maintain a complete, accurate delivery address in their profile.
+                    This information is essential for our delivery partners to ensure smooth and timely delivery
+                    of auction items. Incomplete or incorrect addresses may result in delivery failures and
                     additional charges.
                 </p>
             </div>
@@ -254,19 +284,22 @@
                         <tr>
                             <td class="px-6 py-4 border-b font-semibold text-gray-800">Shared Charges</td>
                             <td class="px-6 py-4 border-b text-gray-700">
-                                Courier and shipping charges are shared equally between the buyer and seller (50%-50% split)
+                                Courier and shipping charges are shared equally between the buyer and seller (50%-50%
+                                split)
                             </td>
                         </tr>
                         <tr>
                             <td class="px-6 py-4 border-b font-semibold text-gray-800">Calculation</td>
                             <td class="px-6 py-4 border-b text-gray-700">
-                                Actual courier charges are calculated based on weight, dimensions, and destination pincode
+                                Actual courier charges are calculated based on weight, dimensions, and destination
+                                pincode
                             </td>
                         </tr>
                         <tr>
                             <td class="px-6 py-4 font-semibold text-gray-800">Deduction</td>
                             <td class="px-6 py-4 text-gray-700">
-                                Seller's share is deducted from their payout; buyer's share is deducted from wallet balance
+                                Seller's share is deducted from their payout; buyer's share is paid during final
+                                checkout
                             </td>
                         </tr>
                     </tbody>
@@ -275,15 +308,16 @@
 
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>Delivery Timeline:</strong> Standard delivery within India typically takes 5-10 business days 
+                    <strong>Delivery Timeline:</strong> Standard delivery within India typically takes 5-10 business
+                    days
                     from the date of auction closure, depending on location and courier availability.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Tracking Information:</strong> Both buyer and seller receive tracking details once the lot 
+                    <strong>Tracking Information:</strong> Both buyer and seller receive tracking details once the lot
                     is dispatched by our delivery partners.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Inspection Rights:</strong> Buyers have the right to inspect items upon delivery before 
+                    <strong>Inspection Rights:</strong> Buyers have the right to inspect items upon delivery before
                     accepting. Any discrepancies must be reported immediately to our support team.
                 </div>
             </div>
@@ -292,22 +326,22 @@
         <!-- Account Registration -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8 animate-fadeInUp stagger-4">
             <h2 class="section-title text-3xl font-bold mb-6">Account Registration</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>Create Your Account:</strong> Sign up with your email address and create a secure password 
+                    <strong>Create Your Account:</strong> Sign up with your email address and create a secure password
                     to start using Auction House.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Provide Accurate Information:</strong> Make sure your name, email, phone number, and 
+                    <strong>Provide Accurate Information:</strong> Make sure your name, email, phone number, and
                     delivery address are correct so we can process your orders smoothly.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Keep Your Account Safe:</strong> Don't share your password with anyone. You're responsible 
+                    <strong>Keep Your Account Safe:</strong> Don't share your password with anyone. You're responsible
                     for all activities that happen on your account.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>One Account Per Person:</strong> Please create only one account. Multiple accounts are 
+                    <strong>One Account Per Person:</strong> Please create only one account. Multiple accounts are
                     not allowed.
                 </div>
             </div>
@@ -316,25 +350,25 @@
         <!-- Auction Participation -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8 animate-fadeInUp stagger-5">
             <h2 class="section-title text-3xl font-bold mb-6">How Auctions Work</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>Bids Are Final:</strong> When you place a bid, you're committing to buy the item if you win. 
+                    <strong>Bids Are Final:</strong> When you place a bid, you're committing to buy the item if you win.
                     Make sure you really want the item before bidding!
                 </div>
                 <div class="list-item text-gray-700">
                     <strong>Can't Cancel Bids:</strong> Once you place a bid, you can't take it back. Bid carefully!
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Highest Bidder Wins:</strong> When the auction timer ends, the person with the highest 
+                    <strong>Highest Bidder Wins:</strong> When the auction timer ends, the person with the highest
                     bid wins the item.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Auto-Extension:</strong> If someone bids in the last few minutes, the auction may extend 
+                    <strong>Auto-Extension:</strong> If someone bids in the last few minutes, the auction may extend
                     by 2-5 minutes to give everyone a fair chance.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Fair Play:</strong> Don't bid on your own items or use fake accounts to increase prices. 
+                    <strong>Fair Play:</strong> Don't bid on your own items or use fake accounts to increase prices.
                     This will get you banned.
                 </div>
             </div>
@@ -343,22 +377,22 @@
         <!-- Payment Terms -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8 animate-fadeInUp stagger-6">
             <h2 class="section-title text-3xl font-bold mb-6">Payment & Fees</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
                     <strong>Currency:</strong> All payments are in Indian Rupees (₹) only.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Platform Fees:</strong> A small service fee may be charged on successful transactions. 
+                    <strong>Platform Fees:</strong> A small service fee may be charged on successful transactions.
                     This will be shown clearly before you complete your purchase.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Payment Processing:</strong> Sellers receive their money within 24-48 hours after the 
+                    <strong>Payment Processing:</strong> Sellers receive their money within 24-48 hours after the
                     buyer confirms delivery.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Refunds:</strong> If an auction is cancelled or there's a problem with delivery, refunds 
-                    are processed back to your wallet within 5-7 days.
+                    <strong>Refunds:</strong> If an auction is cancelled or there's a problem with delivery, refunds
+                    are processed according to our reversal policy within 5-7 business days.
                 </div>
             </div>
         </section>
@@ -366,25 +400,25 @@
         <!-- Seller Obligations -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">Rules for Sellers</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>Honest Descriptions:</strong> Describe your items accurately. Include any defects, 
+                    <strong>Honest Descriptions:</strong> Describe your items accurately. Include any defects,
                     damages, or issues. Be truthful!
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Good Photos:</strong> Upload at least 5 clear photos showing your item from different 
+                    <strong>Good Photos:</strong> Upload at least 5 clear photos showing your item from different
                     angles. Make sure the photos show what the item really looks like.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Ship on Time:</strong> Ship the item within 3 days after the auction ends. Pack it 
+                    <strong>Ship on Time:</strong> Ship the item within 3 days after the auction ends. Pack it
                     carefully so it doesn't get damaged during delivery.
                 </div>
                 <div class="list-item text-gray-700">
                     <strong>No Prohibited Items:</strong> Don't sell illegal items, fake products, or dangerous goods.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Safe Packaging:</strong> Wrap items properly to prevent damage during shipping. You're 
+                    <strong>Safe Packaging:</strong> Wrap items properly to prevent damage during shipping. You're
                     responsible if items break due to poor packaging.
                 </div>
             </div>
@@ -393,22 +427,22 @@
         <!-- Buyer Obligations -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">Rules for Buyers</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>Pay After Winning:</strong> If you win an auction, you must complete the payment. 
+                    <strong>Pay After Winning:</strong> If you win an auction, you must complete the payment.
                     Not paying can get your account suspended.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Be Available for Delivery:</strong> Make sure someone is available at your registered 
+                    <strong>Be Available for Delivery:</strong> Make sure someone is available at your registered
                     address to receive the package.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Check Items Quickly:</strong> Inspect your item as soon as you receive it. If something 
+                    <strong>Check Items Quickly:</strong> Inspect your item as soon as you receive it. If something
                     is wrong, report it within 48 hours with photos.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Bid Responsibly:</strong> Only bid on items you actually want to buy. Don't waste 
+                    <strong>Bid Responsibly:</strong> Only bid on items you actually want to buy. Don't waste
                     sellers' time with fake bids.
                 </div>
             </div>
@@ -417,22 +451,22 @@
         <!-- Dispute Resolution -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">If There's a Problem</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>We're Here to Help:</strong> If you have an issue with a buyer or seller, contact our 
+                    <strong>We're Here to Help:</strong> If you have an issue with a buyer or seller, contact our
                     support team. We'll investigate and help resolve the problem fairly.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Resolution Time:</strong> Most issues are resolved within 7-14 days depending on 
+                    <strong>Resolution Time:</strong> Most issues are resolved within 7-14 days depending on
                     how complex the problem is.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Provide Evidence:</strong> Share photos, messages, and any other proof that helps 
+                    <strong>Provide Evidence:</strong> Share photos, messages, and any other proof that helps
                     explain your situation.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Our Decision:</strong> After reviewing all evidence, we'll make a fair decision. 
+                    <strong>Our Decision:</strong> After reviewing all evidence, we'll make a fair decision.
                     Both parties must accept our decision.
                 </div>
             </div>
@@ -441,22 +475,22 @@
         <!-- Platform Role -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">Important Things to Know</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>We Connect People:</strong> Auction House is a platform that connects buyers and sellers. 
+                    <strong>We Connect People:</strong> Auction House is a platform that connects buyers and sellers.
                     We don't own or verify the items being sold - that's the seller's responsibility.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Check Before You Buy:</strong> Always read item descriptions carefully and ask questions 
+                    <strong>Check Before You Buy:</strong> Always read item descriptions carefully and ask questions
                     before bidding. We're not responsible if an item doesn't match your expectations.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Delivery Partners:</strong> We work with reliable courier services, but we can't control 
+                    <strong>Delivery Partners:</strong> We work with reliable courier services, but we can't control
                     delays due to weather, strikes, or other unexpected events.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Use Safely:</strong> Keep your account secure and don't share sensitive information 
+                    <strong>Use Safely:</strong> Keep your account secure and don't share sensitive information
                     with anyone claiming to be from Auction House.
                 </div>
             </div>
@@ -465,22 +499,22 @@
         <!-- Privacy & Data Protection -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">Your Privacy Matters</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>What We Collect:</strong> We collect your name, email, phone number, address, and 
+                    <strong>What We Collect:</strong> We collect your name, email, phone number, address, and
                     payment information to process your orders and deliver items.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>How We Use It:</strong> Your information is used only for auctions, payments, delivery, 
+                    <strong>How We Use It:</strong> Your information is used only for auctions, payments, delivery,
                     and customer support. We don't spam you or sell your data to others.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Keep It Safe:</strong> We use security measures to protect your personal information 
+                    <strong>Keep It Safe:</strong> We use security measures to protect your personal information
                     from unauthorized access.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Who We Share With:</strong> We only share your delivery address with courier partners 
+                    <strong>Who We Share With:</strong> We only share your delivery address with courier partners
                     and payment info with payment processors - no one else.
                 </div>
             </div>
@@ -489,23 +523,23 @@
         <!-- Account Rules -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">Account Rules</h2>
-            
+
             <div class="space-y-4">
                 <div class="list-item text-gray-700">
-                    <strong>Follow the Rules:</strong> If you break these terms or try to cheat the system, 
+                    <strong>Follow the Rules:</strong> If you break these terms or try to cheat the system,
                     we may suspend or close your account.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Warnings First:</strong> For minor issues, we'll usually give you a warning first. 
+                    <strong>Warnings First:</strong> For minor issues, we'll usually give you a warning first.
                     Serious violations lead to immediate suspension.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Contact Us:</strong> If your account is suspended and you think it's a mistake, 
+                    <strong>Contact Us:</strong> If your account is suspended and you think it's a mistake,
                     contact our support team to explain your situation.
                 </div>
                 <div class="list-item text-gray-700">
-                    <strong>Your Money:</strong> If your account is closed, we'll complete any pending orders 
-                    and refund your remaining wallet balance.
+                    <strong>Your Money:</strong> If your account is closed, we'll complete any pending orders
+                    and return any eligible funds to your primary bank account or source.
                 </div>
             </div>
         </section>
@@ -513,13 +547,13 @@
         <!-- Changes to Terms -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">Changes to These Terms</h2>
-            
+
             <p class="text-gray-700 leading-relaxed mb-4">
-                We may update these terms from time to time. If we make big changes, we'll let you know by email 
+                We may update these terms from time to time. If we make big changes, we'll let you know by email
                 or with a notice on the website.
             </p>
             <p class="text-gray-700 leading-relaxed">
-                By continuing to use Auction House after we update the terms, you agree to the new terms. 
+                By continuing to use Auction House after we update the terms, you agree to the new terms.
                 Check this page occasionally to stay informed!
             </p>
         </section>
@@ -527,7 +561,7 @@
         <!-- Contact Information -->
         <section class="card rounded-2xl p-8 md:p-10 mb-8">
             <h2 class="section-title text-3xl font-bold mb-6">Contact Information</h2>
-            
+
             <p class="text-gray-700 leading-relaxed mb-6">
                 For questions, concerns, or support regarding these Terms or our services, please contact us:
             </p>
@@ -539,7 +573,7 @@
                         auctionhouse110@gmail.com
                     </a>
                 </div>
-                
+
                 <div class="contact-badge rounded-xl p-6 text-center">
                     <div class="text-sm uppercase tracking-wider mb-2 opacity-90">Phone Support</div>
                     <a href="tel:+919173739080" class="text-lg font-semibold hover:underline">
@@ -559,9 +593,9 @@
         <!-- Acknowledgment -->
         <section class="card rounded-2xl p-8 md:p-10 mb-12 bg-gradient-to-br from-amber-50 to-white">
             <h2 class="section-title text-3xl font-bold mb-6">Thanks for Reading!</h2>
-            
+
             <p class="text-gray-700 leading-relaxed mb-4">
-                By using Auction House, you agree to follow these terms and conditions. We've tried to make them 
+                By using Auction House, you agree to follow these terms and conditions. We've tried to make them
                 as clear and simple as possible!
             </p>
             <p class="text-gray-700 leading-relaxed font-medium">
@@ -624,4 +658,5 @@
         });
     </script>
 </body>
+
 </html>

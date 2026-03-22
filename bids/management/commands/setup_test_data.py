@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
-from bids.models import Wallet
+from bids.models import SecurityDeposit
 from auction_list.models import Auction, Lot, Catagory, Item
 
 class Command(BaseCommand):
@@ -27,20 +27,16 @@ class Command(BaseCommand):
         for user in [admin, bidder1, bidder2]:
             try:
                 if hasattr(user, 'profile'):
-                    # Manually set a hashed PIN '1234'
-                    # Since we don't have easy access to the exact hashing method used in views aside from check_password,
-                    # we'll assume Django's default hasher is compatible or just set it if we can.
-                    # Bids/views.py uses check_password, so we should store it hashed.
                     from django.contrib.auth.hashers import make_password
                     user.profile.transaction_pin = make_password('1234')
                     user.profile.save()
             except Exception as e:
                 self.stdout.write(self.style.WARNING(f"Could not set PIN for {user.username}: {e}"))
 
-        # 3. Wallets
-        Wallet.objects.update_or_create(user=bidder1, defaults={'balance': Decimal('10000.00')})
-        Wallet.objects.update_or_create(user=bidder2, defaults={'balance': Decimal('5000.00')})
-        Wallet.objects.update_or_create(user=admin, defaults={'balance': Decimal('100000.00')})
+        # 3. Security Deposits (Replacing Wallets)
+        SecurityDeposit.objects.update_or_create(user=bidder1, defaults={'status': 'active', 'amount': Decimal('10000.00')})
+        SecurityDeposit.objects.update_or_create(user=bidder2, defaults={'status': 'active', 'amount': Decimal('10000.00')})
+        SecurityDeposit.objects.update_or_create(user=admin, defaults={'status': 'active', 'amount': Decimal('10000.00')})
 
         # 4. Auction
         cat, _ = Catagory.objects.get_or_create(name="Browser Test Category")

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Account Suspended | EasyBid{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden text-center transform transition-all">
+        <!-- Header -->
+        <div class="bg-red-500 p-8 text-white relative overflow-hidden">
+            <!-- Decorative Background Pattern -->
+            <div class="absolute inset-0 opacity-20 bg-[url('{% static "images/pattern-dots.png" %}')] bg-repeat">
+            </div>
+
+            <div class="relative z-10">
+                <div
+                    class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white">
+                    <i class="fas fa-ban text-4xl"></i>
+                </div>
+                <h1 class="text-3xl font-black uppercase tracking-wider mb-2">Account Suspended</h1>
+                <p class="text-red-100 font-medium">Your access has been temporarily restricted.</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">What happened?</h2>
+            <p class="text-slate-600 mb-6 leading-relaxed">
+                Your account was suspended by an administrator. While suspended, you cannot access your profile, place
+                bids, or add new items.
+            </p>
+
+            <div class="bg-amber-50 rounded-xl p-4 border border-amber-200 mb-8 flex items-start gap-4 text-left">
+                <i class="fas fa-info-circle text-amber-500 text-xl mt-0.5"></i>
+                <div class="text-sm">
+                    <p class="text-amber-800 font-bold mb-1">What to do next?</p>
+                    <p class="text-amber-700">Please wait for the administrator to review and reactivate your account.
+                        Contact support if you need immediate assistance.</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col gap-3">
+                <a href="mailto:support@auctionhouse.com"
+                    class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center gap-2">
+                    <i class="fas fa-envelope"></i> Contact Support
+                </a>
+
+                <a href="{% url 'logout' %}"
+                    class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 px-4 rounded-xl transition duration-300 flex justify-center items-center gap-2 border border-red-200">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,468 @@
+{% extends 'admin_panel/admin_base.html' %}
+{% load static %}
+
+{% block title %}Delivery Management{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div class="mb-4 space-y-2">
+    {% for msg in messages %}
+    <div
+        class="flex items-center p-4 rounded-xl border {% if msg.tags == 'error' %}bg-rose-50 border-rose-200 text-rose-800{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
+        <i
+            class="fas {% if msg.tags == 'error' %}fa-circle-xmark text-rose-500{% else %}fa-circle-check text-emerald-500{% endif %} mr-3 text-lg"></i>
+        <span class="text-sm font-medium">{{ msg }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Delivery Management</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Complete OTP-based pickup & delivery pipeline</p>
+    </div>
+    <a href="{% url 'admin_panel:invoices' %}"
+        class="inline-flex items-center bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold hover:border-indigo-300 hover:text-indigo-600 transition-colors shadow-sm">
+        <i class="fas fa-file-invoice-dollar mr-2 text-indigo-500"></i> View Invoices
+    </a>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-orange-200 shadow-sm p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0"><i
+                class="fas fa-box-open"></i></div>
+        <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Awaiting Pickup</p>
+            <p class="text-2xl font-bold text-slate-900">{{ stat.pending_pickup }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-blue-200 shadow-sm p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i
+                class="fas fa-truck-moving"></i></div>
+        <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Picked Up</p>
+            <p class="text-2xl font-bold text-slate-900">{{ stat.picked_up }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-violet-200 shadow-sm p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shrink-0"><i
+                class="fas fa-truck"></i></div>
+        <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">To Deliver</p>
+            <p class="text-2xl font-bold text-slate-900">{{ stat.lots_to_deliver }}</p>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl border border-emerald-200 shadow-sm p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i
+                class="fas fa-box-check"></i></div>
+        <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Delivered</p>
+            <p class="text-2xl font-bold text-slate-900">{{ stat.delivered }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="mb-1">
+    <div class="flex border-b border-slate-200 gap-1">
+        <button onclick="switchTab('tab-pickup', this)"
+            class="tab-btn active px-5 py-3 text-sm font-semibold border-b-2 border-orange-500 text-orange-600">
+            <i class="fas fa-box-open mr-2"></i>Pending Pickup
+            {% if stat.pending_pickup %}<span
+                class="ml-1.5 bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ stat.pending_pickup }}</span>{% endif %}
+        </button>
+        <button onclick="switchTab('tab-warehouse', this)"
+            class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+            <i class="fas fa-warehouse mr-2"></i>→ Warehouse
+            {% if stat.picked_up %}<span
+                class="ml-1.5 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ stat.picked_up }}</span>{% endif %}
+        </button>
+        <button onclick="switchTab('tab-deliver', this)"
+            class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+            <i class="fas fa-truck mr-2"></i>Deliver to Buyer
+            {% if stat.lots_to_deliver %}<span
+                class="ml-1.5 bg-violet-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ stat.lots_to_deliver }}</span>{% endif %}
+        </button>
+        <button onclick="switchTab('tab-history', this)"
+            class="tab-btn px-5 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+            <i class="fas fa-history mr-2"></i>History
+        </button>
+    </div>
+</div>
+
+<!-- ==================== TAB 1: PENDING PICKUP ==================== -->
+<div id="tab-pickup" class="tab-panel">
+    <div class="bg-white border border-slate-200 rounded-b-xl rounded-tr-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 bg-orange-50 border-b border-orange-100">
+            <h3 class="font-bold text-orange-800 text-sm"><i class="fas fa-key mr-2"></i>Step 1: Enter Seller OTP →
+                Confirm Pickup</h3>
+            <p class="text-xs text-orange-600 mt-0.5">Admin picks up the item from the seller. Enter the OTP the seller
+                received via email.</p>
+        </div>
+        {% if items_pending_pickup %}
+        <div class="divide-y divide-slate-100">
+            {% for item in items_pending_pickup %}
+            <div class="p-5">
+                <div class="flex flex-col md:flex-row md:items-center gap-4">
+                    <!-- Item Info -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        {% if item.images %}
+                        <img src="{{ item.images.0 }}"
+                            class="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0">
+                        {% else %}
+                        <div
+                            class="w-14 h-14 bg-orange-50 rounded-xl flex items-center justify-center border border-orange-200 shrink-0">
+                            <i class="fas fa-cube text-orange-400 text-xl"></i>
+                        </div>
+                        {% endif %}
+                        <div class="min-w-0">
+                            <p class="font-bold text-slate-900 text-sm truncate">{{ item.title }}</p>
+                            <p class="text-xs text-slate-500"><i class="fas fa-user mr-1"></i>Seller: <span
+                                    class="font-medium">{{ item.owner.username }}</span></p>
+                            <p class="text-xs text-slate-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>{{ item.owner.profile.city|default:"—" }}, {{ item.owner.profile.state|default:"—" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- OTP Display (shown to admin for reference) -->
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5 text-center shrink-0">
+                        <p class="text-[10px] font-bold text-orange-500 uppercase tracking-wider mb-1">Seller will give
+                            OTP</p>
+                        <p class="text-xs text-slate-400">Enter it below ↓</p>
+                    </div>
+
+                    <!-- OTP Form -->
+                    <form method="POST" action="{% url 'admin_panel:verify_pickup_otp' item.id %}"
+                        class="flex flex-wrap gap-2 items-end shrink-0">
+                        {% csrf_token %}
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Courier
+                                Cost (₹)</label>
+                            <div class="relative">
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
+                                <input type="number" step="0.01" name="courier_cost" placeholder="0.00"
+                                    class="pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:border-orange-400 focus:ring-1 focus:ring-orange-100 outline-none w-28"
+                                    required>
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Seller
+                                OTP</label>
+                            <input type="text" name="otp" placeholder="Enter OTP"
+                                class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-mono tracking-widest focus:border-orange-400 focus:ring-1 focus:ring-orange-100 outline-none w-28"
+                                maxlength="8" required>
+                        </div>
+                        <button type="submit"
+                            class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-600 transition-colors flex items-center gap-2 shadow-sm shadow-orange-200">
+                            <i class="fas fa-hand-holding-box"></i> Pickup
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center py-16 text-slate-400">
+            <i class="fas fa-box-open text-5xl mb-3"></i>
+            <p class="font-semibold">No items pending pickup</p>
+            <p class="text-sm mt-1">All items have been picked up or there are no active submissions.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ==================== TAB 2: PICKED UP → WAREHOUSE ==================== -->
+<div id="tab-warehouse" class="tab-panel hidden">
+    <div class="bg-white border border-slate-200 rounded-b-xl rounded-tr-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 bg-blue-50 border-b border-blue-100">
+            <h3 class="font-bold text-blue-800 text-sm"><i class="fas fa-warehouse mr-2"></i>Step 2: Admin at Warehouse
+                → Mark Item Arrived</h3>
+            <p class="text-xs text-blue-600 mt-0.5">Click "Mark Arrived" once the item has physically arrived at the
+                warehouse. No OTP required.</p>
+        </div>
+        {% if items_picked_up %}
+        <div class="divide-y divide-slate-100">
+            {% for item in items_picked_up %}
+            <div class="p-5">
+                <div class="flex flex-col md:flex-row md:items-center gap-4">
+                    <!-- Item Info -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        {% if item.images %}
+                        <img src="{{ item.images.0 }}"
+                            class="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0">
+                        {% else %}
+                        <div
+                            class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-200 shrink-0">
+                            <i class="fas fa-truck-moving text-blue-400 text-xl"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <p class="font-bold text-slate-900 text-sm">{{ item.title }}</p>
+                            <p class="text-xs text-slate-500"><i class="fas fa-user mr-1"></i>Seller: <span
+                                    class="font-medium">{{ item.owner.username }}</span></p>
+                            <span
+                                class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">
+                                <i class="fas fa-truck-moving"></i> In Transit to Warehouse
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Action -->
+                    <form method="POST" action="{% url 'admin_panel:mark_at_warehouse' item.id %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors flex items-center gap-2 shadow-sm shadow-emerald-200">
+                            <i class="fas fa-warehouse"></i> Mark Arrived at Warehouse
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center py-16 text-slate-400">
+            <i class="fas fa-warehouse text-5xl mb-3"></i>
+            <p class="font-semibold">No items in transit</p>
+            <p class="text-sm mt-1">Pick up items first from the "Pending Pickup" tab.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ==================== TAB 3: DELIVER TO BUYER ==================== -->
+<div id="tab-deliver" class="tab-panel hidden">
+    <div class="bg-white border border-slate-200 rounded-b-xl rounded-tr-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 bg-violet-50 border-b border-violet-100">
+            <h3 class="font-bold text-violet-800 text-sm"><i class="fas fa-key mr-2"></i>Step 3: Enter Buyer OTP →
+                Confirm Delivery</h3>
+            <p class="text-xs text-violet-600 mt-0.5">Admin delivers lot to the buyer. Enter the OTP the buyer received
+                in their winner email.</p>
+        </div>
+        {% if lots_to_deliver %}
+        <div class="divide-y divide-slate-100">
+            {% for lot in lots_to_deliver %}
+            <div class="p-5">
+                <div class="flex flex-col md:flex-row md:items-center gap-4">
+                    <!-- Lot Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-violet-100 text-violet-700 text-xs font-bold px-2.5 py-0.5 rounded-full">Lot
+                                #{{ lot.lot_number }}</span>
+                            {% if lot.delivery %}
+                            <span class="text-[10px] font-semibold text-slate-500">{{ lot.delivery.get_status_display}}</span>
+                            {% endif %}
+                        </div>
+                        <p class="font-bold text-slate-900 text-sm truncate">{{ lot.title }}</p>
+                        <p class="text-xs text-slate-500 mt-0.5"><i
+                                class="fas fa-trophy mr-1 text-amber-400"></i>Winner: <span class="font-medium">{{ lot.winning_bidder.username }}</span> — {{ lot.winning_bidder.email }}</p>
+                    </div>
+
+                    <!-- OTP reference box -->
+                    {% if lot.delivery %}
+                    <div class="bg-violet-50 border border-violet-200 rounded-xl px-4 py-2.5 text-center shrink-0">
+                        <p class="text-[10px] font-bold text-violet-500 uppercase tracking-wider mb-1">Delivery OTP</p>
+                        <p class="text-lg font-bold tracking-[0.3em] text-slate-900 font-mono">{{lot.delivery.verification_code }}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Buyer was emailed this OTP</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Delivery OTP Form -->
+                    {% if lot.delivery and lot.delivery.status != 'delivered' %}
+                    <form method="POST" action="{% url 'admin_panel:verify_delivery_otp' lot.id %}"
+                        class="flex flex-wrap gap-2 items-end shrink-0">
+                        {% csrf_token %}
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Delivery
+                                Cost (₹)</label>
+                            <div class="relative">
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">₹</span>
+                                <input type="number" step="0.01" name="delivery_cost" placeholder="0.00"
+                                    class="pl-6 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:border-violet-400 focus:ring-1 focus:ring-violet-100 outline-none w-28"
+                                    required>
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Buyer
+                                OTP</label>
+                            <input type="text" name="otp" placeholder="Enter OTP"
+                                class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-mono tracking-widest focus:border-violet-400 focus:ring-1 focus:ring-violet-100 outline-none w-28"
+                                maxlength="8" required>
+                        </div>
+                        <button type="submit"
+                            class="bg-violet-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-violet-700 transition-colors flex items-center gap-2 shadow-sm shadow-violet-200">
+                            <i class="fas fa-check-double"></i> Deliver
+                        </button>
+                    </form>
+                    {% elif lot.delivery and lot.delivery.status == 'delivered' %}
+                    <span
+                        class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold">
+                        <i class="fas fa-check-double"></i> Delivered on {{ lot.delivery.delivered_at|date:"M d, Y" }}
+                    </span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center gap-2 bg-slate-100 text-slate-500 px-4 py-2 rounded-xl text-sm font-medium">
+                        <i class="fas fa-exclamation-triangle"></i> No delivery record
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center py-16 text-slate-400">
+            <i class="fas fa-truck text-5xl mb-3"></i>
+            <p class="font-semibold">No lots awaiting delivery</p>
+            <p class="text-sm mt-1">Lots become eligible here once a buyer completes payment.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ==================== TAB 4: HISTORY ==================== -->
+<div id="tab-history" class="tab-panel hidden">
+    <div class="space-y-6">
+        <!-- Completed Deliveries -->
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 bg-emerald-50/70 border-b border-emerald-100 flex items-center gap-3">
+                <i class="fas fa-check-circle text-emerald-500"></i>
+                <h3 class="font-bold text-slate-800 text-sm">Completed Deliveries (Last 50)</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Lot</th>
+                            <th class="px-4 py-3 font-semibold">Winner / Buyer</th>
+                            <th class="px-4 py-3 font-semibold">Location</th>
+                            <th class="px-4 py-3 font-semibold">Delivered At</th>
+                            <th class="px-4 py-3 font-semibold">Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for lot in completed_deliveries %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-3">
+                                <p class="font-bold text-slate-800">#{{ lot.lot_number }}</p>
+                                <p class="text-xs text-slate-500 line-clamp-1">{{ lot.title }}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="font-semibold text-slate-700">{{ lot.winning_bidder.username }}</p>
+                                <p class="text-xs text-slate-500">{{ lot.winning_bidder.email }}</p>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-slate-500">
+                                {{ lot.winning_bidder.profile.city|default:"—" }},
+                                {{ lot.winning_bidder.profile.state|default:"—" }}
+                            </td>
+                            <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">
+                                {{ lot.delivery.delivered_at|date:"M d, Y H:i"|default:"—" }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="font-semibold text-emerald-600">₹{{ lot.shipping_fee }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-4 py-12 text-center text-slate-400 italic">No completed deliveries
+                                yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Completed Pickups -->
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="px-6 py-4 bg-blue-50/70 border-b border-blue-100 flex items-center gap-3">
+                <i class="fas fa-box text-blue-500"></i>
+                <h3 class="font-bold text-slate-800 text-sm">Completed Pickups (Last 50)</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Item</th>
+                            <th class="px-4 py-3 font-semibold">Seller</th>
+                            <th class="px-4 py-3 font-semibold">Origin</th>
+                            <th class="px-4 py-3 font-semibold">Pickup Status</th>
+                            <th class="px-4 py-3 font-semibold">Shipping Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for item in completed_pickups %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-3">
+                                <p class="font-bold text-slate-800">{{ item.title }}</p>
+                                <p class="text-xs text-slate-500">ID: {{ item.id }}</p>
+                            </td>
+                            <td class="px-4 py-3">
+                                <p class="font-semibold text-slate-700">{{ item.owner.username }}</p>
+                                <p class="text-xs text-slate-500">{{ item.owner.email }}</p>
+                            </td>
+                            <td class="px-4 py-3 text-xs text-slate-500">
+                                {{ item.owner.profile.city|default:"—" }},
+                                {{ item.owner.profile.state|default:"—" }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <span
+                                    class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                                    <i class="fas fa-check-circle"></i> {{ item.get_pickup_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="font-semibold text-emerald-600">₹{{ item.shipping_fee }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-4 py-12 text-center text-slate-400 italic">No completed pickups
+                                yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Tab switching
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('border-orange-500', 'border-blue-500', 'border-violet-500', 'border-emerald-500', 'text-orange-600', 'text-blue-600', 'text-violet-600', 'text-emerald-600');
+            b.classList.add('border-transparent', 'text-slate-500');
+        });
+        document.getElementById(tabId).classList.remove('hidden');
+        btn.classList.remove('border-transparent', 'text-slate-500');
+
+        // Color coding by tab
+        const colorMap = {
+            'tab-pickup': ['border-orange-500', 'text-orange-600'],
+            'tab-warehouse': ['border-blue-500', 'text-blue-600'],
+            'tab-deliver': ['border-violet-500', 'text-violet-600'],
+            'tab-history': ['border-emerald-500', 'text-emerald-600'],
+        };
+        (colorMap[tabId] || []).forEach(cls => btn.classList.add(cls));
+    }
+
+    // Form submit loading state
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function () {
+            const btn = this.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+            }
+        });
+    });
+</script>
+{% endblock %}
